@@ -75,13 +75,15 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
 
           <div className="flex flex-wrap justify-center gap-3 mt-12">
             {result.quickLinks.slice(0, 5).map((link, index) => (
-              <button 
+              <a 
                 key={index} 
-                onClick={() => onSearch(link)}
+                href={link.uri}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-gray-100 text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-gray-200 transition-colors"
               >
-                {link}
-              </button>
+                {link.title}
+              </a>
             ))}
           </div>
         </div>
