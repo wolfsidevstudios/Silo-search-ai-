@@ -20,6 +20,13 @@ const themes: { [key in ClockSettings['theme']]: { dark: string; light: string }
   mono: { dark: 'text-black', light: 'text-gray-400' },
 };
 
+const fontClasses: { [key in ClockSettings['font']]: string } = {
+  fredoka: 'clock-font-fredoka',
+  serif: 'clock-font-serif',
+  mono: 'clock-font-mono',
+};
+
+
 interface ClockProps {
   settings: ClockSettings;
 }
@@ -65,21 +72,23 @@ export const Clock: React.FC<ClockProps> = ({ settings }) => {
   });
 
   const colorClasses = themes[settings.theme] || themes.classic;
-  
+  const fontClass = fontClasses[settings.font] || fontClasses.fredoka;
+  const containerStyle = { fontSize: `${settings.size}rem` };
+
   const digitColors = [colorClasses.dark, colorClasses.light, colorClasses.light, colorClasses.dark];
 
   const horizontalClock = (
-    <div className="flex items-center clock-font">
+    <div className={`flex items-center ${fontClass}`} style={containerStyle}>
       <span className={`${digitColors[0]} clock-digit`}>{hours[0]}</span>
       <span className={`${digitColors[1]} clock-digit`}>{hours[1]}</span>
-      <span className={`${colorClasses.dark} clock-digit mx-[-0.1em] self-start mt-[0.2em] text-8xl`}>:</span>
+      <span className={`${colorClasses.dark} clock-digit mx-[-0.1em] self-start mt-[0.2em] text-[0.6em]`}>:</span>
       <span className={`${digitColors[2]} clock-digit`}>{minutes[0]}</span>
       <span className={`${digitColors[3]} clock-digit`}>{minutes[1]}</span>
     </div>
   );
 
   const stackedClock = (
-     <div className="flex flex-col items-center clock-font leading-[0.8]">
+     <div className={`flex flex-col items-center leading-[0.8] ${fontClass}`} style={containerStyle}>
       <div className="flex">
         <span className={`${digitColors[0]} clock-digit`}>{hours[0]}</span>
         <span className={`${digitColors[1]} clock-digit`}>{hours[1]}</span>

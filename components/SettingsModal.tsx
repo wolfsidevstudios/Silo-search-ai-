@@ -83,6 +83,12 @@ const clockThemes = [
   { id: 'mono', name: 'Mono', darkClass: 'bg-black', lightClass: 'bg-gray-400' },
 ];
 
+const clockFonts = [
+    { id: 'fredoka', name: 'Bubbly', className: "font-['Fredoka_One']" },
+    { id: 'serif', name: 'Serif', className: "font-['Roboto_Slab']" },
+    { id: 'mono', name: 'Mono', className: "font-['Roboto_Mono']" },
+];
+
 const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => (
     <button onClick={onClick} className={`p-2 rounded-lg border-2 w-full text-left ${isSelected ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'}`}>
         <div className="flex items-center space-x-2">
@@ -108,6 +114,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
     onClockSettingsChange(localClockSettings);
+    onIsClockVisibleChange(isClockVisible); // Ensure visibility state is also saved
     onClose();
   };
 
@@ -288,6 +295,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                                 ))}
                             </div>
                         </div>
+
+                        <div>
+                            <h4 className="font-medium text-gray-800 mb-3">Font</h4>
+                            <div className="grid grid-cols-3 gap-4">
+                                {clockFonts.map(font => (
+                                    <button
+                                        key={font.id}
+                                        onClick={() => setLocalClockSettings(s => ({ ...s, font: font.id as ClockSettings['font'] }))}
+                                        className={`p-4 border rounded-lg text-center transition-colors text-lg ${font.className} ${localClockSettings.font === font.id ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        {font.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 className="font-medium text-gray-800 mb-3">Size</h4>
+                            <div className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50/50">
+                                <input 
+                                    type="range"
+                                    min="8" max="14" step="0.5"
+                                    value={localClockSettings.size}
+                                    onChange={(e) => setLocalClockSettings(s => ({ ...s, size: parseFloat(e.target.value) }))}
+                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                                <span className="font-mono text-sm text-gray-600 w-20 text-right">{localClockSettings.size.toFixed(1)}rem</span>
+                            </div>
+                        </div>
+
                     </section>
                 ) : activeItemData && 'placeholder' in activeItemData ? (
                 <section className="space-y-6">

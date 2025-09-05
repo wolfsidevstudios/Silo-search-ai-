@@ -57,14 +57,16 @@ const App: React.FC = () => {
   const [clockSettings, setClockSettings] = useState<ClockSettings>(() => {
     try {
         const item = window.localStorage.getItem('clockSettings');
-        const parsed = item ? JSON.parse(item) : null;
-        if (parsed && typeof parsed === 'object' && 'style' in parsed && 'theme' in parsed) {
-            return parsed;
-        }
-        return { style: 'horizontal', theme: 'classic' };
+        const parsed = item ? JSON.parse(item) : {};
+        return { 
+            style: parsed.style || 'horizontal', 
+            theme: parsed.theme || 'classic',
+            font: parsed.font || 'fredoka',
+            size: parsed.size || 10,
+        };
     } catch (error) {
         console.error("Could not parse clockSettings from localStorage", error);
-        return { style: 'horizontal', theme: 'classic' };
+        return { style: 'horizontal', theme: 'classic', font: 'fredoka', size: 10 };
     }
   });
 
