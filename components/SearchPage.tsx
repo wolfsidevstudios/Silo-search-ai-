@@ -31,6 +31,7 @@ interface SearchPageProps {
   isGsiScriptLoaded: boolean;
   temperatureUnit: TemperatureUnit;
   searchInputSettings: SearchInputSettings;
+  speechLanguage: 'en-US' | 'es-ES';
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -55,6 +56,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   isGsiScriptLoaded,
   temperatureUnit,
   searchInputSettings,
+  speechLanguage,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -137,7 +139,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             Silo Search
           </h1>
           <div className="w-full max-w-2xl">
-            <SearchInput onSearch={onSearch} initialValue="How to make a great cup of coffee?" isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} />
+            <SearchInput onSearch={onSearch} initialValue="How to make a great cup of coffee?" isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} />
           </div>
         </main>
       </div>

@@ -22,9 +22,10 @@ interface ResultsPageProps {
   onLogout: () => void;
   isGsiScriptLoaded: boolean;
   searchInputSettings: SearchInputSettings;
+  speechLanguage: 'en-US' | 'es-ES';
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, isGsiScriptLoaded, searchInputSettings }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, isGsiScriptLoaded, searchInputSettings, speechLanguage }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
@@ -108,7 +109,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
 
       <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm">
         <div className="max-w-xl mx-auto">
-          <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} />
+          <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} />
         </div>
       </footer>
     </div>

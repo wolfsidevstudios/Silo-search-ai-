@@ -26,6 +26,7 @@ interface JwtPayload {
 }
 
 type View = 'search' | 'results' | 'loading' | 'error';
+type SpeechLanguage = 'en-US' | 'es-ES';
 
 const MAX_RECENT_SEARCHES = 15;
 
@@ -172,10 +173,11 @@ const App: React.FC = () => {
             size: parsed.size || 10,
             thickness: parsed.thickness || 3,
             animation: parsed.animation || 'none',
+            format: parsed.format || '12h',
         };
     } catch (error) {
         console.error("Could not parse clockSettings from localStorage", error);
-        return { style: 'horizontal', theme: 'classic', font: 'fredoka', size: 10, thickness: 3, animation: 'none' };
+        return { style: 'horizontal', theme: 'classic', font: 'fredoka', size: 10, thickness: 3, animation: 'none', format: '12h' };
     }
   });
 
@@ -186,6 +188,16 @@ const App: React.FC = () => {
     } catch (error) {
         console.error("Could not parse temperatureUnit from localStorage", error);
         return 'fahrenheit';
+    }
+  });
+  
+  const [speechLanguage, setSpeechLanguage] = useState<SpeechLanguage>(() => {
+    try {
+        const item = window.localStorage.getItem('speechLanguage');
+        return item === 'es-ES' ? 'es-ES' : 'en-US';
+    } catch (error) {
+        console.error("Could not parse speechLanguage from localStorage", error);
+        return 'en-US';
     }
   });
 
@@ -259,6 +271,14 @@ const App: React.FC = () => {
         console.error("Could not save temperatureUnit to localStorage", error);
     }
   }, [temperatureUnit]);
+  
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('speechLanguage', speechLanguage);
+    } catch (error) {
+        console.error("Could not save speechLanguage to localStorage", error);
+    }
+  }, [speechLanguage]);
 
   useEffect(() => {
     try {
@@ -557,6 +577,7 @@ const App: React.FC = () => {
         isWidgetEditMode: isWidgetEditMode, 
         onExitWidgetEditMode: () => setWidgetEditMode(false),
         searchInputSettings: searchInputSettings,
+        speechLanguage: speechLanguage,
         ...commonProps
     };
 
@@ -567,7 +588,7 @@ const App: React.FC = () => {
         return <ErrorState message={error} onRetry={() => handleSearch(currentQuery)} onHome={handleGoHome} />;
       case 'results':
         if (searchResult) {
-          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} {...commonProps} />;
+          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} {...commonProps} />;
         }
         return <SearchPage {...searchPageProps} />;
       case 'search':
@@ -609,6 +630,8 @@ const App: React.FC = () => {
         onClockSettingsChange={setClockSettings}
         temperatureUnit={temperatureUnit}
         onTemperatureUnitChange={setTemperatureUnit}
+        speechLanguage={speechLanguage}
+        onSpeechLanguageChange={setSpeechLanguage}
         onAddSticker={handleAddSticker}
         onClearStickers={handleClearStickers}
         onEnterStickerEditMode={handleEnterStickerEditMode}

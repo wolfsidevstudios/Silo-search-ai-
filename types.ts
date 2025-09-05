@@ -34,6 +34,7 @@ export interface ClockSettings {
   size: number; // in rem
   thickness: number; // in px
   animation: 'none' | 'pulse' | 'float';
+  format: '12h' | '24h';
 }
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';

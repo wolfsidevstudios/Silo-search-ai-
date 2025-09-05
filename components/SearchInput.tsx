@@ -59,9 +59,10 @@ interface SearchInputProps {
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
+  speechLanguage: 'en-US' | 'es-ES';
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -76,7 +77,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     const recognition = new SpeechRecognitionAPI();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    recognition.lang = speechLanguage;
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -104,7 +105,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     return () => {
       recognition.stop();
     };
-  }, []);
+  }, [speechLanguage]);
 
   const handleMicClick = () => {
     if (!recognitionRef.current) return;

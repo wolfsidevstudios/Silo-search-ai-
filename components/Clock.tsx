@@ -99,8 +99,20 @@ export const Clock: React.FC<ClockProps> = ({ settings, temperatureUnit }) => {
     );
   }, [temperatureUnit]);
 
-  const hours = time.getHours().toString().padStart(2, '0');
   const minutes = time.getMinutes().toString().padStart(2, '0');
+  const hours24 = time.getHours();
+
+  let displayHours: string;
+  let ampm: string | null = null;
+
+  if (settings.format === '12h') {
+      ampm = hours24 >= 12 ? 'PM' : 'AM';
+      let hours12 = hours24 % 12;
+      hours12 = hours12 ? hours12 : 12; // Convert 0 to 12
+      displayHours = hours12.toString().padStart(2, '0');
+  } else {
+      displayHours = hours24.toString().padStart(2, '0');
+  }
 
   const dateString = time.toLocaleDateString(undefined, {
     weekday: 'short',
@@ -125,24 +137,28 @@ export const Clock: React.FC<ClockProps> = ({ settings, temperatureUnit }) => {
 
   const horizontalClock = (
     <div className={`flex items-center ${fontClass}`} style={containerStyle}>
-      <span className={`${digitColors[0]} clock-digit`} style={digitStyle}>{hours[0]}</span>
-      <span className={`${digitColors[1]} clock-digit`} style={digitStyle}>{hours[1]}</span>
+      <span className={`${digitColors[0]} clock-digit`} style={digitStyle}>{displayHours[0]}</span>
+      <span className={`${digitColors[1]} clock-digit`} style={digitStyle}>{displayHours[1]}</span>
       <span className={`${colorClasses.dark} clock-digit mx-[-0.1em] self-start mt-[0.2em] text-[0.6em]`} style={digitStyle}>:</span>
       <span className={`${digitColors[2]} clock-digit`} style={digitStyle}>{minutes[0]}</span>
       <span className={`${digitColors[3]} clock-digit`} style={digitStyle}>{minutes[1]}</span>
+      {ampm && <span className={`${colorClasses.dark} text-[0.25em] font-semibold ml-[0.1em] self-end mb-[0.15em]`}>{ampm}</span>}
     </div>
   );
 
   const stackedClock = (
      <div className={`flex flex-col items-center leading-[0.8] ${fontClass}`} style={containerStyle}>
-      <div className="flex">
-        <span className={`${digitColors[0]} clock-digit`} style={digitStyle}>{hours[0]}</span>
-        <span className={`${digitColors[1]} clock-digit`} style={digitStyle}>{hours[1]}</span>
-      </div>
-      <div className="flex">
-        <span className={`${digitColors[2]} clock-digit`} style={digitStyle}>{minutes[0]}</span>
-        <span className={`${digitColors[3]} clock-digit`} style={digitStyle}>{minutes[1]}</span>
-      </div>
+        <div className="flex items-baseline">
+            <div className="flex">
+                <span className={`${digitColors[0]} clock-digit`} style={digitStyle}>{displayHours[0]}</span>
+                <span className={`${digitColors[1]} clock-digit`} style={digitStyle}>{displayHours[1]}</span>
+            </div>
+            {ampm && <span className={`${colorClasses.dark} text-[0.25em] font-semibold ml-[0.1em] self-end mb-[0.15em]`}>{ampm}</span>}
+        </div>
+        <div className="flex">
+            <span className={`${digitColors[2]} clock-digit`} style={digitStyle}>{minutes[0]}</span>
+            <span className={`${digitColors[3]} clock-digit`} style={digitStyle}>{minutes[1]}</span>
+        </div>
     </div>
   );
   

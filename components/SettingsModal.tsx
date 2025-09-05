@@ -32,6 +32,7 @@ import { FileTextIcon } from './icons/FileTextIcon';
 import { HelpCircleIcon } from './icons/HelpCircleIcon';
 import { UploadCloudIcon } from './icons/UploadCloudIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { LanguagesIcon } from './icons/LanguagesIcon';
 
 
 interface SettingsModalProps {
@@ -50,6 +51,8 @@ interface SettingsModalProps {
   onClockSettingsChange: (settings: ClockSettings) => void;
   temperatureUnit: TemperatureUnit;
   onTemperatureUnitChange: (unit: TemperatureUnit) => void;
+  speechLanguage: 'en-US' | 'es-ES';
+  onSpeechLanguageChange: (lang: 'en-US' | 'es-ES') => void;
   onAddSticker: (stickerId: string) => void;
   onClearStickers: () => void;
   onEnterStickerEditMode: () => void;
@@ -172,6 +175,7 @@ const AI_PROVIDERS = [
 const navSections = {
   "Configuration": [
      { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
+     { id: 'speech-language', name: 'Speech Language', Icon: LanguagesIcon },
   ],
   "Appearance": [
     { id: 'clock', name: 'Clock Display', Icon: ClockIcon, },
@@ -208,10 +212,30 @@ const wallpapers = {
     { name: 'Minty', class: 'theme-gradient-3' },
     { name: 'Ocean', class: 'theme-gradient-4' },
     { name: 'Sunset', class: 'theme-gradient-5' },
+    { name: 'Azure', class: 'theme-gradient-6' },
+    { name: 'Sundance', class: 'theme-gradient-7' },
+    { name: 'Spearmint', class: 'theme-gradient-8' },
+    { name: 'Sorbet', class: 'theme-gradient-9' },
+    { name: 'Meadow', class: 'theme-gradient-10' },
+    { name: 'Graphite', class: 'theme-gradient-11' },
+    { name: 'Sky', class: 'theme-gradient-12' },
+    { name: 'Citrus', class: 'theme-gradient-13' },
+    { name: 'Amethyst', class: 'theme-gradient-14' },
+    { name: 'Lullaby', class: 'theme-gradient-15' },
   ],
   Animated: [
     { name: 'Aurora', class: 'theme-animated-1' },
     { name: 'Nebula', class: 'theme-animated-2' },
+    { name: 'Vaporwave', class: 'theme-animated-3' },
+    { name: 'Lemonade', class: 'theme-animated-4' },
+    { name: 'Instagram', class: 'theme-animated-5' },
+    { name: 'Night Sky', class: 'theme-animated-6' },
+    { name: 'Blush', class: 'theme-animated-7' },
+    { name: 'Flare', class: 'theme-animated-8' },
+    { name: 'Rose', class: 'theme-animated-9' },
+    { name: 'Cloudy Sky', class: 'theme-animated-10' },
+    { name: 'Morning', class: 'theme-animated-11' },
+    { name: 'Jungle', class: 'theme-animated-12' },
   ]
 };
 
@@ -285,7 +309,7 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange }) => {
   const [activeSection, setActiveSection] = useState('api-keys');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
@@ -293,6 +317,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
   const [localTheme, setLocalTheme] = useState(currentTheme);
   const [localCustomWallpaper, setLocalCustomWallpaper] = useState(customWallpaper);
   const [localTemperatureUnit, setLocalTemperatureUnit] = useState(temperatureUnit);
+  const [localSpeechLanguage, setLocalSpeechLanguage] = useState(speechLanguage);
   const [localSearchInputSettings, setLocalSearchInputSettings] = useState(searchInputSettings);
   const [stickerSearch, setStickerSearch] = useState('');
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
@@ -308,10 +333,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         setLocalTheme(currentTheme);
         setLocalCustomWallpaper(customWallpaper);
         setLocalTemperatureUnit(temperatureUnit);
+        setLocalSpeechLanguage(speechLanguage);
         setLocalSearchInputSettings(searchInputSettings);
         setStickerSearch('');
     }
-  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme, customWallpaper, temperatureUnit, searchInputSettings]);
+  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme, customWallpaper, temperatureUnit, speechLanguage, searchInputSettings]);
   
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
@@ -320,6 +346,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     onThemeChange(localTheme);
     onCustomWallpaperChange(localCustomWallpaper);
     onTemperatureUnitChange(localTemperatureUnit);
+    onSpeechLanguageChange(localSpeechLanguage);
     onSearchInputSettingsChange(localSearchInputSettings);
     onClose();
   };
@@ -485,6 +512,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                     />
                                 </div>
                             ))}
+                        </div>
+                    </section>
+                ) : activeSection === 'speech-language' ? (
+                    <section>
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-gray-800">Speech Language</h3>
+                            <p className="mt-2 text-gray-600">
+                                Choose the language for voice search input.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                onClick={() => setLocalSpeechLanguage('en-US')}
+                                className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'en-US' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                            >
+                                English (US)
+                            </button>
+                            <button
+                                onClick={() => setLocalSpeechLanguage('es-ES')}
+                                className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'es-ES' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                            >
+                                Español (España)
+                            </button>
                         </div>
                     </section>
                 ) : activeSection === 'delete-data' ? (
@@ -667,6 +717,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 >
                                     <span className={`${localIsClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
                                 </button>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Time Format</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => setLocalClockSettings(s => ({ ...s, format: '12h' }))}
+                                        className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.format === '12h' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        12-Hour
+                                    </button>
+                                    <button
+                                        onClick={() => setLocalClockSettings(s => ({ ...s, format: '24h' }))}
+                                        className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.format === '24h' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        24-Hour
+                                    </button>
+                                </div>
                             </div>
                              <div>
                                 <h4 className="font-medium text-gray-800 mb-3">Weather Unit</h4>
