@@ -1,4 +1,3 @@
-
 export interface QuickLink {
   title: string;
   uri: string;
@@ -30,8 +29,8 @@ export interface StickerInstance {
 
 export interface ClockSettings {
   style: 'horizontal' | 'stacked' | 'diagonal';
-  theme: 'classic' | 'mint' | 'peach' | 'mono' | 'ocean' | 'sunset' | 'forest' | 'neon' | 'candy' | 'liquid-glass';
-  font: 'fredoka' | 'serif' | 'mono' | 'pacifico' | 'bungee' | 'press-start' | 'caveat';
+  theme: 'classic' | 'mint' | 'peach' | 'mono' | 'ocean' | 'sunset' | 'forest' | 'neon' | 'candy' | 'liquid-glass' | 'espresso' | 'cherry' | 'lavender' | 'gold' | 'ruby' | 'sapphire' | 'emerald' | 'graphite' | 'coral' | 'sky';
+  font: 'fredoka' | 'serif' | 'mono' | 'pacifico' | 'bungee' | 'press-start' | 'caveat' | 'lobster' | 'anton' | 'oswald' | 'playfair' | 'orbitron' | 'vt323' | 'bebas' | 'dancing' | 'satisfy' | 'elite';
   size: number; // in rem
   thickness: number; // in px
   animation: 'none' | 'pulse' | 'float';
@@ -53,4 +52,9 @@ export interface UserProfile {
   name: string;
   email: string;
   picture: string;
+}
+
+export interface SearchInputSettings {
+  isLarge: boolean;
+  isGlossy: boolean;
 }

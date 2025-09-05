@@ -16,7 +16,7 @@ import { KeyIcon } from './icons/KeyIcon';
 import { AlertTriangleIcon } from './icons/AlertTriangleIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
-import type { ClockSettings, CustomSticker, WidgetType, TemperatureUnit } from '../types';
+import type { ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
 import { CohereIcon } from './icons/CohereIcon';
 import { MistralIcon } from './icons/MistralIcon';
@@ -58,6 +58,8 @@ interface SettingsModalProps {
   onAddWidget: (widgetType: WidgetType) => void;
   onClearWidgets: () => void;
   onEnterWidgetEditMode: () => void;
+  searchInputSettings: SearchInputSettings;
+  onSearchInputSettingsChange: (settings: SearchInputSettings) => void;
 }
 
 const AI_PROVIDERS = [
@@ -174,6 +176,7 @@ const navSections = {
   "Appearance": [
     { id: 'clock', name: 'Clock Display', Icon: ClockIcon, },
     { id: 'wallpaper', name: 'Wallpaper', Icon: WallpaperIcon, },
+    { id: 'search-box', name: 'Search Box', Icon: SearchIcon },
     { id: 'stickers', name: 'Stickers', Icon: StickerIcon, },
     { id: 'widgets', name: 'Widgets', Icon: WidgetIcon, },
   ],
@@ -223,6 +226,16 @@ const clockThemes = [
   { id: 'neon', name: 'Neon', darkClass: 'bg-pink-500', lightClass: 'bg-cyan-300' },
   { id: 'candy', name: 'Candy', darkClass: 'bg-red-500', lightClass: 'bg-yellow-300' },
   { id: 'liquid-glass', name: 'Liquid Glass', darkClass: 'bg-gray-400/30 border border-white/20', lightClass: 'bg-gray-100/30 border border-white/20' },
+  { id: 'espresso', name: 'Espresso', darkClass: 'bg-[#4a2c2a]', lightClass: 'bg-[#f5e8d7]' },
+  { id: 'cherry', name: 'Cherry', darkClass: 'bg-[#b24a69]', lightClass: 'bg-[#ffd1e2]' },
+  { id: 'lavender', name: 'Lavender', darkClass: 'bg-[#6a5acd]', lightClass: 'bg-[#e6e6fa]' },
+  { id: 'gold', name: 'Gold', darkClass: 'bg-[#b1740f]', lightClass: 'bg-[#fde488]' },
+  { id: 'ruby', name: 'Ruby', darkClass: 'bg-[#8b0000]', lightClass: 'bg-[#ffc0cb]' },
+  { id: 'sapphire', name: 'Sapphire', darkClass: 'bg-[#0f52ba]', lightClass: 'bg-[#add8e6]' },
+  { id: 'emerald', name: 'Emerald', darkClass: 'bg-[#006400]', lightClass: 'bg-[#98ff98]' },
+  { id: 'graphite', name: 'Graphite', darkClass: 'bg-[#36454f]', lightClass: 'bg-[#d3d3d3]' },
+  { id: 'coral', name: 'Coral', darkClass: 'bg-[#ff4500]', lightClass: 'bg-[#ffdab9]' },
+  { id: 'sky', name: 'Sky', darkClass: 'bg-[#55a0d3]', lightClass: 'bg-[#c6f1ff]' },
 ];
 
 const clockFonts = [
@@ -233,6 +246,16 @@ const clockFonts = [
     { id: 'bungee', name: 'Blocky', className: "font-['Bungee']" },
     { id: 'press-start', name: 'Pixel', className: "font-['Press_Start_2P'] text-xs" },
     { id: 'caveat', name: 'Handwriting', className: "font-['Caveat'] text-2xl" },
+    { id: 'lobster', name: 'Lobster', className: "font-['Lobster']" },
+    { id: 'anton', name: 'Anton', className: "font-['Anton']" },
+    { id: 'oswald', name: 'Oswald', className: "font-['Oswald']" },
+    { id: 'playfair', name: 'Playfair', className: "font-['Playfair_Display']" },
+    { id: 'orbitron', name: 'Orbitron', className: "font-['Orbitron']" },
+    { id: 'vt323', name: 'VT323', className: "font-['VT323'] text-2xl" },
+    { id: 'bebas', name: 'Bebas', className: "font-['Bebas_Neue']" },
+    { id: 'dancing', name: 'Dancing', className: "font-['Dancing_Script'] text-2xl" },
+    { id: 'satisfy', name: 'Satisfy', className: "font-['Satisfy'] text-xl" },
+    { id: 'elite', name: 'Typewriter', className: "font-['Special_Elite'] text-lg" },
 ];
 
 const WallpaperSwatch: React.FC<{ themeClass: string; isSelected: boolean; onClick: () => void; }> = ({ themeClass, isSelected, onClick }) => (
@@ -262,7 +285,7 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange }) => {
   const [activeSection, setActiveSection] = useState('api-keys');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
@@ -270,6 +293,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
   const [localTheme, setLocalTheme] = useState(currentTheme);
   const [localCustomWallpaper, setLocalCustomWallpaper] = useState(customWallpaper);
   const [localTemperatureUnit, setLocalTemperatureUnit] = useState(temperatureUnit);
+  const [localSearchInputSettings, setLocalSearchInputSettings] = useState(searchInputSettings);
   const [stickerSearch, setStickerSearch] = useState('');
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
   const wallpaperFileInputRef = useRef<HTMLInputElement>(null);
@@ -284,9 +308,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         setLocalTheme(currentTheme);
         setLocalCustomWallpaper(customWallpaper);
         setLocalTemperatureUnit(temperatureUnit);
+        setLocalSearchInputSettings(searchInputSettings);
         setStickerSearch('');
     }
-  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme, customWallpaper, temperatureUnit]);
+  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme, customWallpaper, temperatureUnit, searchInputSettings]);
   
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
@@ -295,6 +320,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     onThemeChange(localTheme);
     onCustomWallpaperChange(localCustomWallpaper);
     onTemperatureUnitChange(localTemperatureUnit);
+    onSearchInputSettingsChange(localSearchInputSettings);
     onClose();
   };
 
@@ -820,6 +846,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                             ))}
                         </div>
                     </section>
+                ) : activeSection === 'search-box' ? (
+                    <section>
+                      <div className="mb-8">
+                          <h3 className="text-2xl font-bold text-gray-800">Search Box Customization</h3>
+                          <p className="mt-2 text-gray-600">
+                              Adjust the appearance of the main search input.
+                          </p>
+                      </div>
+                      <div className="space-y-6">
+                          <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
+                              <label htmlFor="large-search-toggle" className="font-medium text-gray-700">Large Size</label>
+                              <button
+                                  id="large-search-toggle"
+                                  role="switch"
+                                  aria-checked={localSearchInputSettings.isLarge}
+                                  onClick={() => setLocalSearchInputSettings(s => ({ ...s, isLarge: !s.isLarge }))}
+                                  className={`${localSearchInputSettings.isLarge ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}
+                              >
+                                  <span className={`${localSearchInputSettings.isLarge ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
+                              </button>
+                          </div>
+                          <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
+                              <label htmlFor="glossy-search-toggle" className="font-medium text-gray-700">Transparent Glossy Style</label>
+                              <button
+                                  id="glossy-search-toggle"
+                                  role="switch"
+                                  aria-checked={localSearchInputSettings.isGlossy}
+                                  onClick={() => setLocalSearchInputSettings(s => ({ ...s, isGlossy: !s.isGlossy }))}
+                                  className={`${localSearchInputSettings.isGlossy ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}
+                              >
+                                  <span className={`${localSearchInputSettings.isGlossy ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
+                              </button>
+                          </div>
+                      </div>
+                    </section>
                 ) : activeSection === 'stickers' ? (
                     <section>
                         <input
@@ -838,7 +899,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                         </div>
                          <div className="relative mb-4">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                <SearchIcon />
+                                <SearchIcon className="text-gray-400"/>
                             </div>
                             <input
                                 type="text"

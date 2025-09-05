@@ -1,6 +1,6 @@
 
 import React from 'react';
-import type { SearchResult, UserProfile } from '../types';
+import type { SearchResult, UserProfile, SearchInputSettings } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { RedoIcon } from './icons/RedoIcon';
@@ -21,9 +21,10 @@ interface ResultsPageProps {
   userProfile: UserProfile | null;
   onLogout: () => void;
   isGsiScriptLoaded: boolean;
+  searchInputSettings: SearchInputSettings;
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, isGsiScriptLoaded }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, isGsiScriptLoaded, searchInputSettings }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
@@ -107,7 +108,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
 
       <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm">
         <div className="max-w-xl mx-auto">
-          <SearchInput onSearch={onSearch} />
+          <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} />
         </div>
       </footer>
     </div>

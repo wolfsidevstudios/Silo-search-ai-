@@ -24,6 +24,16 @@ const themes: { [key in ClockSettings['theme']]: { dark: string; light: string }
   neon: { dark: 'text-pink-500', light: 'text-cyan-300' },
   candy: { dark: 'text-red-500', light: 'text-yellow-300' },
   'liquid-glass': { dark: 'text-white/90', light: 'text-white/70' },
+  espresso: { dark: 'text-[#4a2c2a]', light: 'text-[#f5e8d7]' },
+  cherry: { dark: 'text-[#b24a69]', light: 'text-[#ffd1e2]' },
+  lavender: { dark: 'text-[#6a5acd]', light: 'text-[#e6e6fa]' },
+  gold: { dark: 'text-[#b1740f]', light: 'text-[#fde488]' },
+  ruby: { dark: 'text-[#8b0000]', light: 'text-[#ffc0cb]' },
+  sapphire: { dark: 'text-[#0f52ba]', light: 'text-[#add8e6]' },
+  emerald: { dark: 'text-[#006400]', light: 'text-[#98ff98]' },
+  graphite: { dark: 'text-[#36454f]', light: 'text-[#d3d3d3]' },
+  coral: { dark: 'text-[#ff4500]', light: 'text-[#ffdab9]' },
+  sky: { dark: 'text-[#55a0d3]', light: 'text-[#c6f1ff]' },
 };
 
 const fontClasses: { [key in ClockSettings['font']]: string } = {
@@ -34,6 +44,16 @@ const fontClasses: { [key in ClockSettings['font']]: string } = {
   bungee: 'clock-font-bungee',
   'press-start': 'clock-font-press-start',
   caveat: 'clock-font-caveat',
+  lobster: 'clock-font-lobster',
+  anton: 'clock-font-anton',
+  oswald: 'clock-font-oswald',
+  playfair: 'clock-font-playfair',
+  orbitron: 'clock-font-orbitron',
+  vt323: 'clock-font-vt323',
+  bebas: 'clock-font-bebas',
+  dancing: 'clock-font-dancing',
+  satisfy: 'clock-font-satisfy',
+  elite: 'clock-font-elite',
 };
 
 const animationClasses: { [key in ClockSettings['animation']]: string } = {

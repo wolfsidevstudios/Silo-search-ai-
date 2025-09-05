@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -56,10 +57,11 @@ declare const window: CustomWindow;
 interface SearchInputProps {
   onSearch: (query: string) => void;
   initialValue?: string;
-  large?: boolean;
+  isLarge?: boolean;
+  isGlossy?: boolean;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', large = false }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -124,44 +126,62 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
   const hasRecognitionSupport = !!recognitionRef.current;
 
-  const containerClasses = large 
-    ? "p-2 pl-6 rounded-full shadow-lg" 
-    : "p-1 pl-4 rounded-full border border-gray-200";
+  const containerClasses = [
+    'flex items-center w-full transition-shadow duration-300 focus-within:shadow-xl',
+    isLarge ? 'p-2 pl-6 rounded-full shadow-lg' : 'p-1 pl-4 rounded-full',
+    isGlossy 
+      ? 'bg-white/20 backdrop-blur-md border border-white/30'
+      : 'bg-white border border-gray-200'
+  ].join(' ');
     
-  const inputClasses = large 
-    ? "text-lg" 
-    : "text-base";
+  const inputClasses = [
+    'w-full h-full px-4 bg-transparent outline-none border-none',
+    isLarge ? 'text-lg' : 'text-base',
+    isGlossy ? 'text-white placeholder-white/70' : ''
+  ].join(' ');
 
-  const buttonClasses = large
-    ? "w-12 h-12"
-    : "w-9 h-9";
+  const buttonClasses = isLarge ? 'w-12 h-12' : 'w-9 h-9';
+  
+  const micButtonClasses = [
+    'flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-2',
+    buttonClasses,
+    isListening 
+      ? (isGlossy ? 'bg-red-500/50 text-white animate-pulse' : 'bg-red-100 text-red-500 animate-pulse')
+      : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')
+  ].join(' ');
+  
+  const submitButtonClasses = [
+      'flex-shrink-0 flex items-center justify-center rounded-full transition-colors',
+      buttonClasses,
+      isGlossy ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-black text-white hover:bg-gray-800'
+  ].join(' ');
 
   return (
     <form
       onSubmit={handleSubmit}
-      className={`flex items-center w-full bg-white transition-shadow duration-300 focus-within:shadow-xl ${containerClasses}`}
+      className={containerClasses}
     >
-      <SearchIcon />
+      <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Ask anything..."
-        className={`w-full h-full px-4 bg-transparent outline-none border-none ${inputClasses}`}
+        className={inputClasses}
       />
       {hasRecognitionSupport && (
         <button
             type="button"
             onClick={handleMicClick}
-            className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-2 ${buttonClasses} ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'hover:bg-gray-100 text-gray-600'}`}
+            className={micButtonClasses}
             aria-label={isListening ? 'Stop listening' : 'Start voice search'}
         >
-            <MicrophoneIcon className={`${isListening ? 'text-red-500' : 'text-gray-600'}`} />
+            <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} />
         </button>
       )}
       <button
         type="submit"
-        className={`flex-shrink-0 flex items-center justify-center bg-black text-white rounded-full hover:bg-gray-800 transition-colors ${buttonClasses}`}
+        className={submitButtonClasses}
       >
         <ArrowRightIcon />
       </button>

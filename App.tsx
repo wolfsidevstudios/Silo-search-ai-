@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -7,7 +8,7 @@ import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { UnpackedModal } from './components/UnpackedModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -198,6 +199,22 @@ const App: React.FC = () => {
     }
   });
 
+  const [searchInputSettings, setSearchInputSettings] = useState<SearchInputSettings>(() => {
+    try {
+      const item = window.localStorage.getItem('searchInputSettings');
+      if (item) {
+        const parsed = JSON.parse(item);
+        return {
+          isLarge: typeof parsed.isLarge === 'boolean' ? parsed.isLarge : true,
+          isGlossy: typeof parsed.isGlossy === 'boolean' ? parsed.isGlossy : false,
+        };
+      }
+    } catch (error) {
+      console.error("Could not parse searchInputSettings from localStorage", error);
+    }
+    return { isLarge: true, isGlossy: false };
+  });
+
   useEffect(() => {
     try {
         window.localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
@@ -274,6 +291,14 @@ const App: React.FC = () => {
       console.error("Could not save API keys to localStorage", error);
     }
   }, [apiKeys]);
+  
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('searchInputSettings', JSON.stringify(searchInputSettings));
+    } catch (error) {
+        console.error("Could not save searchInputSettings to localStorage", error);
+    }
+  }, [searchInputSettings]);
   
   useEffect(() => {
     try {
@@ -531,6 +556,7 @@ const App: React.FC = () => {
         onUpdateWidget: handleUpdateWidget, 
         isWidgetEditMode: isWidgetEditMode, 
         onExitWidgetEditMode: () => setWidgetEditMode(false),
+        searchInputSettings: searchInputSettings,
         ...commonProps
     };
 
@@ -541,7 +567,7 @@ const App: React.FC = () => {
         return <ErrorState message={error} onRetry={() => handleSearch(currentQuery)} onHome={handleGoHome} />;
       case 'results':
         if (searchResult) {
-          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
+          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} {...commonProps} />;
         }
         return <SearchPage {...searchPageProps} />;
       case 'search':
@@ -591,6 +617,8 @@ const App: React.FC = () => {
         onAddWidget={handleAddWidget}
         onClearWidgets={handleClearWidgets}
         onEnterWidgetEditMode={handleEnterWidgetEditMode}
+        searchInputSettings={searchInputSettings}
+        onSearchInputSettingsChange={setSearchInputSettings}
       />
       <ChatModal
         isOpen={isChatModeOpen}
