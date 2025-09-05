@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [initialSettingsSection, setInitialSettingsSection] = useState<string | undefined>();
   const [isTemporaryMode, setTemporaryMode] = useState(false);
+  const [isStickerEditMode, setStickerEditMode] = useState(false);
   
   const [isChatModeOpen, setChatModeOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -248,13 +249,19 @@ const App: React.FC = () => {
     }
   };
   
+  const handleEnterStickerEditMode = () => {
+    setSettingsModalOpen(false);
+    setStickerEditMode(true);
+  }
+
   const handleAddSticker = (stickerId: string) => {
     const newSticker: StickerInstance = {
       id: `sticker-${Date.now()}`,
       stickerId,
-      x: 20 + Math.random() * 60, // Random position in the middle 60%
-      y: 20 + Math.random() * 60,
-      size: 6 + Math.random() * 4, // Random size between 6 and 10 rem
+      // Add sticker near the center so it's easy to find
+      x: 50 + (Math.random() - 0.5) * 10,
+      y: 40 + (Math.random() - 0.5) * 10,
+      size: 8 + Math.random() * 2, // Random size between 8 and 10 rem
     };
     setStickers(prev => [...prev, newSticker]);
   };
@@ -284,10 +291,10 @@ const App: React.FC = () => {
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
         }
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} {...commonProps} />;
       case 'search':
       default:
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} {...commonProps} />;
     }
   };
 
@@ -315,6 +322,7 @@ const App: React.FC = () => {
         onClockSettingsChange={setClockSettings}
         onAddSticker={handleAddSticker}
         onClearStickers={handleClearStickers}
+        onEnterStickerEditMode={handleEnterStickerEditMode}
       />
       <ChatModal
         isOpen={isChatModeOpen}

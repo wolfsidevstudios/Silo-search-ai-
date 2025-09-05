@@ -16,9 +16,23 @@ interface SearchPageProps {
   clockSettings: ClockSettings;
   stickers: StickerInstance[];
   onUpdateSticker: (sticker: StickerInstance) => void;
+  isStickerEditMode: boolean;
+  onExitStickerEditMode: () => void;
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, isClockVisible, clockSettings, stickers, onUpdateSticker }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ 
+  onSearch, 
+  isTemporaryMode, 
+  onToggleSidebar, 
+  onToggleTemporaryMode, 
+  onOpenSettings, 
+  isClockVisible, 
+  clockSettings, 
+  stickers, 
+  onUpdateSticker,
+  isStickerEditMode,
+  onExitStickerEditMode,
+}) => {
   const stickerCanvasRef = useRef<HTMLDivElement>(null);
   
   return (
@@ -30,6 +44,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMod
             sticker={sticker}
             containerRef={stickerCanvasRef}
             onUpdate={onUpdateSticker}
+            isDraggable={isStickerEditMode}
           />
         ))}
       </div>
@@ -56,6 +71,20 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMod
           </div>
         </main>
       </div>
+      {isStickerEditMode && (
+        <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-sm flex flex-col items-center justify-between p-8">
+          <div className="bg-white/90 p-4 rounded-xl shadow-lg text-center max-w-sm">
+            <h3 className="text-xl font-bold text-gray-800">Sticker Preview</h3>
+            <p className="mt-1 text-sm text-gray-600">Drag your stickers to arrange them. Click Done when you're finished.</p>
+          </div>
+          <button 
+            onClick={onExitStickerEditMode}
+            className="bg-black text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-gray-800 transition-transform hover:scale-105"
+          >
+            Done
+          </button>
+        </div>
+      )}
     </div>
   );
 };

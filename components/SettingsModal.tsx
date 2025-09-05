@@ -29,6 +29,7 @@ interface SettingsModalProps {
   onClockSettingsChange: (settings: ClockSettings) => void;
   onAddSticker: (stickerId: string) => void;
   onClearStickers: () => void;
+  onEnterStickerEditMode: () => void;
 }
 
 const navSections = {
@@ -163,7 +164,7 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers, onEnterStickerEditMode }) => {
   const [activeSection, setActiveSection] = useState('gemini');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
@@ -192,6 +193,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     setLocalApiKeys(prev => ({ ...prev, [provider]: value }));
   };
   
+  const handleAddStickerAndEdit = (stickerId: string) => {
+    onAddSticker(stickerId);
+    onEnterStickerEditMode();
+  };
+
   const activeItemData = allNavItems.find(p => p.id === activeSection);
 
 
@@ -455,14 +461,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                         <div className="mb-8">
                             <h3 className="text-2xl font-bold text-gray-800">Stickers</h3>
                             <p className="mt-2 text-gray-600">
-                                Add some flair to your home screen! Click a sticker to add it, then drag it around on the home screen.
+                                Add some flair to your home screen! Click a sticker to add it, then arrange it in the preview.
                             </p>
+                        </div>
+                         <div className="mb-4">
+                             <button
+                                onClick={onEnterStickerEditMode}
+                                className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200"
+                            >
+                                Arrange Stickers
+                            </button>
                         </div>
                         <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
                             {STICKERS.map(sticker => (
                                 <button
                                     key={sticker.id}
-                                    onClick={() => onAddSticker(sticker.id)}
+                                    onClick={() => handleAddStickerAndEdit(sticker.id)}
                                     className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
                                     title={`Add ${sticker.name} sticker`}
                                 >

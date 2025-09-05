@@ -6,9 +6,10 @@ interface DraggableStickerProps {
   sticker: StickerInstance;
   containerRef: React.RefObject<HTMLDivElement>;
   onUpdate: (sticker: StickerInstance) => void;
+  isDraggable: boolean;
 }
 
-export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, containerRef, onUpdate }) => {
+export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, containerRef, onUpdate, isDraggable }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: sticker.x, y: sticker.y });
   const stickerRef = useRef<HTMLDivElement>(null);
@@ -22,15 +23,12 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, con
   if (!StickerComponent) return null;
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!stickerRef.current || !containerRef.current) return;
-    
-    // Prevent drag on anything other than the left mouse button.
-    if (e.button !== 0) return;
+    // Only allow dragging if the sticker is draggable and it's a left-click.
+    if (!isDraggable || !stickerRef.current || !containerRef.current || e.button !== 0) return;
 
     setIsDragging(true);
 
     const stickerRect = stickerRef.current.getBoundingClientRect();
-    const containerRect = containerRef.current.getBoundingClientRect();
     
     // Calculate initial offset from the top-left of the sticker itself
     offsetRef.current = {
@@ -81,7 +79,7 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, con
     <div
       ref={stickerRef}
       onMouseDown={handleMouseDown}
-      className={`absolute cursor-grab ${isDragging ? 'cursor-grabbing z-10' : ''}`}
+      className={`absolute transition-transform duration-200 ease-out ${isDraggable ? 'cursor-grab' : 'cursor-default'} ${isDragging ? 'cursor-grabbing z-10 scale-110' : ''}`}
       style={{
         left: `${position.x}%`,
         top: `${position.y}%`,
