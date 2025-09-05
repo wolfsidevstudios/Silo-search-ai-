@@ -43,6 +43,16 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<string>(() => {
     return window.localStorage.getItem('silo-theme') || 'bg-white';
   });
+
+  const [isClockVisible, setIsClockVisible] = useState<boolean>(() => {
+    try {
+        const item = window.localStorage.getItem('isClockVisible');
+        return item ? JSON.parse(item) : true;
+    } catch (error) {
+        console.error("Could not parse isClockVisible from localStorage", error);
+        return true;
+    }
+  });
   
   const [apiKeys, setApiKeys] = useState<{ [key: string]: string }>(() => {
     try {
@@ -66,6 +76,14 @@ const App: React.FC = () => {
     window.localStorage.setItem('silo-theme', theme);
     document.body.className = theme;
   }, [theme]);
+  
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('isClockVisible', JSON.stringify(isClockVisible));
+    } catch (error) {
+        console.error("Could not save isClockVisible to localStorage", error);
+    }
+  }, [isClockVisible]);
   
   useEffect(() => {
     try {
@@ -193,10 +211,10 @@ const App: React.FC = () => {
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
         }
-        return <SearchPage onSearch={handleSearch} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} {...commonProps} />;
       case 'search':
       default:
-        return <SearchPage onSearch={handleSearch} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} {...commonProps} />;
     }
   };
 
@@ -221,6 +239,8 @@ const App: React.FC = () => {
         onClose={() => setSettingsModalOpen(false)}
         apiKeys={apiKeys}
         onApiKeysChange={setApiKeys}
+        isClockVisible={isClockVisible}
+        onIsClockVisibleChange={setIsClockVisible}
       />
       <ChatModal
         isOpen={isChatModeOpen}

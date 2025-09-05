@@ -6,6 +6,7 @@ import { AnthropicIcon } from './icons/AnthropicIcon';
 import { InfoIcon } from './icons/InfoIcon';
 import { PrivacyIcon } from './icons/PrivacyIcon';
 import { ReleaseNotesIcon } from './icons/ReleaseNotesIcon';
+import { ClockIcon } from './icons/ClockIcon';
 
 
 interface SettingsModalProps {
@@ -13,6 +14,8 @@ interface SettingsModalProps {
   onClose: () => void;
   apiKeys: { [key: string]: string };
   onApiKeysChange: (keys: { [key: string]: string }) => void;
+  isClockVisible: boolean;
+  onIsClockVisibleChange: (isVisible: boolean) => void;
 }
 
 const navSections = {
@@ -42,6 +45,13 @@ const navSections = {
       getLink: 'https://console.anthropic.com/settings/keys'
     },
   ],
+  "Appearance": [
+    {
+      id: 'clock',
+      name: 'Clock Display',
+      Icon: ClockIcon,
+    },
+  ],
   "Information": [
     {
       id: 'about',
@@ -63,7 +73,7 @@ const navSections = {
 
 const allNavItems = Object.values(navSections).flat();
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, apiKeys, onApiKeysChange }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, apiKeys, onApiKeysChange, isClockVisible, onIsClockVisibleChange }) => {
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [activeProvider, setActiveProvider] = useState('gemini');
 
@@ -202,6 +212,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                                   <li>Recent search history and customizable themes.</li>
                               </ul>
                             </div>
+                        </div>
+                    </section>
+                ) : activeProvider === 'clock' ? (
+                    <section className="space-y-6">
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-800">Clock Display</h3>
+                            <p className="mt-2 text-gray-600">
+                                Customize the appearance of the clock on the home screen.
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
+                            <label htmlFor="clock-toggle" className="font-medium text-gray-700">Show home screen clock</label>
+                            <button
+                                id="clock-toggle"
+                                role="switch"
+                                aria-checked={isClockVisible}
+                                onClick={() => onIsClockVisibleChange(!isClockVisible)}
+                                className={`${isClockVisible ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}
+                            >
+                                <span className={`${isClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
+                            </button>
                         </div>
                     </section>
                 ) : activeItemData && 'placeholder' in activeItemData ? (
