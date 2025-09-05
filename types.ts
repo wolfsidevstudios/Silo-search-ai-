@@ -59,3 +59,13 @@ export interface SearchInputSettings {
   isLarge: boolean;
   isGlossy: boolean;
 }
+
+export interface SearchSettings {
+  useWebSearch: boolean;
+  model: 'gemini-2.5-flash';
+}
+
+export interface AccessibilitySettings {
+  uiFontSize: number; // percentage
+  highContrast: boolean;
+}

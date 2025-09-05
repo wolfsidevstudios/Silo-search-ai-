@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { SearchResult, UserProfile, SearchInputSettings } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { RedoIcon } from './icons/RedoIcon';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
+import { VolumeUpIcon } from './icons/VolumeUpIcon';
+import { VolumeXIcon } from './icons/VolumeXIcon';
 
 
 interface ResultsPageProps {
@@ -26,6 +28,7 @@ interface ResultsPageProps {
 }
 
 export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, isGsiScriptLoaded, searchInputSettings, speechLanguage }) => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
@@ -46,6 +49,33 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
   const handleReSearch = () => {
     onSearch(originalQuery);
   }
+
+  const handleToggleSpeech = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    } else {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(result.summary);
+        utterance.onend = () => {
+          setIsSpeaking(false);
+        };
+        window.speechSynthesis.speak(utterance);
+        setIsSpeaking(true);
+      } else {
+        alert("Sorry, your browser doesn't support text-to-speech.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    // When the component unmounts, cancel any ongoing speech
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -84,6 +114,10 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
             <button onClick={handleDownload} className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors">
               <DownloadIcon />
               <span>Download</span>
+            </button>
+             <button onClick={handleToggleSpeech} className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors" aria-label={isSpeaking ? 'Stop reading aloud' : 'Read summary aloud'}>
+              {isSpeaking ? <VolumeXIcon /> : <VolumeUpIcon />}
+              <span>{isSpeaking ? 'Stop' : 'Listen'}</span>
             </button>
             <button onClick={handleReSearch} className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors">
               <RedoIcon />

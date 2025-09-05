@@ -8,7 +8,7 @@ import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { UnpackedModal } from './components/UnpackedModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -227,6 +227,38 @@ const App: React.FC = () => {
     return { isLarge: true, isGlossy: false };
   });
 
+  const [searchSettings, setSearchSettings] = useState<SearchSettings>(() => {
+    try {
+      const item = window.localStorage.getItem('searchSettings');
+      if (item) {
+        const parsed = JSON.parse(item);
+        return {
+          useWebSearch: typeof parsed.useWebSearch === 'boolean' ? parsed.useWebSearch : true,
+          model: parsed.model === 'gemini-2.5-flash' ? 'gemini-2.5-flash' : 'gemini-2.5-flash',
+        };
+      }
+    } catch (error) {
+      console.error("Could not parse searchSettings from localStorage", error);
+    }
+    return { useWebSearch: true, model: 'gemini-2.5-flash' };
+  });
+
+  const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(() => {
+    try {
+      const item = window.localStorage.getItem('accessibilitySettings');
+      if (item) {
+        const parsed = JSON.parse(item);
+        return {
+          uiFontSize: typeof parsed.uiFontSize === 'number' ? parsed.uiFontSize : 100,
+          highContrast: typeof parsed.highContrast === 'boolean' ? parsed.highContrast : false,
+        };
+      }
+    } catch (error) {
+      console.error("Could not parse accessibilitySettings from localStorage", error);
+    }
+    return { uiFontSize: 100, highContrast: false };
+  });
+
   useEffect(() => {
     try {
         window.localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
@@ -319,6 +351,22 @@ const App: React.FC = () => {
         console.error("Could not save searchInputSettings to localStorage", error);
     }
   }, [searchInputSettings]);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('searchSettings', JSON.stringify(searchSettings));
+    } catch (error) {
+        console.error("Could not save searchSettings to localStorage", error);
+    }
+  }, [searchSettings]);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('accessibilitySettings', JSON.stringify(accessibilitySettings));
+    } catch (error) {
+        console.error("Could not save accessibilitySettings to localStorage", error);
+    }
+  }, [accessibilitySettings]);
   
   useEffect(() => {
     try {
@@ -414,7 +462,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const result = await fetchSearchResults(query, apiKeys.gemini);
+      const result = await fetchSearchResults(query, apiKeys.gemini, searchSettings);
       setSearchResult(result);
       setView('results');
     } catch (err) {
@@ -422,7 +470,7 @@ const App: React.FC = () => {
       setError('Sorry, something went wrong. Please check your API key and try again.');
       setView('error');
     }
-  }, [isTemporaryMode, apiKeys]);
+  }, [isTemporaryMode, apiKeys, searchSettings]);
 
   const handleGoHome = () => {
     setView('search');
@@ -451,7 +499,7 @@ const App: React.FC = () => {
   const handleEnterChatMode = (query: string, summary: string) => {
     const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
     chatRef.current = ai.chats.create({ 
-      model: 'gemini-2.5-flash',
+      model: searchSettings.model,
       config: {
         systemInstruction: 'You are a helpful AI assistant. The user has just performed a search and received a summary. Continue the conversation by answering follow-up questions about the search topic. Be concise, clear, and organize your answers in short sentences.'
       }
@@ -597,12 +645,21 @@ const App: React.FC = () => {
     }
   };
 
-  const appStyle = customWallpaper
-    ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
-    : {};
+  const appStyle = {
+    ...(customWallpaper
+        ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
+        : {}),
+    fontSize: `${accessibilitySettings.uiFontSize}%`,
+  };
+
+  const appClasses = [
+    'min-h-screen font-sans text-gray-900',
+    !customWallpaper ? theme : 'bg-gray-100',
+    accessibilitySettings.highContrast ? 'high-contrast' : ''
+  ].join(' ');
 
   return (
-    <div className={`min-h-screen font-sans text-gray-900 ${!customWallpaper ? theme : 'bg-gray-100'}`} style={appStyle}>
+    <div className={appClasses} style={appStyle}>
       {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
       <Sidebar 
         isOpen={isSidebarOpen}
@@ -612,36 +669,26 @@ const App: React.FC = () => {
         onClear={handleClearRecents}
         onOpenSettings={handleOpenSettings}
         userProfile={userProfile}
+        // FIX: `onLogout` was not defined in this scope. Changed to `handleLogout`.
         onLogout={handleLogout}
       />
       <SettingsModal
         isOpen={isSettingsModalOpen}
         onClose={handleCloseSettings}
         initialSection={initialSettingsSection}
-        apiKeys={apiKeys}
-        onApiKeysChange={setApiKeys}
-        currentTheme={theme}
-        onThemeChange={setTheme}
-        customWallpaper={customWallpaper}
-        onCustomWallpaperChange={setCustomWallpaper}
-        isClockVisible={isClockVisible}
-        onIsClockVisibleChange={setIsClockVisible}
-        clockSettings={clockSettings}
-        onClockSettingsChange={setClockSettings}
-        temperatureUnit={temperatureUnit}
-        onTemperatureUnitChange={setTemperatureUnit}
-        speechLanguage={speechLanguage}
-        onSpeechLanguageChange={setSpeechLanguage}
-        onAddSticker={handleAddSticker}
-        onClearStickers={handleClearStickers}
-        onEnterStickerEditMode={handleEnterStickerEditMode}
-        customStickers={customStickers}
-        onAddCustomSticker={handleAddCustomSticker}
-        onAddWidget={handleAddWidget}
-        onClearWidgets={handleClearWidgets}
-        onEnterWidgetEditMode={handleEnterWidgetEditMode}
-        searchInputSettings={searchInputSettings}
-        onSearchInputSettingsChange={setSearchInputSettings}
+        apiKeys={apiKeys} onApiKeysChange={setApiKeys}
+        currentTheme={theme} onThemeChange={setTheme}
+        customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
+        isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
+        clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
+        temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
+        speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
+        stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
+        customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
+        widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
+        searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
+        searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
+        accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
       />
       <ChatModal
         isOpen={isChatModeOpen}

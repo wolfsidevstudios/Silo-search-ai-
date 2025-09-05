@@ -1,7 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
-import type { SearchResult, QuickLink } from '../types';
+import { GoogleGenAI, GenerateContentConfig } from "@google/genai";
+import type { SearchResult, QuickLink, SearchSettings } from '../types';
 
-export async function fetchSearchResults(query: string, apiKey: string): Promise<SearchResult> {
+export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings): Promise<SearchResult> {
   if (!apiKey) {
     throw new Error("Gemini API key is missing.");
   }
@@ -10,13 +10,16 @@ export async function fetchSearchResults(query: string, apiKey: string): Promise
 
   const prompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
   
+  const config: GenerateContentConfig = {};
+  if (searchSettings.useWebSearch) {
+    config.tools = [{googleSearch: {}}];
+  }
+
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: searchSettings.model,
       contents: prompt,
-      config: {
-        tools: [{googleSearch: {}}],
-      },
+      config: config,
     });
 
     const summary = response.text;
