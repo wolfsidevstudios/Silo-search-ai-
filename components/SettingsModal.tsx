@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { LogoIcon } from './icons/LogoIcon';
@@ -14,6 +15,7 @@ import { StickerIcon } from './icons/StickerIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
 import type { ClockSettings, CustomSticker } from '../types';
+import { SearchIcon } from './icons/SearchIcon';
 
 
 interface SettingsModalProps {
@@ -173,6 +175,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
   const [localIsClockVisible, setLocalIsClockVisible] = useState(isClockVisible);
   const [localTheme, setLocalTheme] = useState(currentTheme);
+  const [stickerSearch, setStickerSearch] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -183,6 +186,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         setLocalClockSettings(clockSettings);
         setLocalIsClockVisible(isClockVisible);
         setLocalTheme(currentTheme);
+        setStickerSearch('');
     }
   }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme]);
   
@@ -510,6 +514,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 Add some flair to your home screen! Click a sticker to add it, or upload your own.
                             </p>
                         </div>
+                         <div className="relative mb-4">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <SearchIcon />
+                            </div>
+                            <input
+                                type="text"
+                                value={stickerSearch}
+                                onChange={(e) => setStickerSearch(e.target.value)}
+                                placeholder="Search stickers..."
+                                className="block w-full rounded-full border-0 bg-gray-100 py-2.5 pl-10 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
+                            />
+                        </div>
                          <div className="mb-4 flex space-x-2">
                             <button
                                 onClick={onEnterStickerEditMode}
@@ -524,36 +540,53 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 Upload Your Own
                             </button>
                         </div>
-                        <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
-                            {/* Library Stickers */}
-                            {STICKERS.map(sticker => (
-                                <button
-                                    key={sticker.id}
-                                    onClick={() => handleAddStickerAndEdit(sticker.id)}
-                                    className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
-                                    title={`Add ${sticker.name} sticker`}
-                                >
-                                    <div className="w-12 h-12">
-                                        <sticker.component />
-                                    </div>
-                                    <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
-                                </button>
-                            ))}
-                            {/* Custom Stickers */}
-                            {customStickers.map(sticker => (
-                                <button
-                                    key={sticker.id}
-                                    onClick={() => handleAddStickerAndEdit(sticker.id)}
-                                    className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
-                                    title={`Add ${sticker.name} sticker`}
-                                >
-                                    <div className="w-12 h-12">
-                                        <img src={sticker.imageData} alt={sticker.name} className="w-full h-full object-contain" />
-                                    </div>
-                                    <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
-                                </button>
-                            ))}
-                        </div>
+                        {(() => {
+                            const lowercasedQuery = stickerSearch.toLowerCase();
+                            const filteredLibraryStickers = STICKERS.filter(sticker => 
+                                sticker.name.toLowerCase().includes(lowercasedQuery)
+                            );
+                            const filteredCustomStickers = customStickers.filter(sticker => 
+                                sticker.name.toLowerCase().includes(lowercasedQuery)
+                            );
+                            const hasResults = filteredLibraryStickers.length > 0 || filteredCustomStickers.length > 0;
+
+                            if (!hasResults) {
+                                return <p className="text-center text-gray-500 py-8">No stickers found for "{stickerSearch}"</p>;
+                            }
+
+                            return (
+                                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                                    {/* Library Stickers */}
+                                    {filteredLibraryStickers.map(sticker => (
+                                        <button
+                                            key={sticker.id}
+                                            onClick={() => handleAddStickerAndEdit(sticker.id)}
+                                            className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
+                                            title={`Add ${sticker.name} sticker`}
+                                        >
+                                            <div className="w-12 h-12">
+                                                <sticker.component />
+                                            </div>
+                                            <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
+                                        </button>
+                                    ))}
+                                    {/* Custom Stickers */}
+                                    {filteredCustomStickers.map(sticker => (
+                                        <button
+                                            key={sticker.id}
+                                            onClick={() => handleAddStickerAndEdit(sticker.id)}
+                                            className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
+                                            title={`Add ${sticker.name} sticker`}
+                                        >
+                                            <div className="w-12 h-12">
+                                                <img src={sticker.imageData} alt={sticker.name} className="w-full h-full object-contain" />
+                                            </div>
+                                            <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            );
+                        })()}
                         <div className="mt-8 border-t pt-6">
                              <button
                                 onClick={onClearStickers}
