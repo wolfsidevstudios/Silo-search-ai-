@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect } from 'react';
-import type { WidgetInstance } from '../../types';
+import type { WidgetInstance, TemperatureUnit } from '../../types';
 
 // --- Note Widget ---
 interface NoteWidgetProps {
@@ -46,13 +47,17 @@ const WeatherIcon: React.FC<{ code: number | undefined }> = ({ code }) => {
     return <span className="text-3xl">{icon}</span>;
 };
 
-export const WeatherWidget: React.FC = () => {
+interface WeatherWidgetProps {
+    temperatureUnit: TemperatureUnit;
+}
+
+export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ temperatureUnit }) => {
   const [weather, setWeather] = useState<{ temp: number, code: number, city: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchWeather = (lat: number, lon: number) => {
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`)
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto&temperature_unit=${temperatureUnit}`)
         .then(res => res.json())
         .then(data => {
           if (data && data.current) {
@@ -77,7 +82,7 @@ export const WeatherWidget: React.FC = () => {
         setError("Location access denied.");
       }
     );
-  }, []);
+  }, [temperatureUnit]);
 
   return (
     <div className="w-full h-full bg-white/60 backdrop-blur-md p-4 rounded-xl shadow-lg flex flex-col items-center justify-center text-center font-sans">
@@ -87,7 +92,7 @@ export const WeatherWidget: React.FC = () => {
         <>
             <div className="text-sm text-gray-700 font-medium">{weather.city}</div>
             <div className="my-1"><WeatherIcon code={weather.code} /></div>
-            <div className="text-2xl font-bold text-gray-900">{weather.temp}°C</div>
+            <div className="text-2xl font-bold text-gray-900">{weather.temp}{temperatureUnit === 'celsius' ? '°C' : '°F'}</div>
         </>
       ) : (
         <div className="text-gray-500">Loading...</div>

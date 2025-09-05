@@ -1,70 +1,46 @@
 import React from 'react';
-import { CloseIcon } from './icons/CloseIcon';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { Clock } from './Clock';
-import type { ClockSettings } from '../types';
 
 interface IntroModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// FIX: Added the 'animation' property and an explicit ClockSettings type to fix the error.
-const previewClockSettings: ClockSettings = {
-    style: 'diagonal',
-    theme: 'neon',
-    font: 'bungee',
-    size: 10,
-    thickness: 4,
-    animation: 'float',
-};
-
 export const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="intro-modal-title"
     >
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-60 transition-opacity"
+      <div
+        className="fixed inset-0 bg-black bg-opacity-80 transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       ></div>
-      
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col items-center text-center p-8 transform transition-all">
-        <SparklesIcon className="w-16 h-16 text-yellow-500 mb-4" />
-        <h2 id="intro-modal-title" className="text-2xl font-bold text-gray-800">
-          Expressive Clock UI 2.0 is Here!
-        </h2>
-        <p className="mt-2 text-gray-600">
-            We've added tons of new ways to personalize your home screen clock.
-        </p>
-        
-        <div className="bg-gray-800 rounded-xl p-8 my-8 w-full flex items-center justify-center overflow-hidden">
-            <Clock settings={previewClockSettings} />
+
+      <div className="relative bg-transparent w-full max-w-2xl flex flex-col items-center text-center transform transition-all">
+        <div className="w-full aspect-video rounded-2xl overflow-hidden shadow-2xl">
+          <video
+            src="https://cdn-1.creatify.ai/media/21955ec5-c594-4f98-acf3-d0b0918ddf6b/video_21955ec5-c594-4f98-acf3-d0b0918ddf6b.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+          />
         </div>
 
-        <p className="text-sm text-gray-500">
-            Check out the new fonts, colors, and layouts in Settings {'>'} Appearance {'>'} Clock Display.
-        </p>
-
-        <button 
-            onClick={onClose} 
-            className="mt-8 px-6 py-3 text-lg font-medium text-white bg-black rounded-full hover:bg-gray-800 w-full"
+        <h2 id="intro-modal-title" className="text-3xl font-bold text-white mt-6">
+          Welcome to Silo Search
+        </h2>
+        <button
+            onClick={onClose}
+            className="mt-6 px-8 py-3 text-lg font-medium text-black bg-white rounded-full hover:bg-gray-200"
         >
-            Got it!
-        </button>
-
-        <button 
-            onClick={onClose} 
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors" 
-            aria-label="Close"
-        >
-            <CloseIcon />
+            Get Started
         </button>
       </div>
     </div>

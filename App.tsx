@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -8,7 +10,7 @@ import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { UnpackedModal } from './components/UnpackedModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, WidgetType, UserProfile } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 
@@ -48,6 +50,7 @@ const App: React.FC = () => {
 
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [showUnpackedModal, setShowUnpackedModal] = useState(false);
+  const [isGsiScriptLoaded, setIsGsiScriptLoaded] = useState(false);
   
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     try {
@@ -90,7 +93,7 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    const hasSeenIntro = window.localStorage.getItem('hasSeenClockIntro_v2');
+    const hasSeenIntro = window.localStorage.getItem('hasSeenWelcome_v1');
     if (!hasSeenIntro) {
       setShowIntroModal(true);
     } else {
@@ -103,7 +106,7 @@ const App: React.FC = () => {
 
   const handleCloseIntroModal = () => {
     setShowIntroModal(false);
-    window.localStorage.setItem('hasSeenClockIntro_v2', 'true');
+    window.localStorage.setItem('hasSeenWelcome_v1', 'true');
     // After closing the first intro, check if we should show the next one.
     const hasSeenUnpacked = window.localStorage.getItem('hasSeenUnpacked_v1');
     if (!hasSeenUnpacked) {
@@ -158,6 +161,16 @@ const App: React.FC = () => {
     }
   });
 
+  const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(() => {
+    try {
+        const item = window.localStorage.getItem('temperatureUnit');
+        return (item as TemperatureUnit) || 'fahrenheit';
+    } catch (error) {
+        console.error("Could not parse temperatureUnit from localStorage", error);
+        return 'fahrenheit';
+    }
+  });
+
   const [apiKeys, setApiKeys] = useState<{ [key: string]: string }>(() => {
     try {
       const items = window.localStorage.getItem('ai-api-keys');
@@ -196,6 +209,14 @@ const App: React.FC = () => {
         console.error("Could not save clockSettings to localStorage", error);
     }
   }, [clockSettings]);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('temperatureUnit', temperatureUnit);
+    } catch (error) {
+        console.error("Could not save temperatureUnit to localStorage", error);
+    }
+  }, [temperatureUnit]);
 
   useEffect(() => {
     try {
@@ -265,17 +286,41 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    if (window.google) {
-      window.google.accounts.id.initialize({
-        client_id: '127898517822-f4j5ha3e2n6futbhehvtf06cfqhjhgej.apps.googleusercontent.com',
-        callback: handleLoginSuccess,
-      });
+    const gsiScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    
+    const onGsiLoad = () => {
+        if (!window.google) {
+            console.error('Google script loaded but window.google is not available.');
+            return;
+        }
+        window.google.accounts.id.initialize({
+            client_id: '127898517822-f4j5ha3e2n6futbhehvtf06cfqhjhgej.apps.googleusercontent.com',
+            callback: handleLoginSuccess,
+        });
+        setIsGsiScriptLoaded(true);
+    };
 
-      if (!userProfile) {
-         window.google.accounts.id.prompt();
-      }
+    if (window.google) {
+        onGsiLoad();
+    } else if (gsiScript) {
+        gsiScript.addEventListener('load', onGsiLoad);
+    } else {
+        console.error('GSI script tag not found.');
     }
-  }, [handleLoginSuccess, userProfile]);
+
+    return () => {
+        if (gsiScript) {
+            gsiScript.removeEventListener('load', onGsiLoad);
+        }
+    };
+  }, [handleLoginSuccess]);
+
+
+  useEffect(() => {
+    if (isGsiScriptLoaded && !userProfile) {
+        window.google.accounts.id.prompt();
+    }
+  }, [isGsiScriptLoaded, userProfile]);
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
@@ -444,6 +489,7 @@ const App: React.FC = () => {
       onOpenSettings: handleOpenSettings,
       userProfile: userProfile,
       onLogout: handleLogout,
+      isGsiScriptLoaded,
     };
     
     const searchPageProps = {
@@ -455,6 +501,7 @@ const App: React.FC = () => {
         isStickerEditMode: isStickerEditMode, 
         onExitStickerEditMode: () => setStickerEditMode(false), 
         customStickers: customStickers, 
+        temperatureUnit: temperatureUnit,
         widgets: widgets, 
         onUpdateWidget: handleUpdateWidget, 
         isWidgetEditMode: isWidgetEditMode, 
@@ -502,6 +549,8 @@ const App: React.FC = () => {
         onIsClockVisibleChange={setIsClockVisible}
         clockSettings={clockSettings}
         onClockSettingsChange={setClockSettings}
+        temperatureUnit={temperatureUnit}
+        onTemperatureUnitChange={setTemperatureUnit}
         onAddSticker={handleAddSticker}
         onClearStickers={handleClearStickers}
         onEnterStickerEditMode={handleEnterStickerEditMode}

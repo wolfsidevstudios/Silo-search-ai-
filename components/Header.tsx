@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { HomeIcon } from './icons/HomeIcon';
@@ -14,20 +15,14 @@ interface HeaderProps {
   showHomeButton?: boolean;
   userProfile: UserProfile | null;
   onLogout: () => void;
+  isGsiScriptLoaded: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton, userProfile, onLogout }) => {
+export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton, userProfile, onLogout, isGsiScriptLoaded }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!userProfile && window.google) {
-      window.google.accounts.id.renderButton(
-        document.getElementById('signInDiv'),
-        { theme: 'outline', size: 'large' }
-      );
-    }
-  }, [userProfile]);
+  // Google Sign-In button rendering is disabled for now.
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -85,7 +80,12 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
             )}
           </div>
         ) : (
-          <div id="signInDiv"></div>
+          <button
+            onClick={() => alert('Google sign in coming soon')}
+            className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors cursor-default"
+          >
+            Sign In
+          </button>
         )}
       </div>
     </header>

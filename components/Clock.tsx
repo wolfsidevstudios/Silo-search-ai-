@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { ClockSettings } from '../types';
+import type { ClockSettings, TemperatureUnit } from '../types';
 
 // A simple weather icon component based on WMO codes
 const WeatherIcon: React.FC<{ code: number | undefined }> = ({ code }) => {
@@ -44,9 +44,10 @@ const animationClasses: { [key in ClockSettings['animation']]: string } = {
 
 interface ClockProps {
   settings: ClockSettings;
+  temperatureUnit: TemperatureUnit;
 }
 
-export const Clock: React.FC<ClockProps> = ({ settings }) => {
+export const Clock: React.FC<ClockProps> = ({ settings, temperatureUnit }) => {
   const [time, setTime] = useState(new Date());
   const [weather, setWeather] = useState<{ temp: number, code: number } | null>(null);
 
@@ -57,7 +58,7 @@ export const Clock: React.FC<ClockProps> = ({ settings }) => {
   
   useEffect(() => {
     const fetchWeather = (lat: number, lon: number) => {
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`)
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=${temperatureUnit}`)
         .then(res => res.json())
         .then(data => {
           if (data && data.current) {
@@ -75,7 +76,7 @@ export const Clock: React.FC<ClockProps> = ({ settings }) => {
         console.warn("Could not get location for weather:", error.message);
       }
     );
-  }, []);
+  }, [temperatureUnit]);
 
   const hours = time.getHours().toString().padStart(2, '0');
   const minutes = time.getMinutes().toString().padStart(2, '0');
@@ -135,7 +136,7 @@ export const Clock: React.FC<ClockProps> = ({ settings }) => {
         {weather && (
           <div className="flex items-center space-x-2">
             <WeatherIcon code={weather.code} />
-            <span>{weather.temp}°C</span>
+            <span>{weather.temp}{temperatureUnit === 'celsius' ? '°C' : '°F'}</span>
           </div>
         )}
       </div>

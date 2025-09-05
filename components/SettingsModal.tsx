@@ -16,7 +16,7 @@ import { KeyIcon } from './icons/KeyIcon';
 import { AlertTriangleIcon } from './icons/AlertTriangleIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
-import type { ClockSettings, CustomSticker, WidgetType } from '../types';
+import type { ClockSettings, CustomSticker, WidgetType, TemperatureUnit } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
 import { CohereIcon } from './icons/CohereIcon';
 import { MistralIcon } from './icons/MistralIcon';
@@ -43,6 +43,8 @@ interface SettingsModalProps {
   onIsClockVisibleChange: (isVisible: boolean) => void;
   clockSettings: ClockSettings;
   onClockSettingsChange: (settings: ClockSettings) => void;
+  temperatureUnit: TemperatureUnit;
+  onTemperatureUnitChange: (unit: TemperatureUnit) => void;
   onAddSticker: (stickerId: string) => void;
   onClearStickers: () => void;
   onEnterStickerEditMode: () => void;
@@ -253,12 +255,13 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode }) => {
   const [activeSection, setActiveSection] = useState('api-keys');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
   const [localIsClockVisible, setLocalIsClockVisible] = useState(isClockVisible);
   const [localTheme, setLocalTheme] = useState(currentTheme);
+  const [localTemperatureUnit, setLocalTemperatureUnit] = useState(temperatureUnit);
   const [stickerSearch, setStickerSearch] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -270,15 +273,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         setLocalClockSettings(clockSettings);
         setLocalIsClockVisible(isClockVisible);
         setLocalTheme(currentTheme);
+        setLocalTemperatureUnit(temperatureUnit);
         setStickerSearch('');
     }
-  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme]);
+  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme, temperatureUnit]);
   
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
     onClockSettingsChange(localClockSettings);
     onIsClockVisibleChange(localIsClockVisible);
     onThemeChange(localTheme);
+    onTemperatureUnitChange(localTemperatureUnit);
     onClose();
   };
 
@@ -552,7 +557,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                             </p>
                         </div>
                         <div className="bg-gray-800 rounded-xl p-8 mb-8 flex items-center justify-center min-h-[200px] overflow-hidden">
-                            <Clock settings={localClockSettings} />
+                            <Clock settings={localClockSettings} temperatureUnit={localTemperatureUnit} />
                         </div>
                         <div className="space-y-6">
                             <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
@@ -566,6 +571,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 >
                                     <span className={`${localIsClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
                                 </button>
+                            </div>
+                             <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Weather Unit</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => setLocalTemperatureUnit('celsius')}
+                                        className={`p-4 border rounded-lg text-center transition-colors ${localTemperatureUnit === 'celsius' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        Celsius (°C)
+                                    </button>
+                                    <button
+                                        onClick={() => setLocalTemperatureUnit('fahrenheit')}
+                                        className={`p-4 border rounded-lg text-center transition-colors ${localTemperatureUnit === 'fahrenheit' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        Fahrenheit (°F)
+                                    </button>
+                                </div>
                             </div>
                              <div>
                                 <h4 className="font-medium text-gray-800 mb-3">Animation</h4>

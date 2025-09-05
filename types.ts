@@ -37,6 +37,8 @@ export interface ClockSettings {
   animation: 'none' | 'pulse' | 'float';
 }
 
+export type TemperatureUnit = 'celsius' | 'fahrenheit';
+
 export type WidgetType = 'note' | 'weather';
 
 export interface WidgetInstance {

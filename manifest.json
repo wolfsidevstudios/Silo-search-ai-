@@ -1,0 +1,21 @@
+{
+  "short_name": "Silo Search",
+  "name": "Silo Search",
+  "description": "An AI-powered search application that provides concise summaries and related quick links for user queries.",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/GvWTsPF1/IMG-3744.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://i.ibb.co/GvWTsPF1/IMG-3744.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff"
+}

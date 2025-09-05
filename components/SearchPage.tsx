@@ -7,7 +7,7 @@ import { Clock } from './Clock';
 import { DraggableSticker } from './DraggableSticker';
 import { DraggableWidget } from './DraggableWidget';
 import { NoteWidget, WeatherWidget } from './widgets/Widgets';
-import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile } from '../types';
+import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, TemperatureUnit } from '../types';
 
 interface SearchPageProps {
   onSearch: (query: string) => void;
@@ -28,6 +28,8 @@ interface SearchPageProps {
   onExitWidgetEditMode: () => void;
   userProfile: UserProfile | null;
   onLogout: () => void;
+  isGsiScriptLoaded: boolean;
+  temperatureUnit: TemperatureUnit;
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -48,7 +50,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   isWidgetEditMode,
   onExitWidgetEditMode,
   userProfile,
-  onLogout
+  onLogout,
+  isGsiScriptLoaded,
+  temperatureUnit,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -59,7 +63,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
         case 'note':
             return <NoteWidget widget={widget} onUpdate={onUpdateWidget} isEditing={isWidgetEditMode} />;
         case 'weather':
-            return <WeatherWidget />;
+            return <WeatherWidget temperatureUnit={temperatureUnit} />;
         default:
             return null;
     }
@@ -117,9 +121,10 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           onOpenSettings={onOpenSettings}
           userProfile={userProfile}
           onLogout={onLogout}
+          isGsiScriptLoaded={isGsiScriptLoaded}
         />
         <main className="flex-grow flex flex-col items-center justify-center px-4 pb-24 text-center">
-          {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} /></div>}
+          {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} temperatureUnit={temperatureUnit} /></div>}
           {isTemporaryMode && (
             <div className="flex flex-col items-center mb-8 text-gray-600">
               <IncognitoIcon className="w-16 h-16 text-gray-400" />
