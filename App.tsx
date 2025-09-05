@@ -37,8 +37,14 @@ const App: React.FC = () => {
     return window.localStorage.getItem('silo-theme') || 'bg-white';
   });
   
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return window.localStorage.getItem('gemini-api-key') || '';
+  const [apiKeys, setApiKeys] = useState<{ [key: string]: string }>(() => {
+    try {
+      const items = window.localStorage.getItem('ai-api-keys');
+      return items ? JSON.parse(items) : {};
+    } catch (error) {
+      console.error("Could not parse API keys from localStorage", error);
+      return {};
+    }
   });
 
   useEffect(() => {
@@ -55,15 +61,19 @@ const App: React.FC = () => {
   }, [theme]);
   
   useEffect(() => {
-    window.localStorage.setItem('gemini-api-key', apiKey);
-  }, [apiKey]);
+    try {
+      window.localStorage.setItem('ai-api-keys', JSON.stringify(apiKeys));
+    } catch (error) {
+      console.error("Could not save API keys to localStorage", error);
+    }
+  }, [apiKeys]);
 
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
     
-    if (!apiKey) {
-      setError('Please configure your Gemini API key in the settings before searching.');
+    if (!apiKeys.gemini) {
+      setError('Please configure your Google Gemini API key in the settings before searching.');
       setView('error');
       return;
     }
@@ -82,7 +92,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const result = await fetchSearchResults(query, apiKey);
+      const result = await fetchSearchResults(query, apiKeys.gemini);
       setSearchResult(result);
       setView('results');
     } catch (err) {
@@ -90,7 +100,7 @@ const App: React.FC = () => {
       setError('Sorry, something went wrong. Please check your API key and try again.');
       setView('error');
     }
-  }, [isTemporaryMode, apiKey]);
+  }, [isTemporaryMode, apiKeys]);
 
   const handleGoHome = () => {
     setView('search');
@@ -162,8 +172,8 @@ const App: React.FC = () => {
       <SettingsModal
         isOpen={isSettingsModalOpen}
         onClose={() => setSettingsModalOpen(false)}
-        apiKey={apiKey}
-        onApiKeyChange={setApiKey}
+        apiKeys={apiKeys}
+        onApiKeysChange={setApiKeys}
       />
       <div className={`${isSidebarOpen || isThemePanelOpen || isSettingsModalOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
         {renderContent()}
