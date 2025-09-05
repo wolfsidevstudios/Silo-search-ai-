@@ -13,13 +13,14 @@ interface ResultsPageProps {
   originalQuery: string;
   onSearch: (query: string) => void;
   onHome: () => void;
+  onEnterChatMode: (query: string, summary: string) => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
   onToggleThemePanel: () => void;
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
@@ -57,6 +58,15 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
           <p className="text-lg leading-relaxed text-gray-800">
             {result.summary}
           </p>
+
+          <div className="flex justify-center items-center mt-8">
+             <button 
+                onClick={() => onEnterChatMode(originalQuery, result.summary)}
+                className="bg-black text-white rounded-full px-6 py-3 text-base font-medium hover:bg-gray-800 transition-transform hover:scale-105"
+             >
+                Chat Mode
+            </button>
+          </div>
 
           <div className="flex justify-center items-center space-x-8 mt-8">
             <button onClick={handleCopy} className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors">

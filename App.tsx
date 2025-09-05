@@ -1,12 +1,14 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
 import { Sidebar } from './components/Sidebar';
 import { ThemePanel } from './components/ThemePanel';
 import { SettingsModal } from './components/SettingsModal';
+import { ChatModal } from './components/ChatModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult } from './types';
+import type { SearchResult, ChatMessage } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
+import { GoogleGenAI, Chat } from "@google/genai";
 
 type View = 'search' | 'results' | 'loading' | 'error';
 
@@ -23,6 +25,11 @@ const App: React.FC = () => {
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [isTemporaryMode, setTemporaryMode] = useState(false);
   
+  const [isChatModeOpen, setChatModeOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [isChatLoading, setChatLoading] = useState(false);
+  const chatRef = useRef<Chat | null>(null);
+
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
         const items = window.localStorage.getItem('recentSearches');
@@ -129,6 +136,46 @@ const App: React.FC = () => {
     setSettingsModalOpen(true);
   };
 
+  const handleEnterChatMode = (query: string, summary: string) => {
+    const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
+    chatRef.current = ai.chats.create({ 
+      model: 'gemini-2.5-flash',
+      config: {
+        systemInstruction: 'You are a helpful AI assistant. The user has just performed a search and received a summary. Continue the conversation by answering follow-up questions about the search topic. Be concise, clear, and organize your answers in short sentences.'
+      }
+    });
+    setChatHistory([
+      { role: 'user', text: query },
+      { role: 'model', text: summary },
+    ]);
+    setChatModeOpen(true);
+  };
+
+  const handleCloseChatMode = () => {
+    setChatModeOpen(false);
+    setChatHistory([]);
+    chatRef.current = null;
+  };
+
+  const handleSendChatMessage = async (message: string) => {
+    if (isChatLoading || !chatRef.current) return;
+
+    setChatLoading(true);
+    const updatedHistory: ChatMessage[] = [...chatHistory, { role: 'user', text: message }];
+    setChatHistory(updatedHistory);
+
+    try {
+      const response = await chatRef.current.sendMessage({ message });
+      const modelResponse = response.text;
+      setChatHistory(prev => [...prev, { role: 'model', text: modelResponse }]);
+    } catch (err) {
+      console.error("Chat error:", err);
+      setChatHistory(prev => [...prev, { role: 'model', text: "Sorry, I encountered an error. Please try again." }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
   const renderContent = () => {
     const commonProps = {
       isTemporaryMode,
@@ -144,7 +191,7 @@ const App: React.FC = () => {
         return <ErrorState message={error} onRetry={() => handleSearch(currentQuery)} onHome={handleGoHome} />;
       case 'results':
         if (searchResult) {
-          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} />;
+          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
         }
         return <SearchPage onSearch={handleSearch} {...commonProps} />;
       case 'search':
@@ -175,7 +222,14 @@ const App: React.FC = () => {
         apiKeys={apiKeys}
         onApiKeysChange={setApiKeys}
       />
-      <div className={`${isSidebarOpen || isThemePanelOpen || isSettingsModalOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
+      <ChatModal
+        isOpen={isChatModeOpen}
+        onClose={handleCloseChatMode}
+        history={chatHistory}
+        onSendMessage={handleSendChatMessage}
+        isLoading={isChatLoading}
+      />
+      <div className={`${isSidebarOpen || isThemePanelOpen || isSettingsModalOpen || isChatModeOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
         {renderContent()}
       </div>
     </div>
