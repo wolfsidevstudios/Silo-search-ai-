@@ -6,6 +6,7 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
+import { UnpackedModal } from './components/UnpackedModal';
 import { fetchSearchResults } from './services/geminiService';
 import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, WidgetType } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
@@ -34,6 +35,7 @@ const App: React.FC = () => {
   const chatRef = useRef<Chat | null>(null);
 
   const [showIntroModal, setShowIntroModal] = useState(false);
+  const [showUnpackedModal, setShowUnpackedModal] = useState(false);
   
   const [stickers, setStickers] = useState<StickerInstance[]>(() => {
     try {
@@ -69,12 +71,27 @@ const App: React.FC = () => {
     const hasSeenIntro = window.localStorage.getItem('hasSeenClockIntro_v2');
     if (!hasSeenIntro) {
       setShowIntroModal(true);
+    } else {
+      const hasSeenUnpacked = window.localStorage.getItem('hasSeenUnpacked_v1');
+      if (!hasSeenUnpacked) {
+        setShowUnpackedModal(true);
+      }
     }
   }, []);
 
   const handleCloseIntroModal = () => {
     setShowIntroModal(false);
     window.localStorage.setItem('hasSeenClockIntro_v2', 'true');
+    // After closing the first intro, check if we should show the next one.
+    const hasSeenUnpacked = window.localStorage.getItem('hasSeenUnpacked_v1');
+    if (!hasSeenUnpacked) {
+        setShowUnpackedModal(true);
+    }
+  };
+  
+  const handleCloseUnpackedModal = () => {
+    setShowUnpackedModal(false);
+    window.localStorage.setItem('hasSeenUnpacked_v1', 'true');
   };
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
@@ -429,7 +446,8 @@ const App: React.FC = () => {
         isLoading={isChatLoading}
       />
       <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
-      <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal ? 'blur-sm' : ''} transition-filter duration-300`}>
+      <UnpackedModal isOpen={showUnpackedModal} onClose={handleCloseUnpackedModal} />
+      <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || showUnpackedModal ? 'blur-sm' : ''} transition-filter duration-300`}>
         {renderContent()}
       </div>
     </div>
