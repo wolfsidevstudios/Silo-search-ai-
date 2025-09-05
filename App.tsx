@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -6,7 +7,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 
@@ -39,6 +40,16 @@ const App: React.FC = () => {
       return items ? JSON.parse(items) : [];
     } catch (error) {
       console.error("Could not parse stickers from localStorage", error);
+      return [];
+    }
+  });
+
+  const [customStickers, setCustomStickers] = useState<CustomSticker[]>(() => {
+    try {
+      const items = window.localStorage.getItem('customStickers');
+      return items ? JSON.parse(items) : [];
+    } catch (error) {
+      console.error("Could not parse custom stickers from localStorage", error);
       return [];
     }
   });
@@ -143,6 +154,14 @@ const App: React.FC = () => {
       console.error("Could not save stickers to localStorage", error);
     }
   }, [stickers]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('customStickers', JSON.stringify(customStickers));
+    } catch (error) {
+      console.error("Could not save custom stickers to localStorage", error);
+    }
+  }, [customStickers]);
 
   useEffect(() => {
     try {
@@ -266,6 +285,19 @@ const App: React.FC = () => {
     setStickers(prev => [...prev, newSticker]);
   };
 
+  const handleAddCustomSticker = (imageData: string, name: string) => {
+    const newCustomSticker: CustomSticker = {
+      id: `custom-${Date.now()}`,
+      name,
+      imageData,
+    };
+    setCustomStickers(prev => [...prev, newCustomSticker]);
+    // Automatically add the new sticker to the canvas
+    handleAddSticker(newCustomSticker.id);
+    // Enter edit mode immediately
+    handleEnterStickerEditMode();
+  };
+
   const handleUpdateSticker = (updatedSticker: StickerInstance) => {
     setStickers(prev => prev.map(s => s.id === updatedSticker.id ? updatedSticker : s));
   };
@@ -291,10 +323,10 @@ const App: React.FC = () => {
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
         }
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} customStickers={customStickers} {...commonProps} />;
       case 'search':
       default:
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} customStickers={customStickers} {...commonProps} />;
     }
   };
 
@@ -323,6 +355,8 @@ const App: React.FC = () => {
         onAddSticker={handleAddSticker}
         onClearStickers={handleClearStickers}
         onEnterStickerEditMode={handleEnterStickerEditMode}
+        customStickers={customStickers}
+        onAddCustomSticker={handleAddCustomSticker}
       />
       <ChatModal
         isOpen={isChatModeOpen}

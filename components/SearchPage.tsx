@@ -1,10 +1,12 @@
+
 import React, { useRef } from 'react';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
 import { IncognitoIcon } from './icons/IncognitoIcon';
 import { Clock } from './Clock';
 import { DraggableSticker } from './DraggableSticker';
-import type { ClockSettings, StickerInstance } from '../types';
+import { StickerComponents } from './sticker-library';
+import type { ClockSettings, StickerInstance, CustomSticker } from '../types';
 
 interface SearchPageProps {
   onSearch: (query: string) => void;
@@ -15,6 +17,7 @@ interface SearchPageProps {
   isClockVisible: boolean;
   clockSettings: ClockSettings;
   stickers: StickerInstance[];
+  customStickers: CustomSticker[];
   onUpdateSticker: (sticker: StickerInstance) => void;
   isStickerEditMode: boolean;
   onExitStickerEditMode: () => void;
@@ -28,26 +31,41 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onOpenSettings, 
   isClockVisible, 
   clockSettings, 
-  stickers, 
+  stickers,
+  customStickers,
   onUpdateSticker,
   isStickerEditMode,
   onExitStickerEditMode,
 }) => {
   const stickerCanvasRef = useRef<HTMLDivElement>(null);
   
+  // Create a map of custom stickers for quick lookups
+  const customStickerMap = new Map(customStickers.map(cs => [cs.id, cs]));
+
   return (
     <div className="flex flex-col min-h-screen relative" ref={stickerCanvasRef}>
       {/* Sticker Container: Elevated during edit mode */}
       <div className={`absolute inset-0 ${isStickerEditMode ? 'z-30' : 'z-0 pointer-events-none'}`}>
-        {stickers.map(sticker => (
-          <DraggableSticker 
-            key={sticker.id}
-            sticker={sticker}
-            containerRef={stickerCanvasRef}
-            onUpdate={onUpdateSticker}
-            isDraggable={isStickerEditMode}
-          />
-        ))}
+        {stickers.map(sticker => {
+          const customStickerData = customStickerMap.get(sticker.stickerId);
+          const LibraryStickerComponent = StickerComponents[sticker.stickerId];
+          
+          return (
+            <DraggableSticker 
+              key={sticker.id}
+              sticker={sticker}
+              containerRef={stickerCanvasRef}
+              onUpdate={onUpdateSticker}
+              isDraggable={isStickerEditMode}
+            >
+              {customStickerData ? (
+                <img src={customStickerData.imageData} alt={customStickerData.name} className="w-full h-full object-contain pointer-events-none" />
+              ) : LibraryStickerComponent ? (
+                <LibraryStickerComponent />
+              ) : null}
+            </DraggableSticker>
+          );
+        })}
       </div>
       
       {/* Main Content */}

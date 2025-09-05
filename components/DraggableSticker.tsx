@@ -1,12 +1,13 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { StickerInstance } from '../types';
-import { StickerComponents } from './sticker-library';
 
 interface DraggableStickerProps {
   sticker: StickerInstance;
   containerRef: React.RefObject<HTMLDivElement>;
   onUpdate: (sticker: StickerInstance) => void;
   isDraggable: boolean;
+  children: React.ReactNode;
 }
 
 // Helper to get client coordinates from either mouse or touch events
@@ -17,7 +18,7 @@ const getEventCoordinates = (e: MouseEvent | TouchEvent) => {
     return { clientX: (e as MouseEvent).clientX, clientY: (e as MouseEvent).clientY };
 };
 
-export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, containerRef, onUpdate, isDraggable }) => {
+export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, containerRef, onUpdate, isDraggable, children }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: sticker.x, y: sticker.y });
   const stickerRef = useRef<HTMLDivElement>(null);
@@ -35,9 +36,6 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, con
   useEffect(() => {
     setPosition({ x: sticker.x, y: sticker.y });
   }, [sticker.x, sticker.y]);
-
-  const StickerComponent = StickerComponents[sticker.stickerId];
-  if (!StickerComponent) return null;
 
   const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!isDraggable || !stickerRef.current || !containerRef.current) return;
@@ -119,7 +117,7 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({ sticker, con
       }}
       draggable="false"
     >
-      <StickerComponent />
+      {children}
     </div>
   );
 };

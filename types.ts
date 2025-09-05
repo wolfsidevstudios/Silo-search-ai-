@@ -1,3 +1,4 @@
+
 export interface QuickLink {
   title: string;
   uri: string;
@@ -13,9 +14,15 @@ export interface ChatMessage {
   text: string;
 }
 
+export interface CustomSticker {
+  id: string; // unique custom sticker id
+  name: string;
+  imageData: string; // base64 data URL
+}
+
 export interface StickerInstance {
   id: string; // unique instance id
-  stickerId: string; // key from sticker library
+  stickerId: string; // key from sticker library OR a custom sticker id
   x: number; // percentage
   y: number; // percentage
   size: number; // in rem

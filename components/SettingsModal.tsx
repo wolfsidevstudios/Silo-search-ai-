@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { LogoIcon } from './icons/LogoIcon';
 import { OpenAIIcon } from './icons/OpenAIIcon';
@@ -12,7 +13,7 @@ import { WallpaperIcon } from './icons/WallpaperIcon';
 import { StickerIcon } from './icons/StickerIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
-import type { ClockSettings } from '../types';
+import type { ClockSettings, CustomSticker } from '../types';
 
 
 interface SettingsModalProps {
@@ -30,6 +31,8 @@ interface SettingsModalProps {
   onAddSticker: (stickerId: string) => void;
   onClearStickers: () => void;
   onEnterStickerEditMode: () => void;
+  customStickers: CustomSticker[];
+  onAddCustomSticker: (imageData: string, name: string) => void;
 }
 
 const navSections = {
@@ -164,12 +167,14 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers, onEnterStickerEditMode }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker }) => {
   const [activeSection, setActiveSection] = useState('gemini');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
   const [localIsClockVisible, setLocalIsClockVisible] = useState(isClockVisible);
   const [localTheme, setLocalTheme] = useState(currentTheme);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -196,6 +201,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
   const handleAddStickerAndEdit = (stickerId: string) => {
     onAddSticker(stickerId);
     onEnterStickerEditMode();
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, GIF, etc.).');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      alert('File size should not exceed 2MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageData = reader.result as string;
+      const name = file.name.split('.').slice(0, -1).join('.') || 'My Sticker';
+      onAddCustomSticker(imageData, name);
+    };
+    reader.onerror = (error) => {
+      console.error('Error reading file:', error);
+      alert('Sorry, there was an error uploading your sticker.');
+    };
+    reader.readAsDataURL(file);
+
+    // Reset file input value so the user can upload the same file again if needed
+    event.target.value = '';
   };
 
   const activeItemData = allNavItems.find(p => p.id === activeSection);
@@ -458,21 +496,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                     </section>
                 ) : activeSection === 'stickers' ? (
                     <section>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept="image/*"
+                            className="hidden"
+                            aria-hidden="true"
+                        />
                         <div className="mb-8">
                             <h3 className="text-2xl font-bold text-gray-800">Stickers</h3>
                             <p className="mt-2 text-gray-600">
-                                Add some flair to your home screen! Click a sticker to add it, then arrange it in the preview.
+                                Add some flair to your home screen! Click a sticker to add it, or upload your own.
                             </p>
                         </div>
-                         <div className="mb-4">
-                             <button
+                         <div className="mb-4 flex space-x-2">
+                            <button
                                 onClick={onEnterStickerEditMode}
                                 className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200"
                             >
                                 Arrange Stickers
                             </button>
+                            <button
+                                onClick={handleUploadClick}
+                                className="w-full px-4 py-3 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800"
+                            >
+                                Upload Your Own
+                            </button>
                         </div>
                         <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                            {/* Library Stickers */}
                             {STICKERS.map(sticker => (
                                 <button
                                     key={sticker.id}
@@ -483,7 +536,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                     <div className="w-12 h-12">
                                         <sticker.component />
                                     </div>
-                                    <span className="text-xs text-gray-600">{sticker.name}</span>
+                                    <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
+                                </button>
+                            ))}
+                            {/* Custom Stickers */}
+                            {customStickers.map(sticker => (
+                                <button
+                                    key={sticker.id}
+                                    onClick={() => handleAddStickerAndEdit(sticker.id)}
+                                    className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
+                                    title={`Add ${sticker.name} sticker`}
+                                >
+                                    <div className="w-12 h-12">
+                                        <img src={sticker.imageData} alt={sticker.name} className="w-full h-full object-contain" />
+                                    </div>
+                                    <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
                                 </button>
                             ))}
                         </div>
