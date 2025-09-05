@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -13,6 +10,7 @@ import { fetchSearchResults } from './services/geminiService';
 import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
+import { ChromeBanner } from './components/ChromeBanner';
 
 declare global {
   interface Window {
@@ -51,6 +49,7 @@ const App: React.FC = () => {
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [showUnpackedModal, setShowUnpackedModal] = useState(false);
   const [isGsiScriptLoaded, setIsGsiScriptLoaded] = useState(false);
+  const [showChromeBanner, setShowChromeBanner] = useState(false);
   
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     try {
@@ -103,6 +102,20 @@ const App: React.FC = () => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+    const hasHiddenBanner = localStorage.getItem('hideChromeBanner') === 'true';
+
+    if (!isChrome && !hasHiddenBanner) {
+        setShowChromeBanner(true);
+    }
+  }, []);
+
+  const handleCloseChromeBanner = () => {
+    setShowChromeBanner(false);
+    localStorage.setItem('hideChromeBanner', 'true');
+  };
 
   const handleCloseIntroModal = () => {
     setShowIntroModal(false);
@@ -527,6 +540,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans text-gray-900">
+      {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
       <Sidebar 
         isOpen={isSidebarOpen}
         onClose={() => setSidebarOpen(false)}
