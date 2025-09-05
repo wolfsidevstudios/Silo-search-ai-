@@ -37,7 +37,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   
   return (
     <div className="flex flex-col min-h-screen relative" ref={stickerCanvasRef}>
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      {/* Sticker Container: Elevated during edit mode */}
+      <div className={`absolute inset-0 ${isStickerEditMode ? 'z-30' : 'z-0 pointer-events-none'}`}>
         {stickers.map(sticker => (
           <DraggableSticker 
             key={sticker.id}
@@ -48,6 +49,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           />
         ))}
       </div>
+      
+      {/* Main Content */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <Header 
           isTemporaryMode={isTemporaryMode}
@@ -71,19 +74,27 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           </div>
         </main>
       </div>
+
+      {/* Edit Mode UI */}
       {isStickerEditMode && (
-        <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-sm flex flex-col items-center justify-between p-8">
-          <div className="bg-white/90 p-4 rounded-xl shadow-lg text-center max-w-sm">
-            <h3 className="text-xl font-bold text-gray-800">Sticker Preview</h3>
-            <p className="mt-1 text-sm text-gray-600">Drag your stickers to arrange them. Click Done when you're finished.</p>
+        <>
+          {/* Blur Overlay: Sits between main content (z-10) and stickers (z-30) */}
+          <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-sm" aria-hidden="true"></div>
+          
+          {/* UI elements: On top of everything (z-40) */}
+          <div className="absolute inset-0 z-40 flex flex-col items-center justify-between p-8 pointer-events-none">
+            <div className="bg-white/90 p-4 rounded-xl shadow-lg text-center max-w-sm pointer-events-auto">
+              <h3 className="text-xl font-bold text-gray-800">Sticker Preview</h3>
+              <p className="mt-1 text-sm text-gray-600">Drag your stickers to arrange them. Click Done when you're finished.</p>
+            </div>
+            <button 
+              onClick={onExitStickerEditMode}
+              className="bg-black text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-gray-800 transition-transform hover:scale-105 pointer-events-auto"
+            >
+              Done
+            </button>
           </div>
-          <button 
-            onClick={onExitStickerEditMode}
-            className="bg-black text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-gray-800 transition-transform hover:scale-105"
-          >
-            Done
-          </button>
-        </div>
+        </>
       )}
     </div>
   );
