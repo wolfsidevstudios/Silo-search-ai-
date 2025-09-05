@@ -8,15 +8,17 @@ interface SearchPageProps {
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
+  onToggleThemePanel: () => void;
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header 
         isTemporaryMode={isTemporaryMode}
         onToggleSidebar={onToggleSidebar}
         onToggleTemporaryMode={onToggleTemporaryMode}
+        onToggleThemePanel={onToggleThemePanel}
       />
       <main className="flex-grow flex flex-col items-center justify-center px-4 pb-24 text-center">
         {isTemporaryMode && (

@@ -16,13 +16,13 @@ interface ResultsPageProps {
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
+  onToggleThemePanel: () => void;
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
-    // Maybe show a toast notification here in a real app
   };
 
   const handleDownload = () => {
@@ -47,6 +47,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         isTemporaryMode={isTemporaryMode}
         onToggleSidebar={onToggleSidebar}
         onToggleTemporaryMode={onToggleTemporaryMode}
+        onToggleThemePanel={onToggleThemePanel}
         onHome={onHome}
         showHomeButton={true}
       />

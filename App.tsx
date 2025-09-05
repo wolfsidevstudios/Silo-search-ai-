@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
 import { Sidebar } from './components/Sidebar';
+import { ThemePanel } from './components/ThemePanel';
 import { fetchSearchResults } from './services/geminiService';
 import type { SearchResult } from './types';
 
@@ -17,7 +18,9 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isThemePanelOpen, setThemePanelOpen] = useState(false);
   const [isTemporaryMode, setTemporaryMode] = useState(false);
+  
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
         const items = window.localStorage.getItem('recentSearches');
@@ -28,6 +31,10 @@ const App: React.FC = () => {
     }
   });
 
+  const [theme, setTheme] = useState<string>(() => {
+    return window.localStorage.getItem('silo-theme') || 'bg-white';
+  });
+
   useEffect(() => {
     try {
         window.localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
@@ -36,10 +43,17 @@ const App: React.FC = () => {
     }
   }, [recentSearches]);
 
+  useEffect(() => {
+    window.localStorage.setItem('silo-theme', theme);
+    document.body.className = theme;
+  }, [theme]);
+
+
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
     
     setSidebarOpen(false);
+    setThemePanelOpen(false);
     setView('loading');
     setCurrentQuery(query);
     setError(null);
@@ -69,15 +83,27 @@ const App: React.FC = () => {
     setError(null);
   };
   
-  const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
+  const handleToggleSidebar = () => {
+    setThemePanelOpen(false);
+    setSidebarOpen(prev => !prev);
+  }
   const handleToggleTemporaryMode = () => setTemporaryMode(prev => !prev);
   const handleClearRecents = () => setRecentSearches([]);
+  const handleToggleThemePanel = () => {
+    setSidebarOpen(false);
+    setThemePanelOpen(prev => !prev);
+  };
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    setThemePanelOpen(false);
+  };
 
   const renderContent = () => {
     const commonProps = {
       isTemporaryMode,
       onToggleSidebar: handleToggleSidebar,
       onToggleTemporaryMode: handleToggleTemporaryMode,
+      onToggleThemePanel: handleToggleThemePanel,
     };
 
     switch(view) {
@@ -89,7 +115,6 @@ const App: React.FC = () => {
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} />;
         }
-        // Fallback to search if result is null
         return <SearchPage onSearch={handleSearch} {...commonProps} />;
       case 'search':
       default:
@@ -98,7 +123,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen font-sans text-gray-900 bg-white">
+    <div className="min-h-screen font-sans text-gray-900">
       <Sidebar 
         isOpen={isSidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -106,7 +131,13 @@ const App: React.FC = () => {
         onSearch={handleSearch}
         onClear={handleClearRecents}
       />
-      <div className={`${isSidebarOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
+      <ThemePanel
+        isOpen={isThemePanelOpen}
+        onClose={() => setThemePanelOpen(false)}
+        currentTheme={theme}
+        onThemeChange={handleThemeChange}
+      />
+      <div className={`${isSidebarOpen || isThemePanelOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
         {renderContent()}
       </div>
     </div>
