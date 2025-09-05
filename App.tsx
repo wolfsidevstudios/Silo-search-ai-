@@ -6,6 +6,7 @@ import { ThemePanel } from './components/ThemePanel';
 import { SettingsModal } from './components/SettingsModal';
 import { fetchSearchResults } from './services/geminiService';
 import type { SearchResult } from './types';
+import { LogoIcon } from './components/icons/LogoIcon';
 
 type View = 'search' | 'results' | 'loading' | 'error';
 
@@ -173,7 +174,7 @@ const App: React.FC = () => {
 
 const LoadingState: React.FC<{query: string}> = ({ query }) => (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+        <LogoIcon className="w-20 h-20 animate-spin" />
         <p className="mt-4 text-lg text-gray-600">Searching for...</p>
         <p className="mt-1 text-xl font-medium text-black">{query}</p>
     </div>
