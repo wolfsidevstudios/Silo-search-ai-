@@ -145,6 +145,10 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<string>(() => {
     return window.localStorage.getItem('silo-theme') || 'bg-white';
   });
+  
+  const [customWallpaper, setCustomWallpaper] = useState<string | null>(() => {
+    return window.localStorage.getItem('customWallpaper');
+  });
 
   const [isClockVisible, setIsClockVisible] = useState<boolean>(() => {
     try {
@@ -204,8 +208,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     window.localStorage.setItem('silo-theme', theme);
-    document.body.className = theme;
+    document.body.className = ''; // Clear body class, style will be on the div
   }, [theme]);
+
+  useEffect(() => {
+    if (customWallpaper) {
+      window.localStorage.setItem('customWallpaper', customWallpaper);
+    } else {
+      window.localStorage.removeItem('customWallpaper');
+    }
+  }, [customWallpaper]);
   
   useEffect(() => {
     try {
@@ -538,8 +550,12 @@ const App: React.FC = () => {
     }
   };
 
+  const appStyle = customWallpaper
+    ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
+    : {};
+
   return (
-    <div className="min-h-screen font-sans text-gray-900">
+    <div className={`min-h-screen font-sans text-gray-900 ${!customWallpaper ? theme : 'bg-gray-100'}`} style={appStyle}>
       {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
       <Sidebar 
         isOpen={isSidebarOpen}
@@ -559,6 +575,8 @@ const App: React.FC = () => {
         onApiKeysChange={setApiKeys}
         currentTheme={theme}
         onThemeChange={setTheme}
+        customWallpaper={customWallpaper}
+        onCustomWallpaperChange={setCustomWallpaper}
         isClockVisible={isClockVisible}
         onIsClockVisibleChange={setIsClockVisible}
         clockSettings={clockSettings}
@@ -583,7 +601,7 @@ const App: React.FC = () => {
       />
       <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
       <UnpackedModal isOpen={showUnpackedModal} onClose={handleCloseUnpackedModal} />
-      <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || showUnpackedModal ? 'blur-sm' : ''} transition-filter duration-300`}>
+      <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || showUnpackedModal ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
         {renderContent()}
       </div>
     </div>
@@ -591,7 +609,7 @@ const App: React.FC = () => {
 };
 
 const LoadingState: React.FC<{query: string}> = ({ query }) => (
-    <div className="flex flex-col items-center justify-center min-h-screen text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen text-center p-4 bg-white/50 backdrop-blur-sm rounded-lg">
         <LogoIcon className="w-20 h-20 animate-spin" />
         <p className="mt-4 text-lg text-gray-600">Searching for...</p>
         <p className="mt-1 text-xl font-medium text-black">{query}</p>
@@ -600,6 +618,7 @@ const LoadingState: React.FC<{query: string}> = ({ query }) => (
 
 const ErrorState: React.FC<{message: string | null; onRetry: () => void; onHome: () => void}> = ({ message, onRetry, onHome }) => (
     <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+      <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-lg">
         <h2 className="text-2xl font-bold text-red-600">An Error Occurred</h2>
         <p className="mt-2 text-gray-600 max-w-md">{message || 'An unknown error occurred.'}</p>
         <div className="flex gap-4 mt-8">
@@ -610,6 +629,7 @@ const ErrorState: React.FC<{message: string | null; onRetry: () => void; onHome:
                 Try Again
             </button>
         </div>
+      </div>
     </div>
 );
 

@@ -23,6 +23,7 @@ const themes: { [key in ClockSettings['theme']]: { dark: string; light: string }
   forest: { dark: 'text-green-900', light: 'text-lime-500' },
   neon: { dark: 'text-pink-500', light: 'text-cyan-300' },
   candy: { dark: 'text-red-500', light: 'text-yellow-300' },
+  'liquid-glass': { dark: 'text-white/90', light: 'text-white/70' },
 };
 
 const fontClasses: { [key in ClockSettings['font']]: string } = {
@@ -92,9 +93,12 @@ export const Clock: React.FC<ClockProps> = ({ settings, temperatureUnit }) => {
   const animationClass = animationClasses[settings.animation] || '';
   const containerStyle = { fontSize: `${settings.size}rem` };
   
-  const digitStyle = {
-    WebkitTextStroke: `${settings.thickness}px white`,
-    textStroke: `${settings.thickness}px white`,
+  const digitStyle: React.CSSProperties = {
+    WebkitTextStroke: `${settings.thickness}px ${settings.theme === 'liquid-glass' ? 'rgba(255, 255, 255, 0.2)' : 'white'}`,
+    // FIX: The 'textStroke' property is not a standard CSS property and causes a TypeScript error.
+    // @ts-ignore
+    textStroke: `${settings.thickness}px ${settings.theme === 'liquid-glass' ? 'rgba(255, 255, 255, 0.2)' : 'white'}`,
+    ...(settings.theme === 'liquid-glass' && { textShadow: '0 2px 10px rgba(0,0,0,0.2)' })
   };
 
   const digitColors = [colorClasses.dark, colorClasses.light, colorClasses.light, colorClasses.dark];
@@ -131,7 +135,7 @@ export const Clock: React.FC<ClockProps> = ({ settings, temperatureUnit }) => {
       <div className={wrapperClass}>
         {clockLayout}
       </div>
-      <div className="flex items-center space-x-4 mt-2 text-xl font-medium text-gray-700 date-weather-font">
+      <div className={`flex items-center space-x-4 mt-2 text-xl font-medium date-weather-font ${settings.theme === 'liquid-glass' ? 'text-white/90' : 'text-gray-700'}`}>
         <span>{dateString}</span>
         {weather && (
           <div className="flex items-center space-x-2">

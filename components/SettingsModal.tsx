@@ -29,6 +29,9 @@ import { NvidiaIcon } from './icons/NvidiaIcon';
 import { DatabricksIcon } from './icons/DatabricksIcon';
 import { SnowflakeIcon } from './icons/SnowflakeIcon';
 import { FileTextIcon } from './icons/FileTextIcon';
+import { HelpCircleIcon } from './icons/HelpCircleIcon';
+import { UploadCloudIcon } from './icons/UploadCloudIcon';
+import { TrashIcon } from './icons/TrashIcon';
 
 
 interface SettingsModalProps {
@@ -39,6 +42,8 @@ interface SettingsModalProps {
   onApiKeysChange: (keys: { [key: string]: string }) => void;
   currentTheme: string;
   onThemeChange: (theme: string) => void;
+  customWallpaper: string | null;
+  onCustomWallpaperChange: (imageData: string | null) => void;
   isClockVisible: boolean;
   onIsClockVisibleChange: (isVisible: boolean) => void;
   clockSettings: ClockSettings;
@@ -177,6 +182,7 @@ const navSections = {
   ],
   "Information": [
     { id: 'about', name: 'About', Icon: InfoIcon },
+    { id: 'how-it-works', name: 'How It Works', Icon: HelpCircleIcon },
     { id: 'privacy', name: 'Privacy Policy', Icon: PrivacyIcon },
     { id: 'terms', name: 'Terms of Conditions', Icon: FileTextIcon },
     { id: 'releaseNotes', name: 'Release Notes', Icon: ReleaseNotesIcon }
@@ -216,6 +222,7 @@ const clockThemes = [
   { id: 'forest', name: 'Forest', darkClass: 'bg-green-900', lightClass: 'bg-lime-500' },
   { id: 'neon', name: 'Neon', darkClass: 'bg-pink-500', lightClass: 'bg-cyan-300' },
   { id: 'candy', name: 'Candy', darkClass: 'bg-red-500', lightClass: 'bg-yellow-300' },
+  { id: 'liquid-glass', name: 'Liquid Glass', darkClass: 'bg-gray-400/30 border border-white/20', lightClass: 'bg-gray-100/30 border border-white/20' },
 ];
 
 const clockFonts = [
@@ -255,15 +262,17 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode }) => {
   const [activeSection, setActiveSection] = useState('api-keys');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
   const [localIsClockVisible, setLocalIsClockVisible] = useState(isClockVisible);
   const [localTheme, setLocalTheme] = useState(currentTheme);
+  const [localCustomWallpaper, setLocalCustomWallpaper] = useState(customWallpaper);
   const [localTemperatureUnit, setLocalTemperatureUnit] = useState(temperatureUnit);
   const [stickerSearch, setStickerSearch] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const stickerFileInputRef = useRef<HTMLInputElement>(null);
+  const wallpaperFileInputRef = useRef<HTMLInputElement>(null);
 
 
   useEffect(() => {
@@ -273,16 +282,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         setLocalClockSettings(clockSettings);
         setLocalIsClockVisible(isClockVisible);
         setLocalTheme(currentTheme);
+        setLocalCustomWallpaper(customWallpaper);
         setLocalTemperatureUnit(temperatureUnit);
         setStickerSearch('');
     }
-  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme, temperatureUnit]);
+  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme, customWallpaper, temperatureUnit]);
   
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
     onClockSettingsChange(localClockSettings);
     onIsClockVisibleChange(localIsClockVisible);
     onThemeChange(localTheme);
+    onCustomWallpaperChange(localCustomWallpaper);
     onTemperatureUnitChange(localTemperatureUnit);
     onClose();
   };
@@ -296,11 +307,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     onEnterStickerEditMode();
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
+  const handleUploadStickerClick = () => {
+    stickerFileInputRef.current?.click();
+  };
+  
+  const handleUploadWallpaperClick = () => {
+    wallpaperFileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleStickerFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -326,6 +341,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     reader.readAsDataURL(file);
 
     event.target.value = '';
+  };
+
+  const handleWallpaperFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('File size should not exceed 5MB.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        const imageData = reader.result as string;
+        setLocalCustomWallpaper(imageData);
+        setLocalTheme('bg-white'); // Set a neutral base theme
+    };
+    reader.onerror = () => {
+        alert('Sorry, there was an error uploading your wallpaper.');
+    };
+    reader.readAsDataURL(file);
+    event.target.value = ''; // Reset input
   };
 
   const handleDeleteAllData = () => {
@@ -455,6 +496,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                         <p>Made with ❤️</p>
                     </div>
                 </section>
+                ) : activeSection === 'how-it-works' ? (
+                    <section className="space-y-6">
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-800">How Silo Search Works</h3>
+                            <p className="mt-2 text-gray-600">Your intelligent gateway to the web.</p>
+                        </div>
+                        <div className="prose prose-sm max-w-none text-gray-700">
+                            <p>Silo Search is designed to give you quick, summarized answers to your questions, backed by reliable sources from the web. Here's a breakdown of how it works and what you can do:</p>
+                            
+                            <h4>Core Functionality</h4>
+                            <ol>
+                                <li><strong>Enter a Query:</strong> Simply type your question into the search bar.</li>
+                                <li><strong>Get an AI Summary:</strong> We use Google's Gemini model combined with Google Search to analyze the latest information online and generate a concise, easy-to-read summary.</li>
+                                <li><strong>Explore Sources:</strong> Below the summary, you'll find "Quick Links" which are the web pages the AI used to create its answer, allowing you to dive deeper.</li>
+                            </ol>
+                            
+                            <h4>Key Features</h4>
+                            <ul>
+                                <li><strong>Chat Mode:</strong> After a search, you can enter Chat Mode to ask follow-up questions and have a conversation with the AI about the topic.</li>
+                                <li><strong>Customizable Homepage:</strong> Make Silo Search your own! You can change the wallpaper, customize the clock, and even add fun stickers or useful widgets like notes and weather. Find these options in the "Appearance" settings.</li>
+                                <li><strong>Bring Your Own API Key:</strong> Silo Search is free to use, but requires you to connect your own API key from an AI provider like Google. Your key is stored securely in your browser and is never sent to us.</li>
+                                 <li><strong>Temporary Mode:</strong> Activate Temporary Mode (the incognito icon) to search without your queries being saved to your "Recent Searches" list.</li>
+                            </ul>
+
+                            <h4>Contact Us</h4>
+                            <p>Have questions, feedback, or need support? We'd love to hear from you! Please reach out to us at:</p>
+                            <p><a href="mailto:wolfsidevstudios@gmail.com">wolfsidevstudios@gmail.com</a></p>
+                        </div>
+                    </section>
                 ) : activeSection === 'privacy' ? (
                     <section className="space-y-6">
                         <div>
@@ -677,23 +747,72 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                     </section>
                 ) : activeSection === 'wallpaper' ? (
                     <section>
+                        <input
+                            type="file"
+                            ref={wallpaperFileInputRef}
+                            onChange={handleWallpaperFileChange}
+                            accept="image/*"
+                            className="hidden"
+                            aria-hidden="true"
+                        />
                         <div className="mb-8">
                             <h3 className="text-2xl font-bold text-gray-800">Wallpaper</h3>
                             <p className="mt-2 text-gray-600">
-                                Choose a background for the application.
+                                Choose a background for the application or upload your own.
                             </p>
                         </div>
                          <div className="space-y-6">
+                             <div>
+                                <h3 className="text-sm font-medium text-gray-500 mb-3">Custom Wallpaper</h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={handleUploadWallpaperClick}
+                                        className="w-full h-16 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex flex-col items-center justify-center transition-colors"
+                                    >
+                                        <UploadCloudIcon className="w-6 h-6 mb-1" />
+                                        <span className="text-xs font-semibold">Upload Your Own</span>
+                                    </button>
+                                    {localCustomWallpaper && (
+                                        <div className="relative">
+                                            <button
+                                                className="w-full h-16 rounded-lg border-2 border-blue-500 scale-105"
+                                                aria-label="Current custom wallpaper"
+                                            >
+                                                <div 
+                                                    className="w-full h-full rounded-md bg-cover bg-center"
+                                                    style={{ backgroundImage: `url(${localCustomWallpaper})` }}
+                                                >
+                                                     <div className="w-full h-full rounded-md flex items-center justify-center bg-black/20">
+                                                        <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-blue-600">
+                                                            <CheckIcon />
+                                                        </div>
+                                                     </div>
+                                                </div>
+                                            </button>
+                                            <button
+                                                onClick={() => setLocalCustomWallpaper(null)}
+                                                className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                                                aria-label="Remove custom wallpaper"
+                                            >
+                                                <TrashIcon />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                             {Object.entries(wallpapers).map(([category, themeList]) => (
                             <div key={category}>
                                 <h3 className="text-sm font-medium text-gray-500 mb-3">{category}</h3>
                                 <div className="grid grid-cols-2 gap-3">
                                 {themeList.map(theme => (
                                     <WallpaperSwatch 
-                                    key={theme.class}
-                                    themeClass={theme.class}
-                                    isSelected={localTheme === theme.class}
-                                    onClick={() => setLocalTheme(theme.class)}
+                                        key={theme.class}
+                                        themeClass={theme.class}
+                                        isSelected={localTheme === theme.class && !localCustomWallpaper}
+                                        onClick={() => {
+                                            setLocalTheme(theme.class)
+                                            setLocalCustomWallpaper(null)
+                                        }}
                                     />
                                 ))}
                                 </div>
@@ -705,8 +824,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                     <section>
                         <input
                             type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
+                            ref={stickerFileInputRef}
+                            onChange={handleStickerFileChange}
                             accept="image/*"
                             className="hidden"
                             aria-hidden="true"
@@ -737,7 +856,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 Arrange Stickers
                             </button>
                             <button
-                                onClick={handleUploadClick}
+                                onClick={handleUploadStickerClick}
                                 className="w-full px-4 py-3 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800"
                             >
                                 Upload Your Own

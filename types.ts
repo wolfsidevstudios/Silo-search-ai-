@@ -30,7 +30,7 @@ export interface StickerInstance {
 
 export interface ClockSettings {
   style: 'horizontal' | 'stacked' | 'diagonal';
-  theme: 'classic' | 'mint' | 'peach' | 'mono' | 'ocean' | 'sunset' | 'forest' | 'neon' | 'candy';
+  theme: 'classic' | 'mint' | 'peach' | 'mono' | 'ocean' | 'sunset' | 'forest' | 'neon' | 'candy' | 'liquid-glass';
   font: 'fredoka' | 'serif' | 'mono' | 'pacifico' | 'bungee' | 'press-start' | 'caveat';
   size: number; // in rem
   thickness: number; // in px
