@@ -1,10 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { SearchResult } from '../types';
 
-// The API key is hardcoded here to allow the application to be tested.
-// In a production environment, this should be handled securely, for example,
-// through environment variables on a server.
-const apiKey = "AlzaSyCfhKpYjvZSjS0y61665dd0Ab2S50vtEQ";
+const apiKey = process.env.API_KEY;
 
 if (!apiKey) {
   throw new Error("API_KEY has not been configured.");
