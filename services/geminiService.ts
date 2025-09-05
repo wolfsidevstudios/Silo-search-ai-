@@ -1,15 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import type { SearchResult, QuickLink } from '../types';
 
-const apiKey = process.env.API_KEY;
+export async function fetchSearchResults(query: string, apiKey: string): Promise<SearchResult> {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
 
-if (!apiKey) {
-  throw new Error("API_KEY has not been configured.");
-}
-
-const ai = new GoogleGenAI({ apiKey });
-
-export async function fetchSearchResults(query: string): Promise<SearchResult> {
   const prompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
   
   try {
@@ -36,6 +34,6 @@ export async function fetchSearchResults(query: string): Promise<SearchResult> {
 
   } catch (error) {
     console.error("Error fetching from Gemini API:", error);
-    throw new Error("Failed to get a valid response from the AI model.");
+    throw new Error("Failed to get a valid response from the AI model. This could be due to an invalid API key or network issues.");
   }
 }

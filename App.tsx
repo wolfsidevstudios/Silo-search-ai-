@@ -35,6 +35,10 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<string>(() => {
     return window.localStorage.getItem('silo-theme') || 'bg-white';
   });
+  
+  const [apiKey, setApiKey] = useState<string>(() => {
+    return window.localStorage.getItem('gemini-api-key') || '';
+  });
 
   useEffect(() => {
     try {
@@ -48,11 +52,21 @@ const App: React.FC = () => {
     window.localStorage.setItem('silo-theme', theme);
     document.body.className = theme;
   }, [theme]);
+  
+  useEffect(() => {
+    window.localStorage.setItem('gemini-api-key', apiKey);
+  }, [apiKey]);
 
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
     
+    if (!apiKey) {
+      setError('Please configure your Gemini API key in the settings before searching.');
+      setView('error');
+      return;
+    }
+
     setSidebarOpen(false);
     setThemePanelOpen(false);
     setView('loading');
@@ -67,15 +81,15 @@ const App: React.FC = () => {
     }
 
     try {
-      const result = await fetchSearchResults(query);
+      const result = await fetchSearchResults(query, apiKey);
       setSearchResult(result);
       setView('results');
     } catch (err) {
       console.error(err);
-      setError('Sorry, something went wrong while fetching the results. Please try again.');
+      setError('Sorry, something went wrong. Please check your API key and try again.');
       setView('error');
     }
-  }, [isTemporaryMode]);
+  }, [isTemporaryMode, apiKey]);
 
   const handleGoHome = () => {
     setView('search');
@@ -147,6 +161,8 @@ const App: React.FC = () => {
       <SettingsModal
         isOpen={isSettingsModalOpen}
         onClose={() => setSettingsModalOpen(false)}
+        apiKey={apiKey}
+        onApiKeyChange={setApiKey}
       />
       <div className={`${isSidebarOpen || isThemePanelOpen || isSettingsModalOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
         {renderContent()}
