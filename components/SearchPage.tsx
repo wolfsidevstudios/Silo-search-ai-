@@ -5,8 +5,9 @@ import { Header } from './Header';
 import { IncognitoIcon } from './icons/IncognitoIcon';
 import { Clock } from './Clock';
 import { DraggableSticker } from './DraggableSticker';
-import { StickerComponents } from './sticker-library';
-import type { ClockSettings, StickerInstance, CustomSticker } from '../types';
+import { DraggableWidget } from './DraggableWidget';
+import { NoteWidget, WeatherWidget } from './widgets/Widgets';
+import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance } from '../types';
 
 interface SearchPageProps {
   onSearch: (query: string) => void;
@@ -21,6 +22,10 @@ interface SearchPageProps {
   onUpdateSticker: (sticker: StickerInstance) => void;
   isStickerEditMode: boolean;
   onExitStickerEditMode: () => void;
+  widgets: WidgetInstance[];
+  onUpdateWidget: (widget: WidgetInstance) => void;
+  isWidgetEditMode: boolean;
+  onExitWidgetEditMode: () => void;
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -36,36 +41,67 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onUpdateSticker,
   isStickerEditMode,
   onExitStickerEditMode,
+  widgets,
+  onUpdateWidget,
+  isWidgetEditMode,
+  onExitWidgetEditMode,
 }) => {
-  const stickerCanvasRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
   
-  // Create a map of custom stickers for quick lookups
   const customStickerMap = new Map(customStickers.map(cs => [cs.id, cs]));
 
+  const renderWidget = (widget: WidgetInstance) => {
+    switch(widget.widgetType) {
+        case 'note':
+            return <NoteWidget widget={widget} onUpdate={onUpdateWidget} isEditing={isWidgetEditMode} />;
+        case 'weather':
+            return <WeatherWidget />;
+        default:
+            return null;
+    }
+  }
+
   return (
-    <div className="flex flex-col min-h-screen relative" ref={stickerCanvasRef}>
-      {/* Sticker Container: Elevated during edit mode */}
-      <div className={`absolute inset-0 ${isStickerEditMode ? 'z-30' : 'z-0 pointer-events-none'}`}>
+    <div className="flex flex-col min-h-screen relative" ref={canvasRef}>
+      {/* Item Container */}
+      <div className={`absolute inset-0 z-0 ${isStickerEditMode || isWidgetEditMode ? 'z-30 pointer-events-auto' : 'pointer-events-none'}`}>
         {stickers.map(sticker => {
           const customStickerData = customStickerMap.get(sticker.stickerId);
-          const LibraryStickerComponent = StickerComponents[sticker.stickerId];
-          
           return (
             <DraggableSticker 
               key={sticker.id}
               sticker={sticker}
-              containerRef={stickerCanvasRef}
+              containerRef={canvasRef}
               onUpdate={onUpdateSticker}
               isDraggable={isStickerEditMode}
             >
               {customStickerData ? (
                 <img src={customStickerData.imageData} alt={customStickerData.name} className="w-full h-full object-contain pointer-events-none" />
-              ) : LibraryStickerComponent ? (
-                <LibraryStickerComponent />
-              ) : null}
+              ) : (
+                <span 
+                    className="leading-none select-none flex items-center justify-center w-full h-full"
+                    style={{ 
+                        fontSize: `${sticker.size * 0.7}rem`,
+                        textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                >
+                    {sticker.stickerId}
+                </span>
+              )}
             </DraggableSticker>
           );
         })}
+        {widgets.map(widget => (
+            <DraggableWidget
+                key={widget.id}
+                widget={widget}
+                containerRef={canvasRef}
+                onUpdate={onUpdateWidget}
+                isDraggable={isWidgetEditMode}
+            >
+                {renderWidget(widget)}
+            </DraggableWidget>
+        ))}
       </div>
       
       {/* Main Content */}
@@ -94,19 +130,17 @@ export const SearchPage: React.FC<SearchPageProps> = ({
       </div>
 
       {/* Edit Mode UI */}
-      {isStickerEditMode && (
+      {(isStickerEditMode || isWidgetEditMode) && (
         <>
-          {/* Blur Overlay: Sits between main content (z-10) and stickers (z-30) */}
           <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-sm" aria-hidden="true"></div>
           
-          {/* UI elements: On top of everything (z-40) */}
           <div className="absolute inset-0 z-40 flex flex-col items-center justify-between p-8 pointer-events-none">
             <div className="bg-white/90 p-4 rounded-xl shadow-lg text-center max-w-sm pointer-events-auto">
-              <h3 className="text-xl font-bold text-gray-800">Sticker Preview</h3>
-              <p className="mt-1 text-sm text-gray-600">Drag your stickers to arrange them. Click Done when you're finished.</p>
+              <h3 className="text-xl font-bold text-gray-800">{isStickerEditMode ? 'Sticker Preview' : 'Widget Preview'}</h3>
+              <p className="mt-1 text-sm text-gray-600">Drag your {isStickerEditMode ? 'stickers' : 'widgets'} to arrange them. Click Done when you're finished.</p>
             </div>
             <button 
-              onClick={onExitStickerEditMode}
+              onClick={isStickerEditMode ? onExitStickerEditMode : onExitWidgetEditMode}
               className="bg-black text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-gray-800 transition-transform hover:scale-105 pointer-events-auto"
             >
               Done

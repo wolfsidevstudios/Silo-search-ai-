@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { LogoIcon } from './icons/LogoIcon';
@@ -12,9 +11,10 @@ import { ClockIcon } from './icons/ClockIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { WallpaperIcon } from './icons/WallpaperIcon';
 import { StickerIcon } from './icons/StickerIcon';
+import { WidgetIcon } from './icons/WidgetIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
-import type { ClockSettings, CustomSticker } from '../types';
+import type { ClockSettings, CustomSticker, WidgetType } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
 
 
@@ -35,6 +35,9 @@ interface SettingsModalProps {
   onEnterStickerEditMode: () => void;
   customStickers: CustomSticker[];
   onAddCustomSticker: (imageData: string, name: string) => void;
+  onAddWidget: (widgetType: WidgetType) => void;
+  onClearWidgets: () => void;
+  onEnterWidgetEditMode: () => void;
 }
 
 const navSections = {
@@ -65,38 +68,15 @@ const navSections = {
     },
   ],
   "Appearance": [
-    {
-      id: 'clock',
-      name: 'Clock Display',
-      Icon: ClockIcon,
-    },
-    {
-      id: 'wallpaper',
-      name: 'Wallpaper',
-      Icon: WallpaperIcon,
-    },
-    {
-      id: 'stickers',
-      name: 'Stickers',
-      Icon: StickerIcon,
-    },
+    { id: 'clock', name: 'Clock Display', Icon: ClockIcon, },
+    { id: 'wallpaper', name: 'Wallpaper', Icon: WallpaperIcon, },
+    { id: 'stickers', name: 'Stickers', Icon: StickerIcon, },
+    { id: 'widgets', name: 'Widgets', Icon: WidgetIcon, },
   ],
   "Information": [
-    {
-      id: 'about',
-      name: 'About',
-      Icon: InfoIcon,
-    },
-    {
-      id: 'privacy',
-      name: 'Privacy Policy',
-      Icon: PrivacyIcon,
-    },
-    {
-      id: 'releaseNotes',
-      name: 'Release Notes',
-      Icon: ReleaseNotesIcon,
-    }
+    { id: 'about', name: 'About', Icon: InfoIcon, },
+    { id: 'privacy', name: 'Privacy Policy', Icon: PrivacyIcon, },
+    { id: 'releaseNotes', name: 'Release Notes', Icon: ReleaseNotesIcon, }
   ]
 };
 
@@ -169,7 +149,7 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode }) => {
   const [activeSection, setActiveSection] = useState('gemini');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
@@ -236,7 +216,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     };
     reader.readAsDataURL(file);
 
-    // Reset file input value so the user can upload the same file again if needed
     event.target.value = '';
   };
 
@@ -543,7 +522,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                         {(() => {
                             const lowercasedQuery = stickerSearch.toLowerCase();
                             const filteredLibraryStickers = STICKERS.filter(sticker => 
-                                sticker.name.toLowerCase().includes(lowercasedQuery)
+                                sticker.name.toLowerCase().includes(lowercasedQuery) || sticker.id.includes(lowercasedQuery)
                             );
                             const filteredCustomStickers = customStickers.filter(sticker => 
                                 sticker.name.toLowerCase().includes(lowercasedQuery)
@@ -555,32 +534,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                             }
 
                             return (
-                                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
-                                    {/* Library Stickers */}
-                                    {filteredLibraryStickers.map(sticker => (
-                                        <button
-                                            key={sticker.id}
-                                            onClick={() => handleAddStickerAndEdit(sticker.id)}
-                                            className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
-                                            title={`Add ${sticker.name} sticker`}
-                                        >
-                                            <div className="w-12 h-12">
-                                                <sticker.component />
-                                            </div>
-                                            <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
-                                        </button>
-                                    ))}
-                                    {/* Custom Stickers */}
+                                <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
                                     {filteredCustomStickers.map(sticker => (
                                         <button
                                             key={sticker.id}
                                             onClick={() => handleAddStickerAndEdit(sticker.id)}
-                                            className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
+                                            className="p-2 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-1 hover:bg-gray-200 transition-colors aspect-square"
                                             title={`Add ${sticker.name} sticker`}
                                         >
-                                            <div className="w-12 h-12">
+                                            <div className="w-10 h-10 flex items-center justify-center">
                                                 <img src={sticker.imageData} alt={sticker.name} className="w-full h-full object-contain" />
                                             </div>
+                                            <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
+                                        </button>
+                                    ))}
+                                    {filteredLibraryStickers.map(sticker => (
+                                        <button
+                                            key={sticker.id}
+                                            onClick={() => handleAddStickerAndEdit(sticker.id)}
+                                            className="p-2 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-1 hover:bg-gray-200 transition-colors aspect-square"
+                                            title={`Add ${sticker.name} sticker`}
+                                        >
+                                            <span className="text-4xl">{sticker.id}</span>
                                             <span className="text-xs text-gray-600 truncate">{sticker.name}</span>
                                         </button>
                                     ))}
@@ -593,6 +568,42 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
                             >
                                 Clear All Stickers
+                            </button>
+                        </div>
+                    </section>
+                ) : activeSection === 'widgets' ? (
+                     <section>
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-gray-800">Widgets</h3>
+                            <p className="mt-2 text-gray-600">
+                                Add interactive widgets to your home screen.
+                            </p>
+                        </div>
+                        <div className="mb-4 flex space-x-2">
+                             <button
+                                onClick={onEnterWidgetEditMode}
+                                className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200"
+                            >
+                                Arrange Widgets
+                            </button>
+                            <button
+                                onClick={onClearWidgets}
+                                className="w-full px-4 py-3 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+                            >
+                                Clear All Widgets
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button onClick={() => onAddWidget('note')} className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-video">
+                                <div className="w-20 h-20 bg-yellow-200 rounded-lg shadow-inner flex items-center justify-center font-['Caveat'] text-gray-600">note...</div>
+                                <span className="text-sm font-medium text-gray-800">Sticky Note</span>
+                            </button>
+                            <button onClick={() => onAddWidget('weather')} className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-video">
+                                <div className="w-20 h-20 bg-blue-100 rounded-lg shadow-inner flex flex-col items-center justify-center space-y-1">
+                                    <span className="text-2xl">☁️</span>
+                                    <span className="font-bold text-blue-800">19°C</span>
+                                </div>
+                                <span className="text-sm font-medium text-gray-800">Weather</span>
                             </button>
                         </div>
                     </section>

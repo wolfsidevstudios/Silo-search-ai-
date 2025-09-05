@@ -7,7 +7,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, WidgetType } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 
@@ -26,6 +26,7 @@ const App: React.FC = () => {
   const [initialSettingsSection, setInitialSettingsSection] = useState<string | undefined>();
   const [isTemporaryMode, setTemporaryMode] = useState(false);
   const [isStickerEditMode, setStickerEditMode] = useState(false);
+  const [isWidgetEditMode, setWidgetEditMode] = useState(false);
   
   const [isChatModeOpen, setChatModeOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -40,6 +41,16 @@ const App: React.FC = () => {
       return items ? JSON.parse(items) : [];
     } catch (error) {
       console.error("Could not parse stickers from localStorage", error);
+      return [];
+    }
+  });
+
+  const [widgets, setWidgets] = useState<WidgetInstance[]>(() => {
+    try {
+      const items = window.localStorage.getItem('widgets');
+      return items ? JSON.parse(items) : [];
+    } catch (error) {
+      console.error("Could not parse widgets from localStorage", error);
       return [];
     }
   });
@@ -154,6 +165,14 @@ const App: React.FC = () => {
       console.error("Could not save stickers to localStorage", error);
     }
   }, [stickers]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('widgets', JSON.stringify(widgets));
+    } catch (error) {
+      console.error("Could not save widgets to localStorage", error);
+    }
+  }, [widgets]);
 
   useEffect(() => {
     try {
@@ -306,12 +325,53 @@ const App: React.FC = () => {
     setStickers([]);
   };
 
+  const handleEnterWidgetEditMode = () => {
+    setSettingsModalOpen(false);
+    setWidgetEditMode(true);
+  };
+
+  const handleAddWidget = (widgetType: WidgetType) => {
+    const newWidget: WidgetInstance = {
+      id: `${widgetType}-${Date.now()}`,
+      widgetType,
+      x: 50 + (Math.random() - 0.5) * 20,
+      y: 50 + (Math.random() - 0.5) * 20,
+      data: widgetType === 'note' ? { text: 'Type here...' } : {},
+    };
+    setWidgets(prev => [...prev, newWidget]);
+    handleEnterWidgetEditMode();
+  };
+
+  const handleUpdateWidget = (updatedWidget: WidgetInstance) => {
+    setWidgets(prev => prev.map(w => w.id === updatedWidget.id ? updatedWidget : w));
+  };
+
+  const handleClearWidgets = () => {
+    setWidgets([]);
+  };
+
   const renderContent = () => {
     const commonProps = {
       isTemporaryMode,
       onToggleSidebar: handleToggleSidebar,
       onToggleTemporaryMode: handleToggleTemporaryMode,
       onOpenSettings: handleOpenSettings,
+    };
+    
+    const searchPageProps = {
+        onSearch: handleSearch, 
+        isClockVisible: isClockVisible, 
+        clockSettings: clockSettings, 
+        stickers: stickers, 
+        onUpdateSticker: handleUpdateSticker, 
+        isStickerEditMode: isStickerEditMode, 
+        onExitStickerEditMode: () => setStickerEditMode(false), 
+        customStickers: customStickers, 
+        widgets: widgets, 
+        onUpdateWidget: handleUpdateWidget, 
+        isWidgetEditMode: isWidgetEditMode, 
+        onExitWidgetEditMode: () => setWidgetEditMode(false),
+        ...commonProps
     };
 
     switch(view) {
@@ -323,10 +383,10 @@ const App: React.FC = () => {
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
         }
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} customStickers={customStickers} {...commonProps} />;
+        return <SearchPage {...searchPageProps} />;
       case 'search':
       default:
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} isStickerEditMode={isStickerEditMode} onExitStickerEditMode={() => setStickerEditMode(false)} customStickers={customStickers} {...commonProps} />;
+        return <SearchPage {...searchPageProps} />;
     }
   };
 
@@ -357,6 +417,9 @@ const App: React.FC = () => {
         onEnterStickerEditMode={handleEnterStickerEditMode}
         customStickers={customStickers}
         onAddCustomSticker={handleAddCustomSticker}
+        onAddWidget={handleAddWidget}
+        onClearWidgets={handleClearWidgets}
+        onEnterWidgetEditMode={handleEnterWidgetEditMode}
       />
       <ChatModal
         isOpen={isChatModeOpen}

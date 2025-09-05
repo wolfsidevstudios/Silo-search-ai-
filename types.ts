@@ -22,7 +22,7 @@ export interface CustomSticker {
 
 export interface StickerInstance {
   id: string; // unique instance id
-  stickerId: string; // key from sticker library OR a custom sticker id
+  stickerId: string; // key from sticker library (emoji) OR a custom sticker id
   x: number; // percentage
   y: number; // percentage
   size: number; // in rem
@@ -35,4 +35,14 @@ export interface ClockSettings {
   size: number; // in rem
   thickness: number; // in px
   animation: 'none' | 'pulse' | 'float';
+}
+
+export type WidgetType = 'note' | 'weather';
+
+export interface WidgetInstance {
+  id: string;
+  widgetType: WidgetType;
+  x: number; // percentage
+  y: number; // percentage
+  data?: { [key: string]: any };
 }
