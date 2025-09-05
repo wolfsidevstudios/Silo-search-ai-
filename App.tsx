@@ -1,9 +1,9 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
 import { Sidebar } from './components/Sidebar';
 import { ThemePanel } from './components/ThemePanel';
+import { SettingsModal } from './components/SettingsModal';
 import { fetchSearchResults } from './services/geminiService';
 import type { SearchResult } from './types';
 
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isThemePanelOpen, setThemePanelOpen] = useState(false);
+  const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [isTemporaryMode, setTemporaryMode] = useState(false);
   
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
@@ -98,6 +99,11 @@ const App: React.FC = () => {
     setThemePanelOpen(false);
   };
 
+  const handleOpenSettings = () => {
+    setSidebarOpen(false);
+    setSettingsModalOpen(true);
+  };
+
   const renderContent = () => {
     const commonProps = {
       isTemporaryMode,
@@ -130,6 +136,7 @@ const App: React.FC = () => {
         recentSearches={recentSearches}
         onSearch={handleSearch}
         onClear={handleClearRecents}
+        onOpenSettings={handleOpenSettings}
       />
       <ThemePanel
         isOpen={isThemePanelOpen}
@@ -137,7 +144,11 @@ const App: React.FC = () => {
         currentTheme={theme}
         onThemeChange={handleThemeChange}
       />
-      <div className={`${isSidebarOpen || isThemePanelOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+      />
+      <div className={`${isSidebarOpen || isThemePanelOpen || isSettingsModalOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
         {renderContent()}
       </div>
     </div>

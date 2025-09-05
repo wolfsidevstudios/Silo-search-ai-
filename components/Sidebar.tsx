@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { LogoIcon } from './icons/LogoIcon';
+import { SettingsIcon } from './icons/SettingsIcon';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -10,9 +10,10 @@ interface SidebarProps {
   recentSearches: string[];
   onSearch: (query: string) => void;
   onClear: () => void;
+  onOpenSettings: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearches, onSearch, onClear }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearches, onSearch, onClear, onOpenSettings }) => {
   const handleSearchClick = (query: string) => {
     onSearch(query);
     onClose();
@@ -59,14 +60,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearche
               <p className="text-gray-500 text-center mt-8">No recent searches yet.</p>
             )}
           </div>
-          {recentSearches.length > 0 && (
-            <footer className="p-4 border-t">
+          <footer className="p-4 border-t space-y-2">
+            <button onClick={onOpenSettings} className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <SettingsIcon />
+                <span>Settings & Info</span>
+            </button>
+            {recentSearches.length > 0 && (
               <button onClick={onClear} className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
                 <TrashIcon />
                 <span>Clear Recent Searches</span>
               </button>
-            </footer>
-          )}
+            )}
+          </footer>
         </div>
       </aside>
     </>
