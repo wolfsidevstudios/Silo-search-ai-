@@ -9,12 +9,12 @@ interface HeaderProps {
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
-  onToggleThemePanel: () => void;
+  onOpenSettings: (section?: string) => void;
   onHome?: () => void;
   showHomeButton?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel, onHome, showHomeButton }) => {
+export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton }) => {
   return (
     <header className="p-6 flex justify-between items-center">
       <div className="flex items-center space-x-4">
@@ -30,7 +30,7 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <button onClick={onToggleThemePanel} className="p-2 rounded-full hover:bg-black/10 transition-colors" aria-label="Customize theme">
+        <button onClick={() => onOpenSettings('wallpaper')} className="p-2 rounded-full hover:bg-black/10 transition-colors" aria-label="Customize theme">
           <BrushIcon />
         </button>
         {showHomeButton && onHome && (

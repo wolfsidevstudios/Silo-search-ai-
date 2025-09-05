@@ -7,14 +7,20 @@ import { InfoIcon } from './icons/InfoIcon';
 import { PrivacyIcon } from './icons/PrivacyIcon';
 import { ReleaseNotesIcon } from './icons/ReleaseNotesIcon';
 import { ClockIcon } from './icons/ClockIcon';
+import { CheckIcon } from './icons/CheckIcon';
+import { WallpaperIcon } from './icons/WallpaperIcon';
+import { Clock } from './Clock';
 import type { ClockSettings } from '../types';
 
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialSection?: string;
   apiKeys: { [key: string]: string };
   onApiKeysChange: (keys: { [key: string]: string }) => void;
+  currentTheme: string;
+  onThemeChange: (theme: string) => void;
   isClockVisible: boolean;
   onIsClockVisibleChange: (isVisible: boolean) => void;
   clockSettings: ClockSettings;
@@ -54,6 +60,11 @@ const navSections = {
       name: 'Clock Display',
       Icon: ClockIcon,
     },
+    {
+      id: 'wallpaper',
+      name: 'Wallpaper',
+      Icon: WallpaperIcon,
+    },
   ],
   "Information": [
     {
@@ -76,18 +87,62 @@ const navSections = {
 
 const allNavItems = Object.values(navSections).flat();
 
+const wallpapers = {
+  Default: [
+    { name: 'White', class: 'bg-white' },
+    { name: 'Light Gray', class: 'bg-gray-100' },
+  ],
+  Gradients: [
+    { name: 'Peachy', class: 'theme-gradient-2' },
+    { name: 'Lavender', class: 'theme-gradient-1' },
+    { name: 'Minty', class: 'theme-gradient-3' },
+    { name: 'Ocean', class: 'theme-gradient-4' },
+    { name: 'Sunset', class: 'theme-gradient-5' },
+  ],
+  Animated: [
+    { name: 'Aurora', class: 'theme-animated-1' },
+    { name: 'Nebula', class: 'theme-animated-2' },
+  ]
+};
+
 const clockThemes = [
   { id: 'classic', name: 'Classic', darkClass: 'bg-[#006A4E]', lightClass: 'bg-[#7FFFD4]' },
   { id: 'mint', name: 'Mint', darkClass: 'bg-emerald-700', lightClass: 'bg-green-300' },
   { id: 'peach', name: 'Peach', darkClass: 'bg-orange-600', lightClass: 'bg-amber-300' },
   { id: 'mono', name: 'Mono', darkClass: 'bg-black', lightClass: 'bg-gray-400' },
+  { id: 'ocean', name: 'Ocean', darkClass: 'bg-blue-800', lightClass: 'bg-sky-400' },
+  { id: 'sunset', name: 'Sunset', darkClass: 'bg-purple-800', lightClass: 'bg-orange-400' },
+  { id: 'forest', name: 'Forest', darkClass: 'bg-green-900', lightClass: 'bg-lime-500' },
+  { id: 'neon', name: 'Neon', darkClass: 'bg-pink-500', lightClass: 'bg-cyan-300' },
+  { id: 'candy', name: 'Candy', darkClass: 'bg-red-500', lightClass: 'bg-yellow-300' },
 ];
 
 const clockFonts = [
     { id: 'fredoka', name: 'Bubbly', className: "font-['Fredoka_One']" },
     { id: 'serif', name: 'Serif', className: "font-['Roboto_Slab']" },
     { id: 'mono', name: 'Mono', className: "font-['Roboto_Mono']" },
+    { id: 'pacifico', name: 'Script', className: "font-['Pacifico']" },
+    { id: 'bungee', name: 'Blocky', className: "font-['Bungee']" },
+    { id: 'press-start', name: 'Pixel', className: "font-['Press_Start_2P'] text-xs" },
+    { id: 'caveat', name: 'Handwriting', className: "font-['Caveat'] text-2xl" },
 ];
+
+const WallpaperSwatch: React.FC<{ themeClass: string; isSelected: boolean; onClick: () => void; }> = ({ themeClass, isSelected, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`w-full h-16 rounded-lg border-2 transition-all ${isSelected ? 'border-blue-500 scale-105' : 'border-transparent hover:border-gray-300'}`}
+    aria-label={`Select theme: ${themeClass}`}
+  >
+    <div className={`w-full h-full rounded-md flex items-center justify-center ${themeClass}`}>
+      {isSelected && (
+        <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-blue-600">
+            <CheckIcon />
+        </div>
+      )}
+    </div>
+  </button>
+);
+
 
 const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => (
     <button onClick={onClick} className={`p-2 rounded-lg border-2 w-full text-left ${isSelected ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'}`}>
@@ -99,22 +154,28 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, apiKeys, onApiKeysChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange }) => {
+  const [activeSection, setActiveSection] = useState('gemini');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
-  const [activeProvider, setActiveProvider] = useState('gemini');
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
+  const [localIsClockVisible, setLocalIsClockVisible] = useState(isClockVisible);
+  const [localTheme, setLocalTheme] = useState(currentTheme);
 
   useEffect(() => {
     if (isOpen) {
+        setActiveSection(initialSection || 'gemini');
         setLocalApiKeys(apiKeys);
         setLocalClockSettings(clockSettings);
+        setLocalIsClockVisible(isClockVisible);
+        setLocalTheme(currentTheme);
     }
-  }, [isOpen, apiKeys, clockSettings]);
+  }, [isOpen, initialSection, apiKeys, clockSettings, isClockVisible, currentTheme]);
   
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
     onClockSettingsChange(localClockSettings);
-    onIsClockVisibleChange(isClockVisible); // Ensure visibility state is also saved
+    onIsClockVisibleChange(localIsClockVisible);
+    onThemeChange(localTheme);
     onClose();
   };
 
@@ -122,7 +183,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
     setLocalApiKeys(prev => ({ ...prev, [provider]: value }));
   };
   
-  const activeItemData = allNavItems.find(p => p.id === activeProvider);
+  const activeItemData = allNavItems.find(p => p.id === activeSection);
 
 
   if (!isOpen) return null;
@@ -163,9 +224,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                       {items.map(item => (
                           <button
                               key={item.id}
-                              onClick={() => setActiveProvider(item.id)}
+                              onClick={() => setActiveSection(item.id)}
                               className={`w-full flex items-center space-x-3 p-2 rounded-lg text-left text-sm font-medium transition-colors ${
-                                  activeProvider === item.id ? 'bg-black/10 text-gray-900' : 'text-gray-600 hover:bg-black/5'
+                                  activeSection === item.id ? 'bg-black/10 text-gray-900' : 'text-gray-600 hover:bg-black/5'
                               }`}
                           >
                               <item.Icon className="w-6 h-6 flex-shrink-0" />
@@ -177,7 +238,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
               ))}
             </nav>
             <main className="w-2/3 md:w-3/4 p-6 md:p-8 overflow-y-auto">
-                {activeProvider === 'about' ? (
+                {activeSection === 'about' ? (
                  <section className="space-y-6">
                     <div>
                         <h3 className="text-2xl font-bold text-gray-800">About Silo Search</h3>
@@ -192,7 +253,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         <p>Made with ❤️</p>
                     </div>
                 </section>
-                ) : activeProvider === 'privacy' ? (
+                ) : activeSection === 'privacy' ? (
                     <section className="space-y-6">
                         <div>
                             <h3 className="text-2xl font-bold text-gray-800">Privacy Policy</h3>
@@ -213,7 +274,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         <p>We are committed to protecting your data. Since all sensitive data like API keys and search history is stored on your device, you have full control over it. We do not have access to this information.</p>
                         </div>
                     </section>
-                ) : activeProvider === 'releaseNotes' ? (
+                ) : activeSection === 'releaseNotes' ? (
                      <section className="space-y-6">
                         <div>
                             <h3 className="text-2xl font-bold text-gray-800">Release Notes</h3>
@@ -244,87 +305,133 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                             </div>
                         </div>
                     </section>
-                ) : activeProvider === 'clock' ? (
-                    <section className="space-y-8">
-                        <div>
+                ) : activeSection === 'clock' ? (
+                    <section>
+                        <div className="mb-8">
                             <h3 className="text-2xl font-bold text-gray-800">Clock Customization</h3>
                             <p className="mt-2 text-gray-600">
-                                Personalize the clock displayed on the home screen.
+                                Personalize the clock displayed on the home screen. Changes are previewed below.
                             </p>
                         </div>
-                        <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
-                            <label htmlFor="clock-toggle" className="font-medium text-gray-700">Show home screen clock</label>
-                            <button
-                                id="clock-toggle"
-                                role="switch"
-                                aria-checked={isClockVisible}
-                                onClick={() => onIsClockVisibleChange(!isClockVisible)}
-                                className={`${isClockVisible ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}
-                            >
-                                <span className={`${isClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
-                            </button>
+                        <div className="bg-gray-800 rounded-xl p-8 mb-8 flex items-center justify-center min-h-[200px] overflow-hidden">
+                            <Clock settings={localClockSettings} />
                         </div>
-                         <div>
-                            <h4 className="font-medium text-gray-800 mb-3">Style</h4>
-                            <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
+                                <label htmlFor="clock-toggle" className="font-medium text-gray-700">Show home screen clock</label>
                                 <button
-                                    onClick={() => setLocalClockSettings(s => ({ ...s, style: 'horizontal' }))}
-                                    className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.style === 'horizontal' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    id="clock-toggle"
+                                    role="switch"
+                                    aria-checked={localIsClockVisible}
+                                    onClick={() => setLocalIsClockVisible(v => !v)}
+                                    className={`${localIsClockVisible ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}
                                 >
-                                    Horizontal
-                                </button>
-                                <button
-                                    onClick={() => setLocalClockSettings(s => ({ ...s, style: 'stacked' }))}
-                                    className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.style === 'stacked' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                                >
-                                    Stacked
+                                    <span className={`${localIsClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
                                 </button>
                             </div>
+                            <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Style</h4>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <button
+                                        onClick={() => setLocalClockSettings(s => ({ ...s, style: 'horizontal' }))}
+                                        className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.style === 'horizontal' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        Horizontal
+                                    </button>
+                                    <button
+                                        onClick={() => setLocalClockSettings(s => ({ ...s, style: 'stacked' }))}
+                                        className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.style === 'stacked' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        Stacked
+                                    </button>
+                                     <button
+                                        onClick={() => setLocalClockSettings(s => ({ ...s, style: 'diagonal' }))}
+                                        className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.style === 'diagonal' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                    >
+                                        Diagonal
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Theme</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {clockThemes.map(theme => (
+                                        <ClockThemeSwatch 
+                                            key={theme.id}
+                                            theme={theme}
+                                            isSelected={localClockSettings.theme === theme.id}
+                                            onClick={() => setLocalClockSettings(s => ({ ...s, theme: theme.id as ClockSettings['theme'] }))}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Font</h4>
+                                <div className="flex flex-wrap gap-4">
+                                    {clockFonts.map(font => (
+                                        <button
+                                            key={font.id}
+                                            onClick={() => setLocalClockSettings(s => ({ ...s, font: font.id as ClockSettings['font'] }))}
+                                            className={`p-4 border rounded-lg text-center transition-colors grow basis-24 ${font.className} ${localClockSettings.font === font.id ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                        >
+                                            {font.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Size</h4>
+                                <div className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50/50">
+                                    <input 
+                                        type="range"
+                                        min="8" max="14" step="0.5"
+                                        value={localClockSettings.size}
+                                        onChange={(e) => setLocalClockSettings(s => ({ ...s, size: parseFloat(e.target.value) }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <span className="font-mono text-sm text-gray-600 w-20 text-right">{localClockSettings.size.toFixed(1)}rem</span>
+                                </div>
+                            </div>
+                             <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Outline Thickness</h4>
+                                <div className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50/50">
+                                    <input 
+                                        type="range"
+                                        min="0" max="8" step="1"
+                                        value={localClockSettings.thickness}
+                                        onChange={(e) => setLocalClockSettings(s => ({ ...s, thickness: parseInt(e.target.value) }))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <span className="font-mono text-sm text-gray-600 w-20 text-right">{localClockSettings.thickness}px</span>
+                                </div>
+                            </div>
                         </div>
-
-                        <div>
-                            <h4 className="font-medium text-gray-800 mb-3">Theme</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {clockThemes.map(theme => (
-                                    <ClockThemeSwatch 
-                                        key={theme.id}
-                                        theme={theme}
-                                        isSelected={localClockSettings.theme === theme.id}
-                                        onClick={() => setLocalClockSettings(s => ({ ...s, theme: theme.id as ClockSettings['theme'] }))}
+                    </section>
+                ) : activeSection === 'wallpaper' ? (
+                    <section>
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-gray-800">Wallpaper</h3>
+                            <p className="mt-2 text-gray-600">
+                                Choose a background for the application.
+                            </p>
+                        </div>
+                         <div className="space-y-6">
+                            {Object.entries(wallpapers).map(([category, themeList]) => (
+                            <div key={category}>
+                                <h3 className="text-sm font-medium text-gray-500 mb-3">{category}</h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                {themeList.map(theme => (
+                                    <WallpaperSwatch 
+                                    key={theme.class}
+                                    themeClass={theme.class}
+                                    isSelected={localTheme === theme.class}
+                                    onClick={() => setLocalTheme(theme.class)}
                                     />
                                 ))}
+                                </div>
                             </div>
+                            ))}
                         </div>
-
-                        <div>
-                            <h4 className="font-medium text-gray-800 mb-3">Font</h4>
-                            <div className="grid grid-cols-3 gap-4">
-                                {clockFonts.map(font => (
-                                    <button
-                                        key={font.id}
-                                        onClick={() => setLocalClockSettings(s => ({ ...s, font: font.id as ClockSettings['font'] }))}
-                                        className={`p-4 border rounded-lg text-center transition-colors text-lg ${font.className} ${localClockSettings.font === font.id ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                                    >
-                                        {font.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 className="font-medium text-gray-800 mb-3">Size</h4>
-                            <div className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50/50">
-                                <input 
-                                    type="range"
-                                    min="8" max="14" step="0.5"
-                                    value={localClockSettings.size}
-                                    onChange={(e) => setLocalClockSettings(s => ({ ...s, size: parseFloat(e.target.value) }))}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                />
-                                <span className="font-mono text-sm text-gray-600 w-20 text-right">{localClockSettings.size.toFixed(1)}rem</span>
-                            </div>
-                        </div>
-
                     </section>
                 ) : activeItemData && 'placeholder' in activeItemData ? (
                 <section className="space-y-6">

@@ -10,19 +10,19 @@ interface SearchPageProps {
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
-  onToggleThemePanel: () => void;
+  onOpenSettings: (section?: string) => void;
   isClockVisible: boolean;
   clockSettings: ClockSettings;
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel, isClockVisible, clockSettings }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, isClockVisible, clockSettings }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header 
         isTemporaryMode={isTemporaryMode}
         onToggleSidebar={onToggleSidebar}
         onToggleTemporaryMode={onToggleTemporaryMode}
-        onToggleThemePanel={onToggleThemePanel}
+        onOpenSettings={onOpenSettings}
       />
       <main className="flex-grow flex flex-col items-center justify-center px-4 pb-24 text-center">
         {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} /></div>}

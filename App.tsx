@@ -2,9 +2,9 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
 import { Sidebar } from './components/Sidebar';
-import { ThemePanel } from './components/ThemePanel';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
+import { IntroModal } from './components/IntroModal';
 import { fetchSearchResults } from './services/geminiService';
 import type { SearchResult, ChatMessage, ClockSettings } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
@@ -21,14 +21,28 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isThemePanelOpen, setThemePanelOpen] = useState(false);
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [initialSettingsSection, setInitialSettingsSection] = useState<string | undefined>();
   const [isTemporaryMode, setTemporaryMode] = useState(false);
   
   const [isChatModeOpen, setChatModeOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isChatLoading, setChatLoading] = useState(false);
   const chatRef = useRef<Chat | null>(null);
+
+  const [showIntroModal, setShowIntroModal] = useState(false);
+
+  useEffect(() => {
+    const hasSeenIntro = window.localStorage.getItem('hasSeenClockIntro_v2');
+    if (!hasSeenIntro) {
+      setShowIntroModal(true);
+    }
+  }, []);
+
+  const handleCloseIntroModal = () => {
+    setShowIntroModal(false);
+    window.localStorage.setItem('hasSeenClockIntro_v2', 'true');
+  };
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
@@ -63,10 +77,11 @@ const App: React.FC = () => {
             theme: parsed.theme || 'classic',
             font: parsed.font || 'fredoka',
             size: parsed.size || 10,
+            thickness: parsed.thickness || 3,
         };
     } catch (error) {
         console.error("Could not parse clockSettings from localStorage", error);
-        return { style: 'horizontal', theme: 'classic', font: 'fredoka', size: 10 };
+        return { style: 'horizontal', theme: 'classic', font: 'fredoka', size: 10, thickness: 3 };
     }
   });
 
@@ -128,7 +143,6 @@ const App: React.FC = () => {
     }
 
     setSidebarOpen(false);
-    setThemePanelOpen(false);
     setView('loading');
     setCurrentQuery(query);
     setError(null);
@@ -159,23 +173,20 @@ const App: React.FC = () => {
   };
   
   const handleToggleSidebar = () => {
-    setThemePanelOpen(false);
     setSidebarOpen(prev => !prev);
   }
   const handleToggleTemporaryMode = () => setTemporaryMode(prev => !prev);
   const handleClearRecents = () => setRecentSearches([]);
-  const handleToggleThemePanel = () => {
+
+  const handleOpenSettings = (section?: string) => {
     setSidebarOpen(false);
-    setThemePanelOpen(prev => !prev);
-  };
-  const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
-    setThemePanelOpen(false);
+    setInitialSettingsSection(section);
+    setSettingsModalOpen(true);
   };
 
-  const handleOpenSettings = () => {
-    setSidebarOpen(false);
-    setSettingsModalOpen(true);
+  const handleCloseSettings = () => {
+    setSettingsModalOpen(false);
+    setInitialSettingsSection(undefined);
   };
 
   const handleEnterChatMode = (query: string, summary: string) => {
@@ -223,7 +234,7 @@ const App: React.FC = () => {
       isTemporaryMode,
       onToggleSidebar: handleToggleSidebar,
       onToggleTemporaryMode: handleToggleTemporaryMode,
-      onToggleThemePanel: handleToggleThemePanel,
+      onOpenSettings: handleOpenSettings,
     };
 
     switch(view) {
@@ -252,17 +263,14 @@ const App: React.FC = () => {
         onClear={handleClearRecents}
         onOpenSettings={handleOpenSettings}
       />
-      <ThemePanel
-        isOpen={isThemePanelOpen}
-        onClose={() => setThemePanelOpen(false)}
-        currentTheme={theme}
-        onThemeChange={handleThemeChange}
-      />
       <SettingsModal
         isOpen={isSettingsModalOpen}
-        onClose={() => setSettingsModalOpen(false)}
+        onClose={handleCloseSettings}
+        initialSection={initialSettingsSection}
         apiKeys={apiKeys}
         onApiKeysChange={setApiKeys}
+        currentTheme={theme}
+        onThemeChange={setTheme}
         isClockVisible={isClockVisible}
         onIsClockVisibleChange={setIsClockVisible}
         clockSettings={clockSettings}
@@ -275,7 +283,8 @@ const App: React.FC = () => {
         onSendMessage={handleSendChatMessage}
         isLoading={isChatLoading}
       />
-      <div className={`${isSidebarOpen || isThemePanelOpen || isSettingsModalOpen || isChatModeOpen ? 'blur-sm' : ''} transition-filter duration-300`}>
+      <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
+      <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal ? 'blur-sm' : ''} transition-filter duration-300`}>
         {renderContent()}
       </div>
     </div>

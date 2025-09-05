@@ -18,12 +18,21 @@ const themes: { [key in ClockSettings['theme']]: { dark: string; light: string }
   mint: { dark: 'text-emerald-700', light: 'text-green-300' },
   peach: { dark: 'text-orange-600', light: 'text-amber-300' },
   mono: { dark: 'text-black', light: 'text-gray-400' },
+  ocean: { dark: 'text-blue-800', light: 'text-sky-400' },
+  sunset: { dark: 'text-purple-800', light: 'text-orange-400' },
+  forest: { dark: 'text-green-900', light: 'text-lime-500' },
+  neon: { dark: 'text-pink-500', light: 'text-cyan-300' },
+  candy: { dark: 'text-red-500', light: 'text-yellow-300' },
 };
 
 const fontClasses: { [key in ClockSettings['font']]: string } = {
   fredoka: 'clock-font-fredoka',
   serif: 'clock-font-serif',
   mono: 'clock-font-mono',
+  pacifico: 'clock-font-pacifico',
+  bungee: 'clock-font-bungee',
+  'press-start': 'clock-font-press-start',
+  caveat: 'clock-font-caveat',
 };
 
 
@@ -74,36 +83,46 @@ export const Clock: React.FC<ClockProps> = ({ settings }) => {
   const colorClasses = themes[settings.theme] || themes.classic;
   const fontClass = fontClasses[settings.font] || fontClasses.fredoka;
   const containerStyle = { fontSize: `${settings.size}rem` };
+  
+  const digitStyle = {
+    WebkitTextStroke: `${settings.thickness}px white`,
+    textStroke: `${settings.thickness}px white`,
+  };
 
   const digitColors = [colorClasses.dark, colorClasses.light, colorClasses.light, colorClasses.dark];
 
   const horizontalClock = (
     <div className={`flex items-center ${fontClass}`} style={containerStyle}>
-      <span className={`${digitColors[0]} clock-digit`}>{hours[0]}</span>
-      <span className={`${digitColors[1]} clock-digit`}>{hours[1]}</span>
-      <span className={`${colorClasses.dark} clock-digit mx-[-0.1em] self-start mt-[0.2em] text-[0.6em]`}>:</span>
-      <span className={`${digitColors[2]} clock-digit`}>{minutes[0]}</span>
-      <span className={`${digitColors[3]} clock-digit`}>{minutes[1]}</span>
+      <span className={`${digitColors[0]} clock-digit`} style={digitStyle}>{hours[0]}</span>
+      <span className={`${digitColors[1]} clock-digit`} style={digitStyle}>{hours[1]}</span>
+      <span className={`${colorClasses.dark} clock-digit mx-[-0.1em] self-start mt-[0.2em] text-[0.6em]`} style={digitStyle}>:</span>
+      <span className={`${digitColors[2]} clock-digit`} style={digitStyle}>{minutes[0]}</span>
+      <span className={`${digitColors[3]} clock-digit`} style={digitStyle}>{minutes[1]}</span>
     </div>
   );
 
   const stackedClock = (
      <div className={`flex flex-col items-center leading-[0.8] ${fontClass}`} style={containerStyle}>
       <div className="flex">
-        <span className={`${digitColors[0]} clock-digit`}>{hours[0]}</span>
-        <span className={`${digitColors[1]} clock-digit`}>{hours[1]}</span>
+        <span className={`${digitColors[0]} clock-digit`} style={digitStyle}>{hours[0]}</span>
+        <span className={`${digitColors[1]} clock-digit`} style={digitStyle}>{hours[1]}</span>
       </div>
       <div className="flex">
-        <span className={`${digitColors[2]} clock-digit`}>{minutes[0]}</span>
-        <span className={`${digitColors[3]} clock-digit`}>{minutes[1]}</span>
+        <span className={`${digitColors[2]} clock-digit`} style={digitStyle}>{minutes[0]}</span>
+        <span className={`${digitColors[3]} clock-digit`} style={digitStyle}>{minutes[1]}</span>
       </div>
     </div>
   );
+  
+  const clockLayout = settings.style === 'stacked' ? stackedClock : horizontalClock;
+  const wrapperClass = settings.style === 'diagonal' ? 'transform -rotate-12' : '';
 
 
   return (
     <div className="flex flex-col items-center justify-center">
-      {settings.style === 'stacked' ? stackedClock : horizontalClock}
+      <div className={wrapperClass}>
+        {clockLayout}
+      </div>
       <div className="flex items-center space-x-4 mt-2 text-xl font-medium text-gray-700 date-weather-font">
         <span>{dateString}</span>
         {weather && (

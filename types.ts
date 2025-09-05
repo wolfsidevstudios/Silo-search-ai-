@@ -14,8 +14,9 @@ export interface ChatMessage {
 }
 
 export interface ClockSettings {
-  style: 'horizontal' | 'stacked';
-  theme: 'classic' | 'mint' | 'peach' | 'mono';
-  font: 'fredoka' | 'serif' | 'mono';
+  style: 'horizontal' | 'stacked' | 'diagonal';
+  theme: 'classic' | 'mint' | 'peach' | 'mono' | 'ocean' | 'sunset' | 'forest' | 'neon' | 'candy';
+  font: 'fredoka' | 'serif' | 'mono' | 'pacifico' | 'bungee' | 'press-start' | 'caveat';
   size: number; // in rem
+  thickness: number; // in px
 }

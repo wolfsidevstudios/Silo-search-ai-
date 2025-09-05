@@ -7,7 +7,7 @@
     <title>Silo Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Roboto+Mono&family=Roboto+Slab&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Roboto+Mono&family=Roboto+Slab&family=Pacifico&family=Bungee&family=Press+Start+2P&family=Caveat&display=swap');
       @keyframes animated-gradient {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -18,6 +18,11 @@
         background-size: 400% 400%;
         animation: animated-gradient 15s ease infinite;
       }
+      .theme-animated-2 {
+        background: linear-gradient(-45deg, #4b0082, #0000ff, #00ff00, #ffff00, #ff7f00, #ff0000);
+        background-size: 600% 600%;
+        animation: animated-gradient 20s ease infinite;
+      }
       .theme-gradient-1 {
         background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
       }
@@ -26,6 +31,12 @@
       }
       .theme-gradient-3 {
         background-image: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%);
+      }
+      .theme-gradient-4 {
+         background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
+      }
+      .theme-gradient-5 {
+        background-image: linear-gradient(to top, #f77062 0%, #fe5196 100%);
       }
       .clock-font-fredoka {
         font-family: 'Fredoka One', cursive;
@@ -42,9 +53,27 @@
         line-height: 1;
         font-weight: 400;
       }
+       .clock-font-pacifico {
+        font-family: 'Pacifico', cursive;
+        line-height: 1;
+        font-weight: 400;
+      }
+      .clock-font-bungee {
+        font-family: 'Bungee', cursive;
+        line-height: 1;
+        font-weight: 400;
+      }
+      .clock-font-press-start {
+        font-family: 'Press Start 2P', cursive;
+        line-height: 1;
+        font-weight: 400;
+      }
+      .clock-font-caveat {
+        font-family: 'Caveat', cursive;
+        line-height: 1;
+        font-weight: 400;
+      }
       .clock-digit {
-        -webkit-text-stroke: 3px white;
-        text-stroke: 3px white;
         paint-order: stroke fill;
       }
       .date-weather-font {

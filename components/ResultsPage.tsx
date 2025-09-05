@@ -17,10 +17,10 @@ interface ResultsPageProps {
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
-  onToggleThemePanel: () => void;
+  onOpenSettings: (section?: string) => void;
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
@@ -48,7 +48,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         isTemporaryMode={isTemporaryMode}
         onToggleSidebar={onToggleSidebar}
         onToggleTemporaryMode={onToggleTemporaryMode}
-        onToggleThemePanel={onToggleThemePanel}
+        onOpenSettings={onOpenSettings}
         onHome={onHome}
         showHomeButton={true}
       />
