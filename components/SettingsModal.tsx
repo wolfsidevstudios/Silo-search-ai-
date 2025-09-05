@@ -7,6 +7,7 @@ import { InfoIcon } from './icons/InfoIcon';
 import { PrivacyIcon } from './icons/PrivacyIcon';
 import { ReleaseNotesIcon } from './icons/ReleaseNotesIcon';
 import { ClockIcon } from './icons/ClockIcon';
+import type { ClockSettings } from '../types';
 
 
 interface SettingsModalProps {
@@ -16,6 +17,8 @@ interface SettingsModalProps {
   onApiKeysChange: (keys: { [key: string]: string }) => void;
   isClockVisible: boolean;
   onIsClockVisibleChange: (isVisible: boolean) => void;
+  clockSettings: ClockSettings;
+  onClockSettingsChange: (settings: ClockSettings) => void;
 }
 
 const navSections = {
@@ -73,18 +76,38 @@ const navSections = {
 
 const allNavItems = Object.values(navSections).flat();
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, apiKeys, onApiKeysChange, isClockVisible, onIsClockVisibleChange }) => {
+const clockThemes = [
+  { id: 'classic', name: 'Classic', darkClass: 'bg-[#006A4E]', lightClass: 'bg-[#7FFFD4]' },
+  { id: 'mint', name: 'Mint', darkClass: 'bg-emerald-700', lightClass: 'bg-green-300' },
+  { id: 'peach', name: 'Peach', darkClass: 'bg-orange-600', lightClass: 'bg-amber-300' },
+  { id: 'mono', name: 'Mono', darkClass: 'bg-black', lightClass: 'bg-gray-400' },
+];
+
+const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => (
+    <button onClick={onClick} className={`p-2 rounded-lg border-2 w-full text-left ${isSelected ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'}`}>
+        <div className="flex items-center space-x-2">
+            <div className={`w-6 h-6 rounded-full ${theme.darkClass}`}></div>
+            <div className={`w-6 h-6 rounded-full ${theme.lightClass}`}></div>
+            <span className="text-sm font-medium text-gray-800">{theme.name}</span>
+        </div>
+    </button>
+);
+
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, apiKeys, onApiKeysChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange }) => {
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [activeProvider, setActiveProvider] = useState('gemini');
+  const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
 
   useEffect(() => {
     if (isOpen) {
         setLocalApiKeys(apiKeys);
+        setLocalClockSettings(clockSettings);
     }
-  }, [isOpen, apiKeys]);
+  }, [isOpen, apiKeys, clockSettings]);
   
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
+    onClockSettingsChange(localClockSettings);
     onClose();
   };
 
@@ -215,11 +238,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         </div>
                     </section>
                 ) : activeProvider === 'clock' ? (
-                    <section className="space-y-6">
+                    <section className="space-y-8">
                         <div>
-                            <h3 className="text-2xl font-bold text-gray-800">Clock Display</h3>
+                            <h3 className="text-2xl font-bold text-gray-800">Clock Customization</h3>
                             <p className="mt-2 text-gray-600">
-                                Customize the appearance of the clock on the home screen.
+                                Personalize the clock displayed on the home screen.
                             </p>
                         </div>
                         <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
@@ -233,6 +256,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                             >
                                 <span className={`${isClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
                             </button>
+                        </div>
+                         <div>
+                            <h4 className="font-medium text-gray-800 mb-3">Style</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setLocalClockSettings(s => ({ ...s, style: 'horizontal' }))}
+                                    className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.style === 'horizontal' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                >
+                                    Horizontal
+                                </button>
+                                <button
+                                    onClick={() => setLocalClockSettings(s => ({ ...s, style: 'stacked' }))}
+                                    className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.style === 'stacked' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                >
+                                    Stacked
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 className="font-medium text-gray-800 mb-3">Theme</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {clockThemes.map(theme => (
+                                    <ClockThemeSwatch 
+                                        key={theme.id}
+                                        theme={theme}
+                                        isSelected={localClockSettings.theme === theme.id}
+                                        onClick={() => setLocalClockSettings(s => ({ ...s, theme: theme.id as ClockSettings['theme'] }))}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </section>
                 ) : activeItemData && 'placeholder' in activeItemData ? (

@@ -6,7 +6,7 @@ import { ThemePanel } from './components/ThemePanel';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage } from './types';
+import type { SearchResult, ChatMessage, ClockSettings } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 
@@ -54,6 +54,20 @@ const App: React.FC = () => {
     }
   });
   
+  const [clockSettings, setClockSettings] = useState<ClockSettings>(() => {
+    try {
+        const item = window.localStorage.getItem('clockSettings');
+        const parsed = item ? JSON.parse(item) : null;
+        if (parsed && typeof parsed === 'object' && 'style' in parsed && 'theme' in parsed) {
+            return parsed;
+        }
+        return { style: 'horizontal', theme: 'classic' };
+    } catch (error) {
+        console.error("Could not parse clockSettings from localStorage", error);
+        return { style: 'horizontal', theme: 'classic' };
+    }
+  });
+
   const [apiKeys, setApiKeys] = useState<{ [key: string]: string }>(() => {
     try {
       const items = window.localStorage.getItem('ai-api-keys');
@@ -85,6 +99,14 @@ const App: React.FC = () => {
     }
   }, [isClockVisible]);
   
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('clockSettings', JSON.stringify(clockSettings));
+    } catch (error) {
+        console.error("Could not save clockSettings to localStorage", error);
+    }
+  }, [clockSettings]);
+
   useEffect(() => {
     try {
       window.localStorage.setItem('ai-api-keys', JSON.stringify(apiKeys));
@@ -211,10 +233,10 @@ const App: React.FC = () => {
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
         }
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} {...commonProps} />;
       case 'search':
       default:
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} {...commonProps} />;
     }
   };
 
@@ -241,6 +263,8 @@ const App: React.FC = () => {
         onApiKeysChange={setApiKeys}
         isClockVisible={isClockVisible}
         onIsClockVisibleChange={setIsClockVisible}
+        clockSettings={clockSettings}
+        onClockSettingsChange={setClockSettings}
       />
       <ChatModal
         isOpen={isChatModeOpen}

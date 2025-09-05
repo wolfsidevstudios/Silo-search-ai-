@@ -12,3 +12,8 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
 }
+
+export interface ClockSettings {
+  style: 'horizontal' | 'stacked';
+  theme: 'classic' | 'mint' | 'peach' | 'mono';
+}

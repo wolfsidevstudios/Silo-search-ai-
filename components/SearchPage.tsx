@@ -3,6 +3,7 @@ import { SearchInput } from './SearchInput';
 import { Header } from './Header';
 import { IncognitoIcon } from './icons/IncognitoIcon';
 import { Clock } from './Clock';
+import type { ClockSettings } from '../types';
 
 interface SearchPageProps {
   onSearch: (query: string) => void;
@@ -11,9 +12,10 @@ interface SearchPageProps {
   onToggleTemporaryMode: () => void;
   onToggleThemePanel: () => void;
   isClockVisible: boolean;
+  clockSettings: ClockSettings;
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel, isClockVisible }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onToggleThemePanel, isClockVisible, clockSettings }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header 
@@ -23,7 +25,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onSearch, isTemporaryMod
         onToggleThemePanel={onToggleThemePanel}
       />
       <main className="flex-grow flex flex-col items-center justify-center px-4 pb-24 text-center">
-        {isClockVisible && <div className="mb-8"><Clock /></div>}
+        {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} /></div>}
         {isTemporaryMode && (
           <div className="flex flex-col items-center mb-8 text-gray-600">
             <IncognitoIcon className="w-16 h-16 text-gray-400" />
