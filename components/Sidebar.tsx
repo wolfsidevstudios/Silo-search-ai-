@@ -3,6 +3,8 @@ import { CloseIcon } from './icons/CloseIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { LogoIcon } from './icons/LogoIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
+import { LogoutIcon } from './icons/LogoutIcon';
+import type { UserProfile } from '../types';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,11 +13,18 @@ interface SidebarProps {
   onSearch: (query: string) => void;
   onClear: () => void;
   onOpenSettings: () => void;
+  userProfile: UserProfile | null;
+  onLogout: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearches, onSearch, onClear, onOpenSettings }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearches, onSearch, onClear, onOpenSettings, userProfile, onLogout }) => {
   const handleSearchClick = (query: string) => {
     onSearch(query);
+    onClose();
+  };
+
+  const handleLogoutAndClose = () => {
+    onLogout();
     onClose();
   };
   
@@ -61,10 +70,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearche
             )}
           </div>
           <footer className="p-4 border-t space-y-2">
+            {userProfile && (
+              <div className="flex items-center space-x-3 p-2 mb-2 border-b pb-4">
+                <img src={userProfile.picture} alt={userProfile.name} className="w-10 h-10 rounded-full" />
+                <div>
+                  <p className="font-semibold text-sm truncate">{userProfile.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{userProfile.email}</p>
+                </div>
+              </div>
+            )}
             <button onClick={onOpenSettings} className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                 <SettingsIcon />
                 <span>Settings & Info</span>
             </button>
+            {userProfile && (
+              <button onClick={handleLogoutAndClose} className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                <LogoutIcon />
+                <span>Sign Out</span>
+              </button>
+            )}
             {recentSearches.length > 0 && (
               <button onClick={onClear} className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
                 <TrashIcon />

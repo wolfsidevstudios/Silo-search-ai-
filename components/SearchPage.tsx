@@ -7,7 +7,7 @@ import { Clock } from './Clock';
 import { DraggableSticker } from './DraggableSticker';
 import { DraggableWidget } from './DraggableWidget';
 import { NoteWidget, WeatherWidget } from './widgets/Widgets';
-import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance } from '../types';
+import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile } from '../types';
 
 interface SearchPageProps {
   onSearch: (query: string) => void;
@@ -26,6 +26,8 @@ interface SearchPageProps {
   onUpdateWidget: (widget: WidgetInstance) => void;
   isWidgetEditMode: boolean;
   onExitWidgetEditMode: () => void;
+  userProfile: UserProfile | null;
+  onLogout: () => void;
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -45,6 +47,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onUpdateWidget,
   isWidgetEditMode,
   onExitWidgetEditMode,
+  userProfile,
+  onLogout
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -111,6 +115,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           onToggleSidebar={onToggleSidebar}
           onToggleTemporaryMode={onToggleTemporaryMode}
           onOpenSettings={onOpenSettings}
+          userProfile={userProfile}
+          onLogout={onLogout}
         />
         <main className="flex-grow flex flex-col items-center justify-center px-4 pb-24 text-center">
           {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} /></div>}

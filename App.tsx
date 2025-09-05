@@ -8,9 +8,21 @@ import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { UnpackedModal } from './components/UnpackedModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, WidgetType } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, WidgetType, UserProfile } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
+interface JwtPayload {
+  name: string;
+  email: string;
+  picture: string;
+}
 
 type View = 'search' | 'results' | 'loading' | 'error';
 
@@ -37,6 +49,16 @@ const App: React.FC = () => {
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [showUnpackedModal, setShowUnpackedModal] = useState(false);
   
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    try {
+      const item = window.localStorage.getItem('userProfile');
+      return item ? JSON.parse(item) : null;
+    } catch (error) {
+      console.error("Could not parse user profile from localStorage", error);
+      return null;
+    }
+  });
+
   const [stickers, setStickers] = useState<StickerInstance[]>(() => {
     try {
       const items = window.localStorage.getItem('stickers');
@@ -206,7 +228,54 @@ const App: React.FC = () => {
       console.error("Could not save API keys to localStorage", error);
     }
   }, [apiKeys]);
+  
+  useEffect(() => {
+    try {
+      if (userProfile) {
+        window.localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      } else {
+        window.localStorage.removeItem('userProfile');
+      }
+    } catch (error) {
+      console.error("Could not save user profile to localStorage", error);
+    }
+  }, [userProfile]);
 
+
+  const handleLoginSuccess = useCallback((response: { credential?: string }) => {
+    if (response.credential) {
+      try {
+        const payload: JwtPayload = JSON.parse(atob(response.credential.split('.')[1]));
+        setUserProfile({
+          name: payload.name,
+          email: payload.email,
+          picture: payload.picture,
+        });
+      } catch (e) {
+        console.error("Error decoding JWT", e);
+      }
+    }
+  }, []);
+  
+  const handleLogout = () => {
+    setUserProfile(null);
+    if (window.google) {
+      window.google.accounts.id.disableAutoSelect();
+    }
+  };
+
+  useEffect(() => {
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: '127898517822-f4j5ha3e2n6futbhehvtf06cfqhjhgej.apps.googleusercontent.com',
+        callback: handleLoginSuccess,
+      });
+
+      if (!userProfile) {
+         window.google.accounts.id.prompt();
+      }
+    }
+  }, [handleLoginSuccess, userProfile]);
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
@@ -373,6 +442,8 @@ const App: React.FC = () => {
       onToggleSidebar: handleToggleSidebar,
       onToggleTemporaryMode: handleToggleTemporaryMode,
       onOpenSettings: handleOpenSettings,
+      userProfile: userProfile,
+      onLogout: handleLogout,
     };
     
     const searchPageProps = {
@@ -416,6 +487,8 @@ const App: React.FC = () => {
         onSearch={handleSearch}
         onClear={handleClearRecents}
         onOpenSettings={handleOpenSettings}
+        userProfile={userProfile}
+        onLogout={handleLogout}
       />
       <SettingsModal
         isOpen={isSettingsModalOpen}

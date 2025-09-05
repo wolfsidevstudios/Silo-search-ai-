@@ -1,6 +1,6 @@
 
 import React from 'react';
-import type { SearchResult } from '../types';
+import type { SearchResult, UserProfile } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { RedoIcon } from './icons/RedoIcon';
@@ -18,9 +18,11 @@ interface ResultsPageProps {
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
   onOpenSettings: (section?: string) => void;
+  userProfile: UserProfile | null;
+  onLogout: () => void;
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
@@ -51,6 +53,8 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         onOpenSettings={onOpenSettings}
         onHome={onHome}
         showHomeButton={true}
+        userProfile={userProfile}
+        onLogout={onLogout}
       />
 
       <main className="flex-grow flex flex-col items-center justify-center text-center px-4 pb-32">

@@ -46,3 +46,9 @@ export interface WidgetInstance {
   y: number; // percentage
   data?: { [key: string]: any };
 }
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  picture: string;
+}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { LogoIcon } from './icons/LogoIcon';
@@ -12,10 +11,24 @@ import { CheckIcon } from './icons/CheckIcon';
 import { WallpaperIcon } from './icons/WallpaperIcon';
 import { StickerIcon } from './icons/StickerIcon';
 import { WidgetIcon } from './icons/WidgetIcon';
+import { TagIcon } from './icons/TagIcon';
+import { KeyIcon } from './icons/KeyIcon';
+import { AlertTriangleIcon } from './icons/AlertTriangleIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
 import type { ClockSettings, CustomSticker, WidgetType } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
+import { CohereIcon } from './icons/CohereIcon';
+import { MistralIcon } from './icons/MistralIcon';
+import { AI21LabsIcon } from './icons/AI21LabsIcon';
+import { HuggingFaceIcon } from './icons/HuggingFaceIcon';
+import { GroqIcon } from './icons/GroqIcon';
+import { PerplexityIcon } from './icons/PerplexityIcon';
+import { TogetherAIIcon } from './icons/TogetherAIIcon';
+import { NvidiaIcon } from './icons/NvidiaIcon';
+import { DatabricksIcon } from './icons/DatabricksIcon';
+import { SnowflakeIcon } from './icons/SnowflakeIcon';
+import { FileTextIcon } from './icons/FileTextIcon';
 
 
 interface SettingsModalProps {
@@ -40,8 +53,7 @@ interface SettingsModalProps {
   onEnterWidgetEditMode: () => void;
 }
 
-const navSections = {
-  "AI Providers": [
+const AI_PROVIDERS = [
     { 
       id: 'gemini', 
       name: 'Google Gemini', 
@@ -66,6 +78,91 @@ const navSections = {
       placeholder: 'Enter your Anthropic API key',
       getLink: 'https://console.anthropic.com/settings/keys'
     },
+    {
+      id: 'cohere',
+      name: 'Cohere',
+      Icon: CohereIcon,
+      description: 'Get your API key from the Cohere dashboard.',
+      placeholder: 'Enter your Cohere API key',
+      getLink: 'https://dashboard.cohere.com/api-keys'
+    },
+    {
+      id: 'mistral',
+      name: 'Mistral AI',
+      Icon: MistralIcon,
+      description: 'Get your API key from the Mistral platform.',
+      placeholder: 'Enter your Mistral API key',
+      getLink: 'https://console.mistral.ai/api-keys/'
+    },
+    {
+      id: 'ai21',
+      name: 'AI21 Labs',
+      Icon: AI21LabsIcon,
+      description: 'Get your API key from the AI21 Studio.',
+      placeholder: 'Enter your AI21 Labs API key',
+      getLink: 'https://studio.ai21.com/account/api-key'
+    },
+    {
+      id: 'huggingface',
+      name: 'Hugging Face',
+      Icon: HuggingFaceIcon,
+      description: 'Create an access token in your Hugging Face account settings.',
+      placeholder: 'Enter your Hugging Face token',
+      getLink: 'https://huggingface.co/settings/tokens'
+    },
+    {
+      id: 'groq',
+      name: 'Groq',
+      Icon: GroqIcon,
+      description: 'Generate an API key from your GroqCloud account.',
+      placeholder: 'Enter your Groq API key',
+      getLink: 'https://console.groq.com/keys'
+    },
+    {
+      id: 'perplexity',
+      name: 'Perplexity',
+      Icon: PerplexityIcon,
+      description: 'Find your API key in your Perplexity account settings.',
+      placeholder: 'Enter your Perplexity API key',
+      getLink: 'https://www.perplexity.ai/settings/api'
+    },
+    {
+      id: 'together',
+      name: 'Together AI',
+      Icon: TogetherAIIcon,
+      description: 'Get your API key from the Together AI dashboard.',
+      placeholder: 'Enter your Together AI API key',
+      getLink: 'https://api.together.ai/settings/api-keys'
+    },
+    {
+      id: 'nvidia',
+      name: 'NVIDIA',
+      Icon: NvidiaIcon,
+      description: 'Get an API key from the NVIDIA NGC catalog.',
+      placeholder: 'Enter your NVIDIA API key',
+      getLink: 'https://build.nvidia.com/explore/discover'
+    },
+    {
+      id: 'databricks',
+      name: 'Databricks',
+      Icon: DatabricksIcon,
+      description: 'Generate a personal access token for Databricks Foundation Models.',
+      placeholder: 'Enter your Databricks token',
+      getLink: 'https://docs.databricks.com/en/machine-learning/foundation-models/index.html'
+    },
+    {
+      id: 'snowflake',
+      name: 'Snowflake',
+      Icon: SnowflakeIcon,
+      description: 'Access Cortex models through Snowflake.',
+      placeholder: 'See documentation for setup',
+      getLink: 'https://www.snowflake.com/en/data-cloud/cortex/'
+    },
+];
+
+const navSections = {
+  "Configuration": [
+     { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
   ],
   "Appearance": [
     { id: 'clock', name: 'Clock Display', Icon: ClockIcon, },
@@ -73,11 +170,18 @@ const navSections = {
     { id: 'stickers', name: 'Stickers', Icon: StickerIcon, },
     { id: 'widgets', name: 'Widgets', Icon: WidgetIcon, },
   ],
+  "Pricing": [
+    { id: 'pricing', name: 'Pricing', Icon: TagIcon },
+  ],
   "Information": [
-    { id: 'about', name: 'About', Icon: InfoIcon, },
-    { id: 'privacy', name: 'Privacy Policy', Icon: PrivacyIcon, },
-    { id: 'releaseNotes', name: 'Release Notes', Icon: ReleaseNotesIcon, }
-  ]
+    { id: 'about', name: 'About', Icon: InfoIcon },
+    { id: 'privacy', name: 'Privacy Policy', Icon: PrivacyIcon },
+    { id: 'terms', name: 'Terms of Conditions', Icon: FileTextIcon },
+    { id: 'releaseNotes', name: 'Release Notes', Icon: ReleaseNotesIcon }
+  ],
+  "Danger Zone": [
+    { id: 'delete-data', name: 'Delete Data', Icon: AlertTriangleIcon },
+  ],
 };
 
 const allNavItems = Object.values(navSections).flat();
@@ -150,7 +254,7 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, onAddWidget, onClearWidgets, onEnterWidgetEditMode }) => {
-  const [activeSection, setActiveSection] = useState('gemini');
+  const [activeSection, setActiveSection] = useState('api-keys');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
   const [localIsClockVisible, setLocalIsClockVisible] = useState(isClockVisible);
@@ -161,7 +265,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
 
   useEffect(() => {
     if (isOpen) {
-        setActiveSection(initialSection || 'gemini');
+        setActiveSection(initialSection || 'api-keys');
         setLocalApiKeys(apiKeys);
         setLocalClockSettings(clockSettings);
         setLocalIsClockVisible(isClockVisible);
@@ -219,7 +323,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     event.target.value = '';
   };
 
-  const activeItemData = allNavItems.find(p => p.id === activeSection);
+  const handleDeleteAllData = () => {
+    if (window.confirm('Are you sure you want to delete all app data? This action is irreversible and will reset the application to its default state.')) {
+        window.localStorage.clear();
+        window.location.reload();
+    }
+  };
 
 
   if (!isOpen) return null;
@@ -274,7 +383,60 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
               ))}
             </nav>
             <main className="w-2/3 md:w-3/4 p-6 md:p-8 overflow-y-auto">
-                {activeSection === 'about' ? (
+                {activeSection === 'api-keys' ? (
+                   <section>
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-gray-800">API Keys</h3>
+                            <p className="mt-2 text-gray-600">
+                                Connect your accounts from various AI providers. Your keys are stored securely in your browser's local storage.
+                            </p>
+                        </div>
+                        <div className="space-y-6">
+                            {AI_PROVIDERS.map(provider => (
+                                <div key={provider.id} className="p-4 border rounded-lg bg-gray-50/50">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center space-x-3">
+                                            <provider.Icon className="w-6 h-6" />
+                                            <h4 className="font-bold text-gray-800">{provider.name}</h4>
+                                        </div>
+                                        <a href={provider.getLink} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                                            Get key
+                                        </a>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-4">{provider.description}</p>
+                                    <input 
+                                        type="password" 
+                                        value={localApiKeys[provider.id] || ''}
+                                        onChange={(e) => handleInputChange(provider.id, e.target.value)}
+                                        placeholder={provider.placeholder}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : activeSection === 'delete-data' ? (
+                     <section className="space-y-6">
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-800">Danger Zone</h3>
+                            <p className="mt-2 text-gray-600">
+                                These actions are permanent and cannot be undone.
+                            </p>
+                        </div>
+                        <div className="p-4 border border-red-300 bg-red-50 rounded-lg">
+                            <h4 className="font-bold text-red-800">Delete All Application Data</h4>
+                            <p className="mt-1 text-sm text-red-700">
+                                This will permanently delete all your settings, API keys, recent searches, stickers, and widgets from your browser's storage. The application will be reset to its initial state.
+                            </p>
+                            <button 
+                                onClick={handleDeleteAllData}
+                                className="mt-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                            >
+                                Delete All Data
+                            </button>
+                        </div>
+                    </section>
+                ) : activeSection === 'about' ? (
                  <section className="space-y-6">
                     <div>
                         <h3 className="text-2xl font-bold text-gray-800">About Silo Search</h3>
@@ -283,7 +445,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                     <div className="prose prose-sm max-w-none text-gray-700">
                       <p>Silo Search is an intelligent search application designed to provide quick, concise, and accurate summaries for your queries, powered by leading AI models.</p>
                       <p>Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p>
-                      <p>For more details, please review our <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.</p>
                     </div>
                      <div className="pt-4 text-center text-xs text-gray-400">
                         <p>Made with ❤️</p>
@@ -293,7 +454,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                     <section className="space-y-6">
                         <div>
                             <h3 className="text-2xl font-bold text-gray-800">Privacy Policy</h3>
-                            <p className="mt-2 text-gray-600">Last updated: August 1, 2024</p>
+                            <p className="mt-2 text-gray-600">Last updated: August 2, 2024</p>
                         </div>
                         <div className="prose prose-sm max-w-none text-gray-700">
                         <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use Silo Search.</p>
@@ -310,6 +471,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                         <p>We are committed to protecting your data. Since all sensitive data like API keys and search history is stored on your device, you have full control over it. We do not have access to this information.</p>
                         </div>
                     </section>
+                ) : activeSection === 'terms' ? (
+                    <section className="space-y-6">
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-800">Terms of Conditions</h3>
+                            <p className="mt-2 text-gray-600">Last updated: August 2, 2024</p>
+                        </div>
+                        <div className="prose prose-sm max-w-none text-gray-700">
+                            <p>Welcome to Silo Search ("we," "us," or "our"). By accessing or using our application (the "Service"), you agree to be bound by these Terms of Conditions ("Terms"). If you disagree with any part of the terms, then you may not access the Service.</p>
+                            
+                            <h4>1. Use of the Service</h4>
+                            <p>Silo Search grants you a non-exclusive, non-transferable, revocable license to use the Service for your personal, non-commercial purposes, subject to these Terms.</p>
+                            
+                            <h4>2. API Keys and Third-Party Services</h4>
+                            <p>The Service requires you to use your own API keys from third-party AI providers (e.g., Google, OpenAI). You are responsible for obtaining these keys and complying with the terms of service of those providers. Your API keys are stored only in your browser's local storage and are not transmitted to our servers. You are solely responsible for all activity and charges associated with your API keys.</p>
+
+                            <h4>3. User Content</h4>
+                            <p>You may create or upload content, such as custom stickers ("User Content"). You retain all rights to your User Content. You are responsible for ensuring that your User Content does not violate any laws or third-party rights.</p>
+                            
+                            <h4>4. Disclaimers</h4>
+                            <p>The Service is provided on an "AS IS" and "AS AVAILABLE" basis. We make no warranties, express or implied, regarding the operation or availability of the Service, or the information, content, or materials included therein.</p>
+                            
+                            <h4>5. Limitation of Liability</h4>
+                            <p>In no event shall Silo Search be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
+                            
+                            <h4>6. Changes to Terms</h4>
+                            <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will provide notice of any changes by updating the "Last updated" date of these Terms.</p>
+                        </div>
+                    </section>
                 ) : activeSection === 'releaseNotes' ? (
                      <section className="space-y-6">
                         <div>
@@ -317,9 +506,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                         </div>
                         <div className="prose prose-sm max-w-none text-gray-700 space-y-8">
                             <div>
-                              <h4>Version 1.2.0 <span className="text-xs text-gray-500 font-normal ml-2">August 1, 2024</span></h4>
+                              <h4>Version 1.2.0 <span className="text-xs text-gray-500 font-normal ml-2">August 2, 2024</span></h4>
                               <ul>
-                                  <li>Added Privacy Policy and Release Notes to the settings menu.</li>
+                                  <li>Added Privacy Policy, Terms of Conditions, and Release Notes to the settings menu.</li>
                                   <li>Introduced new icons for better navigation in settings.</li>
                               </ul>
                             </div>
@@ -341,6 +530,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                             </div>
                         </div>
                     </section>
+                ) : activeSection === 'pricing' ? (
+                  <section className="space-y-6 text-center flex flex-col items-center justify-center h-full">
+                      <div className="bg-green-100 text-green-800 rounded-full px-6 py-2 text-lg font-bold">
+                          100% Free
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-800 mt-4">No separate plans—it's all free.</h3>
+                      <p className="mt-2 text-gray-600 max-w-md">
+                          Silo Search is a free application. We don't have any subscription plans or hidden fees.
+                      </p>
+                      <p className="mt-1 text-gray-600 max-w-md">
+                          You just need to connect your own API key from your preferred AI provider (like Google Gemini) to get started.
+                      </p>
+                  </section>
                 ) : activeSection === 'clock' ? (
                     <section>
                         <div className="mb-8">
@@ -607,29 +809,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                             </button>
                         </div>
                     </section>
-                ) : activeItemData && 'placeholder' in activeItemData ? (
-                <section className="space-y-6">
-                    <div>
-                        <h3 className="text-2xl font-bold text-gray-800">{activeItemData.name} API Key</h3>
-                        <p className="mt-2 text-gray-600">
-                            {activeItemData.description}
-                            <a href={activeItemData.getLink} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">
-                                Get key
-                            </a>
-                        </p>
-                    </div>
-                    <div className="space-y-2">
-                        <label htmlFor="apiKeyInput" className="font-medium text-gray-700">API Key</label>
-                        <input 
-                            id="apiKeyInput"
-                            type="password" 
-                            value={localApiKeys[activeItemData.id] || ''}
-                            onChange={(e) => handleInputChange(activeItemData.id, e.target.value)}
-                            placeholder={activeItemData.placeholder}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                </section>
                 ) : null}
             </main>
         </div>
