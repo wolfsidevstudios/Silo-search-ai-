@@ -6,7 +6,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 
@@ -31,6 +31,16 @@ const App: React.FC = () => {
   const chatRef = useRef<Chat | null>(null);
 
   const [showIntroModal, setShowIntroModal] = useState(false);
+  
+  const [stickers, setStickers] = useState<StickerInstance[]>(() => {
+    try {
+      const items = window.localStorage.getItem('stickers');
+      return items ? JSON.parse(items) : [];
+    } catch (error) {
+      console.error("Could not parse stickers from localStorage", error);
+      return [];
+    }
+  });
 
   useEffect(() => {
     const hasSeenIntro = window.localStorage.getItem('hasSeenClockIntro_v2');
@@ -78,10 +88,11 @@ const App: React.FC = () => {
             font: parsed.font || 'fredoka',
             size: parsed.size || 10,
             thickness: parsed.thickness || 3,
+            animation: parsed.animation || 'none',
         };
     } catch (error) {
         console.error("Could not parse clockSettings from localStorage", error);
-        return { style: 'horizontal', theme: 'classic', font: 'fredoka', size: 10, thickness: 3 };
+        return { style: 'horizontal', theme: 'classic', font: 'fredoka', size: 10, thickness: 3, animation: 'none' };
     }
   });
 
@@ -123,6 +134,14 @@ const App: React.FC = () => {
         console.error("Could not save clockSettings to localStorage", error);
     }
   }, [clockSettings]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('stickers', JSON.stringify(stickers));
+    } catch (error) {
+      console.error("Could not save stickers to localStorage", error);
+    }
+  }, [stickers]);
 
   useEffect(() => {
     try {
@@ -228,6 +247,25 @@ const App: React.FC = () => {
       setChatLoading(false);
     }
   };
+  
+  const handleAddSticker = (stickerId: string) => {
+    const newSticker: StickerInstance = {
+      id: `sticker-${Date.now()}`,
+      stickerId,
+      x: 20 + Math.random() * 60, // Random position in the middle 60%
+      y: 20 + Math.random() * 60,
+      size: 6 + Math.random() * 4, // Random size between 6 and 10 rem
+    };
+    setStickers(prev => [...prev, newSticker]);
+  };
+
+  const handleUpdateSticker = (updatedSticker: StickerInstance) => {
+    setStickers(prev => prev.map(s => s.id === updatedSticker.id ? updatedSticker : s));
+  };
+
+  const handleClearStickers = () => {
+    setStickers([]);
+  };
 
   const renderContent = () => {
     const commonProps = {
@@ -246,10 +284,10 @@ const App: React.FC = () => {
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} {...commonProps} />;
         }
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} {...commonProps} />;
       case 'search':
       default:
-        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} {...commonProps} />;
+        return <SearchPage onSearch={handleSearch} isClockVisible={isClockVisible} clockSettings={clockSettings} stickers={stickers} onUpdateSticker={handleUpdateSticker} {...commonProps} />;
     }
   };
 
@@ -275,6 +313,8 @@ const App: React.FC = () => {
         onIsClockVisibleChange={setIsClockVisible}
         clockSettings={clockSettings}
         onClockSettingsChange={setClockSettings}
+        onAddSticker={handleAddSticker}
+        onClearStickers={handleClearStickers}
       />
       <ChatModal
         isOpen={isChatModeOpen}

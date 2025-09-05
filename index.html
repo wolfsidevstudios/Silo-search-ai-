@@ -79,6 +79,20 @@
       .date-weather-font {
         text-shadow: 0 1px 3px rgba(0,0,0,0.1);
       }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+      }
+      .clock-anim-pulse {
+        animation: pulse 4s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+      .clock-anim-float {
+        animation: float 6s ease-in-out infinite;
+      }
     </style>
   <script type="importmap">
 {

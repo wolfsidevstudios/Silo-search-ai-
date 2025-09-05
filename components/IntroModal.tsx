@@ -2,18 +2,21 @@ import React from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { Clock } from './Clock';
+import type { ClockSettings } from '../types';
 
 interface IntroModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const previewClockSettings = {
-    style: 'diagonal' as const,
-    theme: 'neon' as const,
-    font: 'bungee' as const,
+// FIX: Added the 'animation' property and an explicit ClockSettings type to fix the error.
+const previewClockSettings: ClockSettings = {
+    style: 'diagonal',
+    theme: 'neon',
+    font: 'bungee',
     size: 10,
     thickness: 4,
+    animation: 'float',
 };
 
 export const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {

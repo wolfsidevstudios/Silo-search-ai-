@@ -9,7 +9,9 @@ import { ReleaseNotesIcon } from './icons/ReleaseNotesIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { WallpaperIcon } from './icons/WallpaperIcon';
+import { StickerIcon } from './icons/StickerIcon';
 import { Clock } from './Clock';
+import { STICKERS } from './sticker-library';
 import type { ClockSettings } from '../types';
 
 
@@ -25,6 +27,8 @@ interface SettingsModalProps {
   onIsClockVisibleChange: (isVisible: boolean) => void;
   clockSettings: ClockSettings;
   onClockSettingsChange: (settings: ClockSettings) => void;
+  onAddSticker: (stickerId: string) => void;
+  onClearStickers: () => void;
 }
 
 const navSections = {
@@ -64,6 +68,11 @@ const navSections = {
       id: 'wallpaper',
       name: 'Wallpaper',
       Icon: WallpaperIcon,
+    },
+    {
+      id: 'stickers',
+      name: 'Stickers',
+      Icon: StickerIcon,
     },
   ],
   "Information": [
@@ -154,7 +163,7 @@ const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lig
     </button>
 );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, onAddSticker, onClearStickers }) => {
   const [activeSection, setActiveSection] = useState('gemini');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localClockSettings, setLocalClockSettings] = useState(clockSettings);
@@ -220,7 +229,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                {Object.entries(navSections).map(([sectionTitle, items]) => (
                 <div key={sectionTitle} className="mb-4 last:mb-0">
                     <p className="px-2 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{sectionTitle}</p>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {items.map(item => (
                           <button
                               key={item.id}
@@ -229,7 +238,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                   activeSection === item.id ? 'bg-black/10 text-gray-900' : 'text-gray-600 hover:bg-black/5'
                               }`}
                           >
-                              <item.Icon className="w-6 h-6 flex-shrink-0" />
+                              <item.Icon className="w-5 h-5 flex-shrink-0" />
                               <span>{item.name}</span>
                           </button>
                       ))}
@@ -328,6 +337,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 >
                                     <span className={`${localIsClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
                                 </button>
+                            </div>
+                             <div>
+                                <h4 className="font-medium text-gray-800 mb-3">Animation</h4>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <button onClick={() => setLocalClockSettings(s => ({ ...s, animation: 'none' }))} className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.animation === 'none' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>None</button>
+                                    <button onClick={() => setLocalClockSettings(s => ({ ...s, animation: 'pulse' }))} className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.animation === 'pulse' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Pulse</button>
+                                    <button onClick={() => setLocalClockSettings(s => ({ ...s, animation: 'float' }))} className={`p-4 border rounded-lg text-center transition-colors ${localClockSettings.animation === 'float' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Float</button>
+                                </div>
                             </div>
                             <div>
                                 <h4 className="font-medium text-gray-800 mb-3">Style</h4>
@@ -431,6 +448,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                                 </div>
                             </div>
                             ))}
+                        </div>
+                    </section>
+                ) : activeSection === 'stickers' ? (
+                    <section>
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-gray-800">Stickers</h3>
+                            <p className="mt-2 text-gray-600">
+                                Add some flair to your home screen! Click a sticker to add it, then drag it around on the home screen.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                            {STICKERS.map(sticker => (
+                                <button
+                                    key={sticker.id}
+                                    onClick={() => onAddSticker(sticker.id)}
+                                    className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-square"
+                                    title={`Add ${sticker.name} sticker`}
+                                >
+                                    <div className="w-12 h-12">
+                                        <sticker.component />
+                                    </div>
+                                    <span className="text-xs text-gray-600">{sticker.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="mt-8 border-t pt-6">
+                             <button
+                                onClick={onClearStickers}
+                                className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+                            >
+                                Clear All Stickers
+                            </button>
                         </div>
                     </section>
                 ) : activeItemData && 'placeholder' in activeItemData ? (

@@ -35,6 +35,12 @@ const fontClasses: { [key in ClockSettings['font']]: string } = {
   caveat: 'clock-font-caveat',
 };
 
+const animationClasses: { [key in ClockSettings['animation']]: string } = {
+    none: '',
+    pulse: 'clock-anim-pulse',
+    float: 'clock-anim-float',
+}
+
 
 interface ClockProps {
   settings: ClockSettings;
@@ -82,6 +88,7 @@ export const Clock: React.FC<ClockProps> = ({ settings }) => {
 
   const colorClasses = themes[settings.theme] || themes.classic;
   const fontClass = fontClasses[settings.font] || fontClasses.fredoka;
+  const animationClass = animationClasses[settings.animation] || '';
   const containerStyle = { fontSize: `${settings.size}rem` };
   
   const digitStyle = {
@@ -115,7 +122,7 @@ export const Clock: React.FC<ClockProps> = ({ settings }) => {
   );
   
   const clockLayout = settings.style === 'stacked' ? stackedClock : horizontalClock;
-  const wrapperClass = settings.style === 'diagonal' ? 'transform -rotate-12' : '';
+  const wrapperClass = `${settings.style === 'diagonal' ? 'transform -rotate-12' : ''} ${animationClass}`;
 
 
   return (
