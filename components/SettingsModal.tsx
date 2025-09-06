@@ -16,7 +16,7 @@ import { KeyIcon } from './icons/KeyIcon';
 import { AlertTriangleIcon } from './icons/AlertTriangleIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
-import type { ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings, StickerInstance, WidgetInstance, SearchSettings, AccessibilitySettings } from '../types';
+import type { ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings, StickerInstance, WidgetInstance, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
 import { CohereIcon } from './icons/CohereIcon';
 import { MistralIcon } from './icons/MistralIcon';
@@ -36,6 +36,16 @@ import { LanguagesIcon } from './icons/LanguagesIcon';
 import { ChipIcon } from './icons/ChipIcon';
 import { UniversalAccessIcon } from './icons/UniversalAccessIcon';
 import { DatabaseIcon } from './icons/DatabaseIcon';
+import { StoreIcon } from './icons/StoreIcon';
+import { AppIconIcon } from './icons/AppIconIcon';
+import { GlobeIcon } from './icons/GlobeIcon';
+import { KeyboardIcon } from './icons/KeyboardIcon';
+import { CloudSyncIcon } from './icons/CloudSyncIcon';
+import { UsersIcon } from './icons/UsersIcon';
+import { LinkIcon } from './icons/LinkIcon';
+import { BarChartIcon } from './icons/BarChartIcon';
+import { BellIcon } from './icons/BellIcon';
+import { CodeIcon } from './icons/CodeIcon';
 
 
 interface SettingsModalProps {
@@ -55,6 +65,10 @@ interface SettingsModalProps {
   searchInputSettings: SearchInputSettings; onSearchInputSettingsChange: (settings: SearchInputSettings) => void;
   searchSettings: SearchSettings; onSearchSettingsChange: (settings: SearchSettings) => void;
   accessibilitySettings: AccessibilitySettings; onAccessibilitySettingsChange: (settings: AccessibilitySettings) => void;
+  languageSettings: LanguageSettings; onLanguageSettingsChange: (settings: LanguageSettings) => void;
+  notificationSettings: NotificationSettings; onNotificationSettingsChange: (settings: NotificationSettings) => void;
+  developerSettings: DeveloperSettings; onDeveloperSettingsChange: (settings: DeveloperSettings) => void;
+  analyticsSettings: AnalyticsSettings; onAnalyticsSettingsChange: (settings: AnalyticsSettings) => void;
 }
 
 const AI_PROVIDERS = [
@@ -74,29 +88,41 @@ const AI_PROVIDERS = [
 ];
 
 const navSections = {
-  "Configuration": [
-     { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
-     { id: 'search-ai', name: 'Search & AI', Icon: ChipIcon },
-     { id: 'speech-language', name: 'Speech Language', Icon: LanguagesIcon },
-  ],
-  "Appearance": [
-    { id: 'clock', name: 'Clock Display', Icon: ClockIcon, },
-    { id: 'wallpaper', name: 'Wallpaper', Icon: WallpaperIcon, },
+  "Personalize": [
+    { id: 'wallpaper', name: 'Wallpaper', Icon: WallpaperIcon },
+    { id: 'clock', name: 'Clock', Icon: ClockIcon },
     { id: 'search-box', name: 'Search Box', Icon: SearchIcon },
-    { id: 'accessibility', name: 'Accessibility', Icon: UniversalAccessIcon },
-    { id: 'stickers', name: 'Stickers', Icon: StickerIcon, },
-    { id: 'widgets', name: 'Widgets', Icon: WidgetIcon, },
+    { id: 'stickers', name: 'Stickers', Icon: StickerIcon },
+    { id: 'widgets', name: 'Widgets', Icon: WidgetIcon },
+    { id: 'theme-store', name: 'Theme Store', Icon: StoreIcon },
+    { id: 'app-icon', name: 'App Icon', Icon: AppIconIcon },
+  ],
+  "Functionality": [
+    { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
+    { id: 'search-ai', name: 'Search & AI', Icon: ChipIcon },
+    { id: 'speech-language', name: 'Speech Input', Icon: LanguagesIcon },
+    { id: 'language-region', name: 'Language & Region', Icon: GlobeIcon },
+    { id: 'keyboard-shortcuts', name: 'Shortcuts', Icon: KeyboardIcon },
+  ],
+  "Account & Data": [
+    { id: 'data-management', name: 'Import / Export', Icon: DatabaseIcon },
+    { id: 'sync-backup', name: 'Sync & Backup', Icon: CloudSyncIcon },
+    { id: 'sharing', name: 'Collaboration', Icon: UsersIcon },
+    { id: 'connected-apps', name: 'Connected Apps', Icon: LinkIcon },
+    { id: 'usage-analytics', name: 'Usage', Icon: BarChartIcon },
   ],
   "General": [
-    { id: 'data-management', name: 'Data Management', Icon: DatabaseIcon },
+    { id: 'notifications', name: 'Notifications', Icon: BellIcon },
+    { id: 'accessibility', name: 'Accessibility', Icon: UniversalAccessIcon },
     { id: 'pricing', name: 'Pricing', Icon: TagIcon },
     { id: 'about', name: 'About', Icon: InfoIcon },
     { id: 'how-it-works', name: 'How It Works', Icon: HelpCircleIcon },
     { id: 'privacy', name: 'Privacy Policy', Icon: PrivacyIcon },
-    { id: 'terms', name: 'Terms of Conditions', Icon: FileTextIcon },
+    { id: 'terms', name: 'Terms of Service', Icon: FileTextIcon },
     { id: 'releaseNotes', name: 'Release Notes', Icon: ReleaseNotesIcon }
   ],
-  "Danger Zone": [
+  "Advanced": [
+    { id: 'developer-options', name: 'Developer', Icon: CodeIcon },
     { id: 'delete-data', name: 'Delete Data', Icon: AlertTriangleIcon },
   ],
 };
@@ -111,7 +137,7 @@ const clockFonts = [{ id: 'fredoka', name: 'Bubbly', className: "font-['Fredoka_
 const WallpaperSwatch: React.FC<{ themeClass: string; isSelected: boolean; onClick: () => void; }> = ({ themeClass, isSelected, onClick }) => ( <button onClick={onClick} className={`w-full h-16 rounded-lg border-2 transition-all ${isSelected ? 'border-blue-500 scale-105' : 'border-transparent hover:border-gray-300'}`} aria-label={`Select theme: ${themeClass}`}> <div className={`w-full h-full rounded-md flex items-center justify-center ${themeClass}`}> {isSelected && ( <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-blue-600"> <CheckIcon /> </div> )} </div> </button> );
 const ClockThemeSwatch: React.FC<{ theme: { name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => ( <button onClick={onClick} className={`p-2 rounded-lg border-2 w-full text-left ${isSelected ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'}`}> <div className="flex items-center space-x-2"> <div className={`w-6 h-6 rounded-full ${theme.darkClass}`}></div> <div className={`w-6 h-6 rounded-full ${theme.lightClass}`}></div> <span className="text-sm font-medium text-gray-800">{theme.name}</span> </div> </button> );
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, languageSettings, onLanguageSettingsChange, notificationSettings, onNotificationSettingsChange, developerSettings, onDeveloperSettingsChange, analyticsSettings, onAnalyticsSettingsChange }) => {
   const [activeSection, setActiveSection] = useState('api-keys');
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localTheme, setLocalTheme] = useState(currentTheme);
@@ -123,6 +149,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
   const [localSearchInputSettings, setLocalSearchInputSettings] = useState(searchInputSettings);
   const [localSearchSettings, setLocalSearchSettings] = useState(searchSettings);
   const [localAccessibilitySettings, setLocalAccessibilitySettings] = useState(accessibilitySettings);
+  const [localLanguageSettings, setLocalLanguageSettings] = useState(languageSettings);
+  const [localNotificationSettings, setLocalNotificationSettings] = useState(notificationSettings);
+  const [localDeveloperSettings, setLocalDeveloperSettings] = useState(developerSettings);
+  const [localAnalyticsSettings, setLocalAnalyticsSettings] = useState(analyticsSettings);
   
   const [stickerSearch, setStickerSearch] = useState('');
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
@@ -143,9 +173,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         setLocalSearchInputSettings(searchInputSettings);
         setLocalSearchSettings(searchSettings);
         setLocalAccessibilitySettings(accessibilitySettings);
+        setLocalLanguageSettings(languageSettings);
+        setLocalNotificationSettings(notificationSettings);
+        setLocalDeveloperSettings(developerSettings);
+        setLocalAnalyticsSettings(analyticsSettings);
         setStickerSearch('');
     }
-  }, [isOpen, initialSection, apiKeys, currentTheme, customWallpaper, isClockVisible, clockSettings, temperatureUnit, speechLanguage, searchInputSettings, searchSettings, accessibilitySettings]);
+  }, [isOpen, initialSection, apiKeys, currentTheme, customWallpaper, isClockVisible, clockSettings, temperatureUnit, speechLanguage, searchInputSettings, searchSettings, accessibilitySettings, languageSettings, notificationSettings, developerSettings, analyticsSettings]);
   
   const handleSave = () => {
     onApiKeysChange(localApiKeys);
@@ -158,6 +192,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     onSearchInputSettingsChange(localSearchInputSettings);
     onSearchSettingsChange(localSearchSettings);
     onAccessibilitySettingsChange(localAccessibilitySettings);
+    onLanguageSettingsChange(localLanguageSettings);
+    onNotificationSettingsChange(localNotificationSettings);
+    onDeveloperSettingsChange(localDeveloperSettings);
+    onAnalyticsSettingsChange(localAnalyticsSettings);
     onClose();
   };
 
@@ -220,6 +258,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         'stickers': stickers,
         'widgets': widgets,
         'customStickers': customStickers,
+        'languageSettings': languageSettings,
+        'notificationSettings': notificationSettings,
+        'developerSettings': developerSettings,
+        'analyticsSettings': analyticsSettings,
     };
     const blob = new Blob([JSON.stringify(exportableData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -246,7 +288,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
             if (typeof text !== 'string') throw new Error("Invalid file content");
             const data = JSON.parse(text);
             
-            // Validate and set local state for each setting
             if (data['ai-api-keys']) setLocalApiKeys(data['ai-api-keys']);
             if (data['silo-theme']) setLocalTheme(data['silo-theme']);
             setLocalCustomWallpaper(data['customWallpaper'] || null);
@@ -257,10 +298,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
             if (data['searchInputSettings']) setLocalSearchInputSettings(data['searchInputSettings']);
             if (data['searchSettings']) setLocalSearchSettings(data['searchSettings']);
             if (data['accessibilitySettings']) setLocalAccessibilitySettings(data['accessibilitySettings']);
-            // Note: Stickers and widgets are not imported directly into the modal's local state,
-            // as they are managed at the App level. A full import would require passing setters for them.
-            // For now, we'll focus on settings that are locally managed in the modal.
-
+            if (data['languageSettings']) setLocalLanguageSettings(data['languageSettings']);
+            if (data['notificationSettings']) setLocalNotificationSettings(data['notificationSettings']);
+            if (data['developerSettings']) setLocalDeveloperSettings(data['developerSettings']);
+            if (data['analyticsSettings']) setLocalAnalyticsSettings(data['analyticsSettings']);
             alert('Settings imported successfully! Click "Save Changes" to apply.');
         } catch (error) {
             console.error("Failed to import settings:", error);
@@ -271,13 +312,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     event.target.value = '';
   };
 
+  const applyThemePreset = (preset: 'neon' | 'forest' | 'mono') => {
+    if (preset === 'neon') {
+      setLocalTheme('theme-animated-3');
+      setLocalCustomWallpaper(null);
+      setLocalClockSettings(s => ({ ...s, theme: 'neon', font: 'orbitron', style: 'stacked', animation: 'pulse' }));
+    } else if (preset === 'forest') {
+      setLocalTheme('theme-gradient-8');
+      setLocalCustomWallpaper(null);
+      setLocalClockSettings(s => ({ ...s, theme: 'forest', font: 'serif', style: 'horizontal', animation: 'float' }));
+    } else if (preset === 'mono') {
+      setLocalTheme('bg-gray-100');
+      setLocalCustomWallpaper(null);
+      setLocalClockSettings(s => ({ ...s, theme: 'mono', font: 'mono', style: 'horizontal', animation: 'none' }));
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
       <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity" onClick={onClose} aria-hidden="true"></div>
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] max-h-[700px] flex flex-col transform transition-all">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] max-h-[800px] flex flex-col transform transition-all">
         <header className="p-4 border-b flex justify-between items-center flex-shrink-0">
           <h2 id="settings-modal-title" className="text-xl font-bold text-gray-800"> Settings & Information </h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Close settings"> <CloseIcon /> </button>
@@ -352,7 +408,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                 ) : activeSection === 'data-management' ? (
                     <section>
                       <input type="file" ref={importFileInputRef} onChange={handleImportFileChange} accept=".json" className="hidden" aria-hidden="true" />
-                      <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Data Management</h3> <p className="mt-2 text-gray-600"> Export your settings for backup or import them to a new device. </p> </div>
+                      <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Import / Export Data</h3> <p className="mt-2 text-gray-600"> Export your settings for backup or import them to a new device. </p> </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="p-4 border rounded-lg bg-gray-50/50">
                               <h4 className="font-bold text-gray-800">Export Settings</h4>
@@ -367,19 +423,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                       </div>
                     </section>
                 ) : activeSection === 'speech-language' ? (
-                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Speech Language</h3> <p className="mt-2 text-gray-600"> Choose the language for voice search input. </p> </div> <div className="grid grid-cols-2 gap-4"> <button onClick={() => setLocalSpeechLanguage('en-US')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'en-US' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> English (US) </button> <button onClick={() => setLocalSpeechLanguage('es-ES')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'es-ES' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> Español (España) </button> </div> </section>
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Speech Input</h3> <p className="mt-2 text-gray-600"> Choose the language for voice search input. </p> </div> <div className="grid grid-cols-2 gap-4"> <button onClick={() => setLocalSpeechLanguage('en-US')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'en-US' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> English (US) </button> <button onClick={() => setLocalSpeechLanguage('es-ES')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'es-ES' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> Español (España) </button> </div> </section>
                 ) : activeSection === 'delete-data' ? (
                      <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Danger Zone</h3> <p className="mt-2 text-gray-600"> These actions are permanent and cannot be undone. </p> </div> <div className="p-4 border border-red-300 bg-red-50 rounded-lg"> <h4 className="font-bold text-red-800">Delete All Application Data</h4> <p className="mt-1 text-sm text-red-700"> This will permanently delete all your settings, API keys, recent searches, stickers, and widgets from your browser's storage. The application will be reset to its initial state. </p> <button onClick={handleDeleteAllData} className="mt-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"> Delete All Data </button> </div> </section>
                 ) : activeSection === 'about' ? (
-                 <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">About Silo Search</h3> <p className="mt-2 text-gray-600">Version 1.2.0</p> </div> <div className="prose prose-sm max-w-none text-gray-700"> <p>Silo Search is an intelligent search application designed to provide quick, concise, and accurate summaries for your queries, powered by leading AI models.</p> <p>Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p> </div> <div className="pt-4 text-center text-xs text-gray-400"> <p>Made with ❤️</p> </div> </section>
+                 <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">About Silo Search</h3> <p className="mt-2 text-gray-600">Version 1.3.0</p> </div> <div className="prose prose-sm max-w-none text-gray-700"> <p>Silo Search is an intelligent search application designed to provide quick, concise, and accurate summaries for your queries, powered by leading AI models.</p> <p>Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p> </div> <div className="pt-4 text-center text-xs text-gray-400"> <p>Made with ❤️</p> </div> </section>
                 ) : activeSection === 'how-it-works' ? (
                     <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">How Silo Search Works</h3> <p className="mt-2 text-gray-600">Your intelligent gateway to the web.</p> </div> <div className="prose prose-sm max-w-none text-gray-700"> <p>Silo Search is designed to give you quick, summarized answers to your questions, backed by reliable sources from the web. Here's a breakdown of how it works and what you can do:</p> <h4>Core Functionality</h4> <ol> <li><strong>Enter a Query:</strong> Simply type your question into the search bar.</li> <li><strong>Get an AI Summary:</strong> We use Google's Gemini model combined with Google Search to analyze the latest information online and generate a concise, easy-to-read summary.</li> <li><strong>Explore Sources:</strong> Below the summary, you'll find "Quick Links" which are the web pages the AI used to create its answer, allowing you to dive deeper.</li> </ol> <h4>Key Features</h4> <ul> <li><strong>Chat Mode:</strong> After a search, you can enter Chat Mode to ask follow-up questions and have a conversation with the AI about the topic.</li> <li><strong>Customizable Homepage:</strong> Make Silo Search your own! You can change the wallpaper, customize the clock, and even add fun stickers or useful widgets like notes and weather. Find these options in the "Appearance" settings.</li> <li><strong>Bring Your Own API Key:</strong> Silo Search is free to use, but requires you to connect your own API key from an AI provider like Google. Your key is stored securely in your browser and is never sent to us.</li> <li><strong>Temporary Mode:</strong> Activate Temporary Mode (the incognito icon) to search without your queries being saved to your "Recent Searches" list.</li> </ul> <h4>Contact Us</h4> <p>Have questions, feedback, or need support? We'd love to hear from you! Please reach out to us at:</p> <p><a href="mailto:wolfsidevstudios@gmail.com">wolfsidevstudios@gmail.com</a></p> </div> </section>
                 ) : activeSection === 'privacy' ? (
-                    <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Privacy Policy</h3> <p className="mt-2 text-gray-600">Last updated: August 2, 2024</p> </div> <div className="prose prose-sm max-w-none text-gray-700"> <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use Silo Search.</p> <h4>Information We Collect</h4> <p>We may collect information about you in a variety of ways. The information we may collect via the Application includes:</p> <ul> <li><strong>API Keys:</strong> We store your AI provider API keys in your browser's local storage. These keys are never transmitted to our servers and are used directly by your browser to communicate with the respective AI provider APIs.</li> <li><strong>Search History:</strong> Your recent searches are stored in your browser's local storage to provide you with a history feature. This data is not sent to our servers. You can clear this history at any time.</li> <li><strong>Usage Data:</strong> We do not collect any personal or usage data. All processing happens on your local device.</li> </ul> <h4>How We Use Your Information</h4> <p>We use the information stored locally on your device to provide and improve the functionality of the application, such as personalizing your experience by remembering recent searches and themes.</p> <h4>Data Security</h4> <p>We are committed to protecting your data. Since all sensitive data like API keys and search history is stored on your device, you have full control over it. We do not have access to this information.</p> </div> </section>
+                    <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Privacy Policy</h3> <p className="mt-2 text-gray-600">Last updated: August 2, 2024</p> </div> <div className="prose prose-sm max-w-none text-gray-700"> <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use Silo Search.</p> <h4>Information We Collect</h4> <p>We store all your data, including API keys and settings, in your browser's local storage. This data is never transmitted to our servers.</p> <h4>Analytics</h4> <p>If you opt-in, we may collect anonymous usage data to help us improve the application. This data is fully anonymized and cannot be used to identify you. You can opt-out at any time in the "Usage" settings.</p> </div> </section>
                 ) : activeSection === 'terms' ? (
-                    <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Terms of Conditions</h3> <p className="mt-2 text-gray-600">Last updated: August 2, 2024</p> </div> <div className="prose prose-sm max-w-none text-gray-700"> <p>Welcome to Silo Search ("we," "us," or "our"). By accessing or using our application (the "Service"), you agree to be bound by these Terms of Conditions ("Terms"). If you disagree with any part of the terms, then you may not access the Service.</p> <h4>1. Use of the Service</h4> <p>Silo Search grants you a non-exclusive, non-transferable, revocable license to use the Service for your personal, non-commercial purposes, subject to these Terms.</p> <h4>2. API Keys and Third-Party Services</h4> <p>The Service requires you to use your own API keys from third-party AI providers (e.g., Google, OpenAI). You are responsible for obtaining these keys and complying with the terms of service of those providers. Your API keys are stored only in your browser's local storage and are not transmitted to our servers. You are solely responsible for all activity and charges associated with your API keys.</p> <h4>3. User Content</h4> <p>You may create or upload content, such as custom stickers ("User Content"). You retain all rights to your User Content. You are responsible for ensuring that your User Content does not violate any laws or third-party rights.</p> <h4>4. Disclaimers</h4> <p>The Service is provided on an "AS IS" and "AS AVAILABLE" basis. We make no warranties, express or implied, regarding the operation or availability of the Service, or the information, content, or materials included therein.</p> <h4>5. Limitation of Liability</h4> <p>In no event shall Silo Search be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p> <h4>6. Changes to Terms</h4> <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will provide notice of any changes by updating the "Last updated" date of these Terms.</p> </div> </section>
+                    <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Terms of Service</h3> <p className="mt-2 text-gray-600">Last updated: August 2, 2024</p> </div> <div className="prose prose-sm max-w-none text-gray-700"> <p>Welcome to Silo Search. By using our application, you agree to these terms.</p> <h4>1. Use of the Service</h4> <p>You are granted a license to use Silo Search for personal, non-commercial purposes. You are responsible for any costs associated with your use of third-party API keys.</p> <h4>2. Disclaimers</h4> <p>The service is provided "AS IS" without any warranties. We are not liable for any damages resulting from your use of the service.</p> </div> </section>
                 ) : activeSection === 'releaseNotes' ? (
-                     <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Release Notes</h3> </div> <div className="prose prose-sm max-w-none text-gray-700 space-y-8"> <div> <h4>Version 1.2.0 <span className="text-xs text-gray-500 font-normal ml-2">August 2, 2024</span></h4> <ul> <li>Added Privacy Policy, Terms of Conditions, and Release Notes to the settings menu.</li> <li>Introduced new icons for better navigation in settings.</li> </ul> </div> <div> <h4>Version 1.1.0 <span className="text-xs text-gray-500 font-normal ml-2">July 28, 2024</span></h4> <ul> <li>Added an "About" section to settings.</li> <li>Streamlined the settings UI for a cleaner look.</li> </ul> </div> <div> <h4>Version 1.0.0 <span className="text-xs text-gray-500 font-normal ml-2">July 20, 2024</span></h4> <ul> <li>Initial release of Silo Search.</li> <li>Core search functionality with Google Gemini.</li> <li>Support for multiple AI provider API keys (Gemini, OpenAI, Anthropic).</li> <li>Recent search history and customizable themes.</li> </ul> </div> </div> </section>
+                     <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Release Notes</h3> </div> <div className="prose prose-sm max-w-none text-gray-700 space-y-8"> <div> <h4>Version 1.3.0 <span className="text-xs text-gray-500 font-normal ml-2">August 5, 2024</span></h4> <ul> <li><strong>Mega Settings Update:</strong> Added 10 new settings sections including Theme Store, App Icon selection, Language & Region, Developer Options, and more!</li> <li>Reorganized settings navigation for better clarity.</li> </ul> </div> <div> <h4>Version 1.2.0 <span className="text-xs text-gray-500 font-normal ml-2">August 2, 2024</span></h4> <ul> <li>Added Privacy Policy, Terms of Conditions, and Release Notes to the settings menu.</li> </ul> </div> </div> </section>
                 ) : activeSection === 'pricing' ? (
                   <section className="space-y-6 text-center flex flex-col items-center justify-center h-full"> <div className="bg-green-100 text-green-800 rounded-full px-6 py-2 text-lg font-bold"> 100% Free </div> <h3 className="text-2xl font-bold text-gray-800 mt-4">No separate plans—it's all free.</h3> <p className="mt-2 text-gray-600 max-w-md"> Silo Search is a free application. We don't have any subscription plans or hidden fees. </p> <p className="mt-1 text-gray-600 max-w-md"> You just need to connect your own API key from your preferred AI provider (like Google Gemini) to get started. </p> </section>
                 ) : activeSection === 'clock' ? (
@@ -392,6 +448,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                     <section> <input type="file" ref={stickerFileInputRef} onChange={handleStickerFileChange} accept="image/*" className="hidden" aria-hidden="true" /> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Stickers</h3> <p className="mt-2 text-gray-600"> Add some flair to your home screen! Click a sticker to add it, or upload your own. </p> </div> <div className="relative mb-4"> <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"> <SearchIcon className="text-gray-400"/> </div> <input type="text" value={stickerSearch} onChange={(e) => setStickerSearch(e.target.value)} placeholder="Search stickers..." className="block w-full rounded-full border-0 bg-gray-100 py-2.5 pl-10 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6" /> </div> <div className="mb-4 flex space-x-2"> <button onClick={onEnterStickerEditMode} className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200"> Arrange Stickers </button> <button onClick={handleUploadStickerClick} className="w-full px-4 py-3 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800"> Upload Your Own </button> </div> {(() => { const lowercasedQuery = stickerSearch.toLowerCase(); const filteredLibraryStickers = STICKERS.filter(sticker => sticker.name.toLowerCase().includes(lowercasedQuery) || sticker.id.includes(lowercasedQuery)); const filteredCustomStickers = customStickers.filter(sticker => sticker.name.toLowerCase().includes(lowercasedQuery)); const hasResults = filteredLibraryStickers.length > 0 || filteredCustomStickers.length > 0; if (!hasResults) { return <p className="text-center text-gray-500 py-8">No stickers found for "{stickerSearch}"</p>; } return ( <div className="grid grid-cols-4 md:grid-cols-5 gap-2"> {filteredCustomStickers.map(sticker => ( <button key={sticker.id} onClick={() => handleAddStickerAndEdit(sticker.id)} className="p-2 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-1 hover:bg-gray-200 transition-colors aspect-square" title={`Add ${sticker.name} sticker`}> <div className="w-10 h-10 flex items-center justify-center"> <img src={sticker.imageData} alt={sticker.name} className="w-full h-full object-contain" /> </div> <span className="text-xs text-gray-600 truncate">{sticker.name}</span> </button> ))} {filteredLibraryStickers.map(sticker => ( <button key={sticker.id} onClick={() => handleAddStickerAndEdit(sticker.id)} className="p-2 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-1 hover:bg-gray-200 transition-colors aspect-square" title={`Add ${sticker.name} sticker`}> <span className="text-4xl">{sticker.id}</span> <span className="text-xs text-gray-600 truncate">{sticker.name}</span> </button> ))} </div> ); })()} <div className="mt-8 border-t pt-6"> <button onClick={onClearStickers} className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"> Clear All Stickers </button> </div> </section>
                 ) : activeSection === 'widgets' ? (
                      <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Widgets</h3> <p className="mt-2 text-gray-600"> Add interactive widgets to your home screen. </p> </div> <div className="mb-4 flex space-x-2"> <button onClick={onEnterWidgetEditMode} className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200"> Arrange Widgets </button> <button onClick={onClearWidgets} className="w-full px-4 py-3 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"> Clear All Widgets </button> </div> <div className="grid grid-cols-2 gap-4"> <button onClick={() => onAddWidget('note')} className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-video"> <div className="w-20 h-20 bg-yellow-200 rounded-lg shadow-inner flex items-center justify-center font-['Caveat'] text-gray-600">note...</div> <span className="text-sm font-medium text-gray-800">Sticky Note</span> </button> <button onClick={() => onAddWidget('weather')} className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-2 hover:bg-gray-200 transition-colors aspect-video"> <div className="w-20 h-20 bg-blue-100 rounded-lg shadow-inner flex flex-col items-center justify-center space-y-1"> <span className="text-2xl">☁️</span> <span className="font-bold text-blue-800">19°C</span> </div> <span className="text-sm font-medium text-gray-800">Weather</span> </button> </div> </section>
+                ) : activeSection === 'theme-store' ? (
+                     <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Theme Store</h3> <p className="mt-2 text-gray-600"> Instantly apply a preset combination of wallpaper and clock styles. </p> </div> <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> <div className="border rounded-lg p-4"> <div className="w-full h-32 rounded-md theme-animated-3 mb-4"></div> <h4 className="font-bold text-gray-800">Neon City</h4> <p className="text-sm text-gray-600 mt-1">A vibrant, animated theme with a futuristic clock.</p> <button onClick={() => applyThemePreset('neon')} className="mt-4 w-full px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">Apply Theme</button> </div> <div className="border rounded-lg p-4"> <div className="w-full h-32 rounded-md theme-gradient-8 mb-4"></div> <h4 className="font-bold text-gray-800">Forest Retreat</h4> <p className="text-sm text-gray-600 mt-1">A calming green gradient with a classic serif clock.</p> <button onClick={() => applyThemePreset('forest')} className="mt-4 w-full px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">Apply Theme</button> </div> <div className="border rounded-lg p-4"> <div className="w-full h-32 rounded-md bg-gray-100 mb-4"></div> <h4 className="font-bold text-gray-800">Minimalist Mono</h4> <p className="text-sm text-gray-600 mt-1">A clean, simple theme with a monospaced font clock.</p> <button onClick={() => applyThemePreset('mono')} className="mt-4 w-full px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">Apply Theme</button> </div> </div> </section>
+                ) : activeSection === 'app-icon' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">App Icon</h3> <p className="mt-2 text-gray-600"> Choose a new look for your home screen icon. (Requires PWA installation) </p> </div> <div className="grid grid-cols-3 md:grid-cols-4 gap-4"> <button className="flex flex-col items-center space-y-2 p-2 rounded-lg border-2 border-blue-500"> <img src="https://i.ibb.co/GvWTsPF1/IMG-3744.png" alt="Default Icon" className="w-16 h-16 rounded-lg" /> <span className="text-sm font-medium text-gray-700">Default</span> </button> <button className="flex flex-col items-center space-y-2 p-2 rounded-lg border-2 border-transparent hover:border-gray-300"> <img src="https://i.ibb.co/3cH33vX/icon-dark.png" alt="Dark Icon" className="w-16 h-16 rounded-lg" /> <span className="text-sm font-medium text-gray-700">Dark</span> </button> <button className="flex flex-col items-center space-y-2 p-2 rounded-lg border-2 border-transparent hover:border-gray-300"> <img src="https://i.ibb.co/yQz4M8J/icon-retro.png" alt="Retro Icon" className="w-16 h-16 rounded-lg" /> <span className="text-sm font-medium text-gray-700">Retro</span> </button> </div> </section>
+                ) : activeSection === 'language-region' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Language & Region</h3> <p className="mt-2 text-gray-600"> Customize language preferences and regional settings. </p> </div> <div className="space-y-6"> <div className="p-4 border rounded-lg bg-gray-50/50"> <label htmlFor="ui-language" className="block font-medium text-gray-700">UI Language</label> <p className="text-xs text-gray-500 mt-1 mb-2">Change the display language of the app.</p> <select id="ui-language" value={localLanguageSettings.uiLanguage} disabled className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-200 cursor-not-allowed"> <option value="en">English</option> </select> </div> <div className="p-4 border rounded-lg bg-gray-50/50"> <label htmlFor="search-region" className="block font-medium text-gray-700">Search Region</label> <p className="text-xs text-gray-500 mt-1 mb-2">Prioritize search results from a specific region.</p> <select id="search-region" value={localLanguageSettings.searchRegion} onChange={e => setLocalLanguageSettings(s => ({ ...s, searchRegion: e.target.value as 'auto' | 'US' | 'WW' }))} className="w-full px-3 py-2 border border-gray-300 rounded-md"> <option value="auto">Auto-detect</option> <option value="US">United States</option> <option value="WW">Worldwide</option> </select> </div> </div> </section>
+                ) : activeSection === 'keyboard-shortcuts' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Keyboard Shortcuts</h3> <p className="mt-2 text-gray-600"> Use these shortcuts to navigate the app faster. </p> </div> <div className="space-y-3"> <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"> <span className="font-medium text-gray-700">Open Settings</span> <kbd className="px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-200 border border-gray-300 rounded-md">Cmd/Ctrl + ,</kbd> </div> <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"> <span className="font-medium text-gray-700">Toggle Temporary Mode</span> <kbd className="px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-200 border border-gray-300 rounded-md">Cmd/Ctrl + Shift + P</kbd> </div> <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"> <span className="font-medium text-gray-700">Go to Home</span> <kbd className="px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-200 border border-gray-300 rounded-md">Esc</kbd> </div> </div> </section>
+                ) : activeSection === 'sync-backup' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Sync & Backup</h3> <p className="mt-2 text-gray-600"> Keep your settings synced across devices. (Coming Soon) </p> </div> <div className="space-y-4"> <button disabled className="w-full px-4 py-3 font-medium text-gray-500 bg-gray-200 rounded-lg cursor-not-allowed">Sign in with Google to Sync</button> <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50 opacity-50"> <div><label className="font-medium text-gray-700">Automatic daily backup</label><p className="text-xs text-gray-500 mt-1">Requires cloud sync to be enabled.</p></div> <div className="bg-gray-200 relative inline-flex items-center h-6 rounded-full w-11"> <span className="translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full" /> </div> </div> </div> </section>
+                ) : activeSection === 'sharing' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Collaboration</h3> <p className="mt-2 text-gray-600"> Manage settings for shared spaces. (Coming Soon) </p> </div> <p className="text-center text-gray-500 py-10">Collaboration features are under development.</p> </section>
+                ) : activeSection === 'connected-apps' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Connected Apps</h3> <p className="mt-2 text-gray-600"> Integrate Silo Search with your other tools. (Coming Soon) </p> </div> <div className="space-y-3"> <div className="flex justify-between items-center p-3 border rounded-lg"> <span className="font-medium text-gray-700">Notion</span> <button disabled className="px-3 py-1 text-sm text-gray-500 bg-gray-200 rounded-md cursor-not-allowed">Connect</button> </div> <div className="flex justify-between items-center p-3 border rounded-lg"> <span className="font-medium text-gray-700">Slack</span> <button disabled className="px-3 py-1 text-sm text-gray-500 bg-gray-200 rounded-md cursor-not-allowed">Connect</button> </div> </div> </section>
+                ) : activeSection === 'usage-analytics' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Usage & Analytics</h3> <p className="mt-2 text-gray-600"> View your activity and manage privacy settings. </p> </div> <div className="space-y-6"> <div className="p-4 border rounded-lg bg-gray-50/50"> <h4 className="font-medium text-gray-700">This Week's Activity</h4> <p className="text-4xl font-bold text-gray-800 mt-2">42</p> <p className="text-sm text-gray-500">Total Searches</p> </div> <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50"> <div><label htmlFor="analytics-toggle" className="font-medium text-gray-700">Enable Anonymous Analytics</label><p className="text-xs text-gray-500 mt-1">Help us improve Silo Search by sharing anonymous usage data.</p></div> <button id="analytics-toggle" role="switch" aria-checked={localAnalyticsSettings.enabled} onClick={() => setLocalAnalyticsSettings(s => ({ ...s, enabled: !s.enabled }))} className={`${localAnalyticsSettings.enabled ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}> <span className={`${localAnalyticsSettings.enabled ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /> </button> </div> </div> </section>
+                ) : activeSection === 'notifications' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Notifications</h3> <p className="mt-2 text-gray-600"> Choose what you want to be notified about. (Coming Soon) </p> </div> <div className="space-y-6"> <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50 opacity-50"> <div><label className="font-medium text-gray-700">Feature Updates</label><p className="text-xs text-gray-500 mt-1">Get notified about new features and improvements.</p></div> <button role="switch" aria-checked={localNotificationSettings.featureUpdates} onClick={() => setLocalNotificationSettings(s => ({ ...s, featureUpdates: !s.featureUpdates }))} className={`${localNotificationSettings.featureUpdates ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors`}> <span className={`${localNotificationSettings.featureUpdates ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /> </button> </div> <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50 opacity-50"> <div><label className="font-medium text-gray-700">Collaboration Invites</label><p className="text-xs text-gray-500 mt-1">Receive notifications for shared space invitations.</p></div> <button role="switch" aria-checked={localNotificationSettings.collaborationInvites} onClick={() => setLocalNotificationSettings(s => ({ ...s, collaborationInvites: !s.collaborationInvites }))} className={`${localNotificationSettings.collaborationInvites ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors`}> <span className={`${localNotificationSettings.collaborationInvites ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /> </button> </div> </div> </section>
+                ) : activeSection === 'developer-options' ? (
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Developer Options</h3> <p className="mt-2 text-gray-600"> Advanced settings for debugging and development. </p> </div> <div className="space-y-6"> <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50"> <div><label htmlFor="api-logger-toggle" className="font-medium text-gray-700">Show API Logger</label><p className="text-xs text-gray-500 mt-1">Display API request/response in the console.</p></div> <button id="api-logger-toggle" role="switch" aria-checked={localDeveloperSettings.showApiLogger} onClick={() => setLocalDeveloperSettings(s => ({...s, showApiLogger: !s.showApiLogger}))} className={`${localDeveloperSettings.showApiLogger ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}> <span className={`${localDeveloperSettings.showApiLogger ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /> </button> </div> <div className="p-4 border rounded-lg bg-gray-50/50"> <h4 className="font-medium text-gray-700">Cache Management</h4> <p className="text-xs text-gray-500 mt-1">Force-clear all cached application data.</p> <button onClick={() => alert('Cache cleared!')} className="mt-2 px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">Clear Cache</button> </div> </div> </section>
                 ) : null}
             </main>
         </div>

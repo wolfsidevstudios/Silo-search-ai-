@@ -69,3 +69,21 @@ export interface AccessibilitySettings {
   uiFontSize: number; // percentage
   highContrast: boolean;
 }
+
+export interface LanguageSettings {
+  uiLanguage: 'en';
+  searchRegion: 'auto' | 'US' | 'WW';
+}
+
+export interface NotificationSettings {
+  featureUpdates: boolean;
+  collaborationInvites: boolean;
+}
+
+export interface DeveloperSettings {
+  showApiLogger: boolean;
+}
+
+export interface AnalyticsSettings {
+  enabled: boolean;
+}

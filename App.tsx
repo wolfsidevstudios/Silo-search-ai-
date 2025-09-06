@@ -8,7 +8,7 @@ import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { UnpackedModal } from './components/UnpackedModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -259,6 +259,34 @@ const App: React.FC = () => {
     return { uiFontSize: 100, highContrast: false };
   });
 
+  const [languageSettings, setLanguageSettings] = useState<LanguageSettings>(() => {
+    try {
+      const item = window.localStorage.getItem('languageSettings');
+      return item ? JSON.parse(item) : { uiLanguage: 'en', searchRegion: 'auto' };
+    } catch (error) { return { uiLanguage: 'en', searchRegion: 'auto' }; }
+  });
+
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(() => {
+    try {
+      const item = window.localStorage.getItem('notificationSettings');
+      return item ? JSON.parse(item) : { featureUpdates: true, collaborationInvites: true };
+    } catch (error) { return { featureUpdates: true, collaborationInvites: true }; }
+  });
+
+  const [developerSettings, setDeveloperSettings] = useState<DeveloperSettings>(() => {
+    try {
+      const item = window.localStorage.getItem('developerSettings');
+      return item ? JSON.parse(item) : { showApiLogger: false };
+    } catch (error) { return { showApiLogger: false }; }
+  });
+
+  const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>(() => {
+    try {
+      const item = window.localStorage.getItem('analyticsSettings');
+      return item ? JSON.parse(item) : { enabled: true };
+    } catch (error) { return { enabled: true }; }
+  });
+
   useEffect(() => {
     try {
         window.localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
@@ -367,6 +395,26 @@ const App: React.FC = () => {
         console.error("Could not save accessibilitySettings to localStorage", error);
     }
   }, [accessibilitySettings]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('languageSettings', JSON.stringify(languageSettings)); }
+    catch (e) { console.error(e); }
+  }, [languageSettings]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings)); }
+    catch (e) { console.error(e); }
+  }, [notificationSettings]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('developerSettings', JSON.stringify(developerSettings)); }
+    catch (e) { console.error(e); }
+  }, [developerSettings]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('analyticsSettings', JSON.stringify(analyticsSettings)); }
+    catch (e) { console.error(e); }
+  }, [analyticsSettings]);
   
   useEffect(() => {
     try {
@@ -669,7 +717,6 @@ const App: React.FC = () => {
         onClear={handleClearRecents}
         onOpenSettings={handleOpenSettings}
         userProfile={userProfile}
-        // FIX: `onLogout` was not defined in this scope. Changed to `handleLogout`.
         onLogout={handleLogout}
       />
       <SettingsModal
@@ -689,6 +736,10 @@ const App: React.FC = () => {
         searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
         searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
         accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
+        languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
+        notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
+        developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
+        analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
       />
       <ChatModal
         isOpen={isChatModeOpen}
