@@ -4,12 +4,13 @@ import { LoginPreview } from './LoginPreview';
 import { XIcon } from './icons/XIcon';
 import { GitHubIcon } from './icons/GitHubIcon';
 import { supabase } from '../utils/supabase';
+import { SpotifyIcon } from './icons/SpotifyIcon';
 
 interface LoginPageProps {
   onGoogleSignIn: (response: any) => void;
 }
 
-const handleLogin = async (provider: 'github' | 'twitter') => {
+const handleLogin = async (provider: 'github' | 'twitter' | 'spotify') => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
   });
@@ -73,6 +74,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onGoogleSignIn }) => {
                   >
                     <GitHubIcon className="w-5 h-5" />
                     <span className="font-semibold">Sign in with GitHub</span>
+                  </button>
+                  <button
+                    onClick={() => handleLogin('spotify')}
+                    className="w-full max-w-[350px] flex items-center justify-center space-x-3 bg-[#1DB954] text-white py-3 px-4 rounded-full hover:bg-[#1ed760] transition-colors"
+                  >
+                    <SpotifyIcon className="w-5 h-5" />
+                    <span className="font-semibold">Sign in with Spotify</span>
                   </button>
                   
                  <p className="text-xs text-gray-500 max-w-xs pt-4">
