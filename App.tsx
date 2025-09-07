@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -104,6 +105,30 @@ const App: React.FC = () => {
     }
   });
 
+  const [proCredits, setProCredits] = useState<number>(() => {
+    try {
+      const item = window.localStorage.getItem('proCredits');
+      return item ? JSON.parse(item) : 50; // Welcome bonus
+    } catch (error) {
+      console.error("Could not parse proCredits from localStorage", error);
+      return 50;
+    }
+  });
+  
+  const [unlockedProFeatures, setUnlockedProFeatures] = useState<string[]>(() => {
+    try {
+      const items = window.localStorage.getItem('unlockedProFeatures');
+      return items ? JSON.parse(items) : [];
+    } catch (error) {
+      console.error("Could not parse unlockedProFeatures from localStorage", error);
+      return [];
+    }
+  });
+  
+  const [lastDailyCredit, setLastDailyCredit] = useState<string | null>(() => {
+    return window.localStorage.getItem('lastDailyCredit');
+  });
+
   useEffect(() => {
     const hasSeenIntro = window.localStorage.getItem('hasSeenWelcome_v1');
     if (!hasSeenIntro) {
@@ -119,6 +144,15 @@ const App: React.FC = () => {
         setShowChromeBanner(true);
     }
   }, []);
+
+  // Daily login bonus
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (lastDailyCredit !== today) {
+      setProCredits(c => c + 5);
+      setLastDailyCredit(today);
+    }
+  }, []); // Run only on initial app load
 
   const handleCloseChromeBanner = () => {
     setShowChromeBanner(false);
@@ -430,6 +464,24 @@ const App: React.FC = () => {
     }
   }, [userProfile]);
 
+  useEffect(() => {
+    try { window.localStorage.setItem('proCredits', JSON.stringify(proCredits)); }
+    catch (e) { console.error(e); }
+  }, [proCredits]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('unlockedProFeatures', JSON.stringify(unlockedProFeatures)); }
+    catch (e) { console.error(e); }
+  }, [unlockedProFeatures]);
+  
+  useEffect(() => {
+    if (lastDailyCredit) {
+      window.localStorage.setItem('lastDailyCredit', lastDailyCredit);
+    } else {
+      window.localStorage.removeItem('lastDailyCredit');
+    }
+  }, [lastDailyCredit]);
+
 
   const handleLoginSuccess = useCallback((response: { credential?: string }) => {
     if (response.credential) {
@@ -515,6 +567,9 @@ const App: React.FC = () => {
       const result = await fetchSearchResults(query, apiKeys.gemini, searchSettings);
       setSearchResult(result);
       setView('results');
+      if (!isTemporaryMode) {
+        setProCredits(c => c + 1);
+      }
     } catch (err) {
       console.error(err);
       setError('Sorry, something went wrong. Please check your API key and try again.');
@@ -671,6 +726,7 @@ const App: React.FC = () => {
         'searchInputSettings': searchInputSettings, 'searchSettings': searchSettings, 'accessibilitySettings': accessibilitySettings,
         'stickers': stickers, 'widgets': widgets, 'customStickers': customStickers, 'languageSettings': languageSettings,
         'notificationSettings': notificationSettings, 'developerSettings': developerSettings, 'analyticsSettings': analyticsSettings,
+        'proCredits': proCredits, 'unlockedProFeatures': unlockedProFeatures
     };
     const blob = new Blob([JSON.stringify(exportableData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -681,6 +737,15 @@ const App: React.FC = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleUnlockFeature = (featureId: string, cost: number) => {
+    if (proCredits >= cost) {
+      setProCredits(c => c - cost);
+      setUnlockedProFeatures(prev => [...prev, featureId]);
+    } else {
+      alert("You don't have enough credits to unlock this. Check the Rewards section to see how to earn more!");
+    }
   };
 
 
@@ -774,6 +839,7 @@ const App: React.FC = () => {
                   onOpenSettings={handleOpenSettings}
                   userProfile={userProfile}
                   onLogout={handleLogout}
+                  proCredits={proCredits}
                 />
                 <SettingsModal
                   isOpen={isSettingsModalOpen}
@@ -797,6 +863,9 @@ const App: React.FC = () => {
                   notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
                   developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
                   analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
+                  proCredits={proCredits}
+                  unlockedProFeatures={unlockedProFeatures}
+                  onUnlockFeature={handleUnlockFeature}
                 />
                 <ChatModal
                   isOpen={isChatModeOpen}

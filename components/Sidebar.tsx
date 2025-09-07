@@ -5,6 +5,7 @@ import { LogoIcon } from './icons/LogoIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
 import type { UserProfile } from '../types';
+import { GiftIcon } from './icons/GiftIcon';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,12 +13,13 @@ interface SidebarProps {
   recentSearches: string[];
   onSearch: (query: string) => void;
   onClear: () => void;
-  onOpenSettings: () => void;
+  onOpenSettings: (section?: string) => void;
   userProfile: UserProfile | null;
   onLogout: () => void;
+  proCredits: number;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearches, onSearch, onClear, onOpenSettings, userProfile, onLogout }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearches, onSearch, onClear, onOpenSettings, userProfile, onLogout, proCredits }) => {
   const handleSearchClick = (query: string) => {
     onSearch(query);
     onClose();
@@ -71,15 +73,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, recentSearche
           </div>
           <footer className="p-4 border-t space-y-2">
             {userProfile && (
-              <div className="flex items-center space-x-3 p-2 mb-2 border-b pb-4">
-                <img src={userProfile.picture} alt={userProfile.name} className="w-10 h-10 rounded-full" />
-                <div>
-                  <p className="font-semibold text-sm truncate">{userProfile.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{userProfile.email}</p>
+              <div className="flex items-center justify-between p-2 mb-2 border-b pb-4">
+                <div className="flex items-center space-x-3">
+                  <img src={userProfile.picture} alt={userProfile.name} className="w-10 h-10 rounded-full" />
+                  <div>
+                    <p className="font-semibold text-sm truncate">{userProfile.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{userProfile.email}</p>
+                  </div>
                 </div>
+                <button onClick={() => onOpenSettings('rewards-store')} className="flex items-center space-x-2 px-3 py-1.5 text-sm font-semibold text-amber-700 bg-amber-100 rounded-full hover:bg-amber-200 transition-colors">
+                    <GiftIcon className="w-4 h-4" />
+                    <span>{proCredits}</span>
+                </button>
               </div>
             )}
-            <button onClick={onOpenSettings} className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            <button onClick={() => onOpenSettings()} className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                 <SettingsIcon />
                 <span>Settings & Info</span>
             </button>
