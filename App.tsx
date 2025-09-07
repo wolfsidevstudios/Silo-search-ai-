@@ -572,6 +572,69 @@ const App: React.FC = () => {
     };
   }, [handleLoginSuccess]);
 
+  useEffect(() => {
+    const handleXCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+  
+      if (code) {
+        window.history.replaceState({}, document.title, "/");
+  
+        const clientId = 'YlVKNkxzUnZuTDZIaG5VODloRi06MTpjaQ';
+        const redirectUri = 'https://silosearchai.netlify.app/';
+        const codeVerifier = sessionStorage.getItem('x_code_verifier');
+  
+        if (!codeVerifier) {
+          console.error("Code verifier not found for X login.");
+          return;
+        }
+  
+        try {
+          const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              code,
+              grant_type: 'authorization_code',
+              client_id: clientId,
+              redirect_uri: redirectUri,
+              code_verifier: codeVerifier,
+            }),
+          });
+  
+          const tokenData = await tokenResponse.json();
+          if (!tokenResponse.ok) throw new Error(tokenData.error_description || 'Token exchange failed');
+          
+          const accessToken = tokenData.access_token;
+  
+          const userResponse = await fetch('https://api.twitter.com/2/users/me?user.fields=profile_image_url', {
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+          });
+          
+          const userData = await userResponse.json();
+          if (!userResponse.ok) throw new Error('Failed to fetch user data from X');
+  
+          const { name, username, profile_image_url } = userData.data;
+          
+          setUserProfile({
+            name: name,
+            email: `@${username}`, // Use username as the unique identifier
+            picture: profile_image_url.replace('_normal', ''), // Get higher resolution image
+          });
+  
+        } catch (err) {
+          console.error('X login error:', err);
+          setError('Something went wrong during the Sign in with X process. Please try again.');
+          setView('error');
+        } finally {
+          sessionStorage.removeItem('x_code_verifier');
+        }
+      }
+    };
+  
+    handleXCallback();
+  }, []);
+
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;

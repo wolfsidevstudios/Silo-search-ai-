@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { LoginPreview } from './LoginPreview';
 import { XIcon } from './icons/XIcon';
-import { CloseIcon } from './icons/CloseIcon';
 
 declare global {
   interface Window {
@@ -15,36 +14,37 @@ interface LoginPageProps {
   isGsiScriptLoaded: boolean;
 }
 
-const XLoginInfoModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+// --- PKCE Helper Functions for X Login ---
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div className="fixed inset-0 bg-black bg-opacity-60" onClick={onClose}></div>
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100" aria-label="Close">
-          <CloseIcon />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800">Developer Note: Backend Required</h2>
-        <p className="mt-4 text-gray-600">
-          The "Sign in with X" feature has been added to the UI.
-        </p>
-        <p className="mt-2 text-gray-600">
-          However, a full, secure implementation of X (Twitter) login requires a backend server. This is necessary to safely store and use the <strong>Client Secret</strong> without exposing it in the browser, which would be a major security risk.
-        </p>
-        <div className="mt-8">
-          <button onClick={onClose} className="px-6 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
-            Got it
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+// Generates a random string for the code verifier
+const generateRandomString = (length: number): string => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234GvWTsPF1-._~';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 };
+
+// Hashes the verifier using SHA-256
+const sha256 = async (plain: string): Promise<ArrayBuffer> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return window.crypto.subtle.digest('SHA-256', data);
+};
+
+// Base64 URL encodes the hashed verifier
+const base64urlencode = (a: ArrayBuffer): string => {
+  return btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(a))))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+};
+
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, isGsiScriptLoaded }) => {
   const signInRef = useRef<HTMLDivElement>(null);
-  const [isXInfoModalOpen, setXInfoModalOpen] = useState(false);
   
   useEffect(() => {
     const currentSignInRef = signInRef.current;
@@ -66,9 +66,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, isGsiScrip
     };
   }, [isGsiScriptLoaded]);
 
+  const handleXLogin = async () => {
+    const codeVerifier = generateRandomString(128);
+    sessionStorage.setItem('x_code_verifier', codeVerifier);
+    
+    const hashed = await sha256(codeVerifier);
+    const codeChallenge = base64urlencode(hashed);
+  
+    const clientId = 'YlVKNkxzUnZuTDZIaG5VODloRi06MTpjaQ';
+    const redirectUri = 'https://silosearchai.netlify.app/';
+    
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      scope: 'users.read tweet.read offline.access',
+      state: 'state', // In a production app, use a unique, unpredictable string
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+    });
+  
+    window.location.href = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
+  };
+
   return (
     <>
-      <XLoginInfoModal isOpen={isXInfoModalOpen} onClose={() => setXInfoModalOpen(false)} />
       <div className="flex min-h-screen w-full bg-white font-sans">
         {/* Left side: App Preview */}
         <div className="hidden lg:flex flex-1 items-center justify-center p-8 bg-gray-50 relative overflow-hidden">
@@ -96,7 +118,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, isGsiScrip
                     </div>
 
                     <button
-                      onClick={() => setXInfoModalOpen(true)}
+                      onClick={handleXLogin}
                       className="w-full max-w-[350px] flex items-center justify-center space-x-3 bg-black text-white py-3 px-4 rounded-full hover:bg-gray-800 transition-colors"
                     >
                       <XIcon className="w-5 h-5" />
