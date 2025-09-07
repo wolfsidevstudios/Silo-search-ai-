@@ -1,6 +1,7 @@
 
 
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { LogoIcon } from './icons/LogoIcon';
 import { OpenAIIcon } from './icons/OpenAIIcon';
@@ -50,6 +51,7 @@ import { BellIcon } from './icons/BellIcon';
 import { CodeIcon } from './icons/CodeIcon';
 import { GiftIcon } from './icons/GiftIcon';
 import { LockIcon } from './icons/LockIcon';
+import { ChevronDownIcon } from './icons/ChevronDownIcon';
 
 
 interface SettingsModalProps {
@@ -105,46 +107,61 @@ const PRO_FEATURES_COSTS: { [key: string]: number } = {
   'press-start': 15, 'orbitron': 15, 'elite': 15,
 };
 
-const navSections = {
-  "Personalize": [
-    { id: 'rewards-store', name: 'Rewards & Store', Icon: GiftIcon },
-    { id: 'wallpaper', name: 'Wallpaper', Icon: WallpaperIcon },
-    { id: 'clock', name: 'Clock', Icon: ClockIcon },
-    { id: 'search-box', name: 'Search Box', Icon: SearchIcon },
-    { id: 'stickers', name: 'Stickers', Icon: StickerIcon },
-    { id: 'widgets', name: 'Widgets', Icon: WidgetIcon },
-    { id: 'theme-store', name: 'Theme Store', Icon: StoreIcon },
-    { id: 'app-icon', name: 'App Icon', Icon: AppIconIcon },
-  ],
-  "Functionality": [
-    { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
-    { id: 'search-ai', name: 'Search & AI', Icon: ChipIcon },
-    { id: 'speech-language', name: 'Speech Input', Icon: LanguagesIcon },
-    { id: 'language-region', name: 'Language & Region', Icon: GlobeIcon },
-    { id: 'keyboard-shortcuts', name: 'Shortcuts', Icon: KeyboardIcon },
-  ],
-  "Account & Data": [
-    { id: 'data-management', name: 'Import / Export', Icon: DatabaseIcon },
-    { id: 'sync-backup', name: 'Sync & Backup', Icon: CloudSyncIcon },
-    { id: 'sharing', name: 'Collaboration', Icon: UsersIcon },
-    { id: 'connected-apps', name: 'Connected Apps', Icon: LinkIcon },
-    { id: 'usage-analytics', name: 'Usage', Icon: BarChartIcon },
-  ],
-  "General": [
-    { id: 'notifications', name: 'Notifications', Icon: BellIcon },
-    { id: 'accessibility', name: 'Accessibility', Icon: UniversalAccessIcon },
-    { id: 'pricing', name: 'Pricing', Icon: TagIcon },
-    { id: 'about', name: 'About', Icon: InfoIcon },
-    { id: 'how-it-works', name: 'How It Works', Icon: HelpCircleIcon },
-    { id: 'privacy', name: 'Privacy Policy', Icon: PrivacyIcon },
-    { id: 'terms', name: 'Terms of Service', Icon: FileTextIcon },
-    { id: 'releaseNotes', name: 'Release Notes', Icon: ReleaseNotesIcon }
-  ],
-  "Advanced": [
-    { id: 'developer-options', name: 'Developer', Icon: CodeIcon },
-    { id: 'delete-data', name: 'Delete Data', Icon: AlertTriangleIcon },
-  ],
-};
+const navItems = [
+    {
+        category: 'Core Settings',
+        items: [
+            { id: 'api-keys', name: 'API Keys', Icon: KeyIcon, keywords: 'gemini, openai, anthropic, key' },
+            { id: 'search-ai', name: 'Search & AI', Icon: ChipIcon, keywords: 'model, web search' },
+            { id: 'speech-language', name: 'Speech & Language', Icon: LanguagesIcon, keywords: 'voice, region, recognition' },
+        ]
+    },
+    {
+        category: 'Personalization',
+        items: [
+            { id: 'wallpaper', name: 'Wallpaper', Icon: WallpaperIcon, keywords: 'background, theme, custom' },
+            { id: 'clock', name: 'Clock', Icon: ClockIcon, keywords: 'time, font, color, theme, style' },
+            { id: 'search-box', name: 'Search Box', Icon: SearchIcon, keywords: 'input, style, glossy, size' },
+            { id: 'stickers', name: 'Stickers', Icon: StickerIcon, keywords: 'emoji, decorate, customize' },
+            { id: 'widgets', name: 'Widgets', Icon: WidgetIcon, keywords: 'note, weather, home screen' },
+        ]
+    },
+    {
+        category: 'Store & Rewards',
+        items: [
+            { id: 'rewards-store', name: 'Rewards', Icon: GiftIcon, keywords: 'credits, points, earn' },
+            { id: 'theme-store', name: 'Theme Store', Icon: StoreIcon, keywords: 'presets, styles, neon, forest' },
+            { id: 'app-icon', name: 'App Icon', Icon: AppIconIcon, keywords: 'homescreen, pwa, logo' },
+        ]
+    },
+    {
+        category: 'Account & Data',
+        items: [
+            { id: 'data-management', name: 'Import / Export', Icon: DatabaseIcon, keywords: 'backup, restore, json, settings' },
+            { id: 'usage-analytics', name: 'Usage Analytics', Icon: BarChartIcon, keywords: 'privacy, data, tracking' },
+            { id: 'delete-data', name: 'Delete Data', Icon: AlertTriangleIcon, keywords: 'danger, remove, reset, clear' },
+        ]
+    },
+    {
+        category: 'General',
+        items: [
+            { id: 'accessibility', name: 'Accessibility', Icon: UniversalAccessIcon, keywords: 'font size, contrast, vision' },
+            { id: 'notifications', name: 'Notifications', Icon: BellIcon, keywords: 'alerts, updates, messages' },
+            { id: 'keyboard-shortcuts', name: 'Shortcuts', Icon: KeyboardIcon, keywords: 'hotkeys, commands' },
+        ]
+    },
+    {
+        category: 'Information',
+        items: [
+            { id: 'about', name: 'About Silo Search', Icon: InfoIcon, keywords: 'help, guide, contact' },
+            { id: 'how-it-works', name: 'How It Works', Icon: HelpCircleIcon, keywords: 'help, guide, tutorial' },
+            { id: 'privacy', name: 'Privacy Policy', Icon: PrivacyIcon, keywords: 'legal, data, gdpr' },
+            { id: 'terms', name: 'Terms of Service', Icon: FileTextIcon, keywords: 'legal, rules, agreement' },
+            { id: 'releaseNotes', name: 'Release Notes', Icon: ReleaseNotesIcon, keywords: 'updates, changelog, version' },
+            { id: 'developer-options', name: 'Developer', Icon: CodeIcon, keywords: 'advanced, debug, api, logger' },
+        ]
+    }
+];
 
 const wallpapers = {
   Default: [{ name: 'White', class: 'bg-white' },{ name: 'Light Gray', class: 'bg-gray-100' },],
@@ -158,6 +175,8 @@ const ClockThemeSwatch: React.FC<{ theme: { id: string, name: string, darkClass:
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, languageSettings, onLanguageSettingsChange, notificationSettings, onNotificationSettingsChange, developerSettings, onDeveloperSettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature }) => {
   const [activeSection, setActiveSection] = useState('api-keys');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [localApiKeys, setLocalApiKeys] = useState(apiKeys);
   const [localTheme, setLocalTheme] = useState(currentTheme);
   const [localCustomWallpaper, setLocalCustomWallpaper] = useState(customWallpaper);
@@ -181,7 +200,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
 
   useEffect(() => {
     if (isOpen) {
-        setActiveSection(initialSection || 'api-keys');
+        const currentActiveSection = initialSection || 'api-keys';
+        setActiveSection(currentActiveSection);
+        
+        const initialCategory = navItems.find(c => c.items.some(i => i.id === currentActiveSection))?.category;
+        if (initialCategory) {
+            setExpandedCategories([initialCategory]);
+        } else if (navItems.length > 0) {
+            setExpandedCategories([navItems[0].category]);
+        }
+
         setLocalApiKeys(apiKeys);
         setLocalTheme(currentTheme);
         setLocalCustomWallpaper(customWallpaper);
@@ -371,6 +399,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
       </div>
     );
   };
+  
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => 
+        prev.includes(category) 
+            ? prev.filter(c => c !== category) 
+            : [...prev, category]
+    );
+  };
+
+  const filteredNavItems = useMemo(() => {
+    if (!searchQuery) {
+        return navItems;
+    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = navItems.map(category => {
+        const filteredItems = category.items.filter(item => 
+            item.name.toLowerCase().includes(lowercasedQuery) ||
+            item.keywords.toLowerCase().includes(lowercasedQuery)
+        );
+        return { ...category, items: filteredItems };
+    }).filter(category => category.items.length > 0);
+
+    return filtered;
+  }, [searchQuery]);
+
 
   if (!isOpen) return null;
 
@@ -384,20 +437,44 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         </header>
 
         <div className="flex-grow flex min-h-0">
-            <nav className="w-1/3 md:w-1/4 border-r bg-gray-50/50 p-4 overflow-y-auto">
-               {Object.entries(navSections).map(([sectionTitle, items]) => (
-                <div key={sectionTitle} className="mb-4 last:mb-0">
-                    <p className="px-2 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{sectionTitle}</p>
-                    <div className="space-y-1">
-                      {items.map(item => (
-                          <button key={item.id} onClick={() => handleNavClick(item.id)} className={`w-full flex items-center space-x-3 p-2 rounded-lg text-left text-sm font-medium transition-colors ${ activeSection === item.id ? 'bg-black/10 text-gray-900' : 'text-gray-600 hover:bg-black/5' }`}>
-                              <item.Icon className="w-5 h-5 flex-shrink-0" />
-                              <span>{item.name}</span>
-                          </button>
-                      ))}
-                    </div>
+            <nav className="w-1/3 md:w-1/4 border-r bg-gray-50/50 flex flex-col">
+              <div className="p-3">
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <SearchIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="search"
+                    placeholder="Search settings..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="block w-full rounded-md border-0 bg-white py-1.5 pl-9 pr-3 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm"
+                  />
                 </div>
-              ))}
+              </div>
+               <div className="flex-grow overflow-y-auto px-3 pb-3">
+                 {filteredNavItems.map(({ category, items }) => (
+                  <div key={category} className="mb-2 last:mb-0">
+                      <button 
+                        onClick={() => toggleCategory(category)}
+                        className="w-full flex justify-between items-center p-2 text-left"
+                      >
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{category}</p>
+                        <ChevronDownIcon className={`w-4 h-4 text-gray-400 transition-transform ${expandedCategories.includes(category) || searchQuery ? 'rotate-180' : ''}`} />
+                      </button>
+                      {(expandedCategories.includes(category) || searchQuery) && (
+                        <div className="mt-1 space-y-1">
+                          {items.map(item => (
+                              <button key={item.id} onClick={() => handleNavClick(item.id)} className={`w-full flex items-center space-x-3 p-2 rounded-lg text-left text-sm font-medium transition-colors ${ activeSection === item.id ? 'bg-black/10 text-gray-900' : 'text-gray-600 hover:bg-black/5' }`}>
+                                  <item.Icon className="w-5 h-5 flex-shrink-0" />
+                                  <span>{item.name}</span>
+                              </button>
+                          ))}
+                        </div>
+                      )}
+                  </div>
+                ))}
+               </div>
             </nav>
             <main className="w-2/3 md:w-3/4 p-6 md:p-8 overflow-y-auto">
                 {activeSection === 'api-keys' ? (
@@ -448,15 +525,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                     <section>
                       <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Search & AI Settings</h3> <p className="mt-2 text-gray-600"> Configure the core behavior of the AI search and chat. </p> </div>
                       <div className="space-y-6">
-                          <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/50">
-                              <div><label htmlFor="web-search-toggle" className="font-medium text-gray-700">Enable Web Search</label><p className="text-xs text-gray-500 mt-1">Allows the AI to access up-to-date information from Google Search.</p></div>
-                              <button id="web-search-toggle" role="switch" aria-checked={localSearchSettings.useWebSearch} onClick={() => setLocalSearchSettings(s => ({ ...s, useWebSearch: !s.useWebSearch }))} className={`${localSearchSettings.useWebSearch ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}> <span className={`${localSearchSettings.useWebSearch ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /> </button>
-                          </div>
-                          <div className="p-4 border rounded-lg bg-gray-50/50">
-                              <label htmlFor="ai-model-select" className="block font-medium text-gray-700">Primary AI Model</label><p className="text-xs text-gray-500 mt-1 mb-2">Select the model used for search summaries and chat.</p>
-                              <select id="ai-model-select" value={localSearchSettings.model} onChange={(e) => setLocalSearchSettings(s => ({ ...s, model: e.target.value as 'gemini-2.5-flash' }))} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                           <div className="p-4 border rounded-lg bg-gray-50/50">
+                              <label htmlFor="ai-model-select" className="block font-medium text-gray-700">Primary AI Model</label>
+                              <select id="ai-model-select" value={localSearchSettings.model} onChange={(e) => setLocalSearchSettings(s => ({ ...s, model: e.target.value as 'gemini-2.5-flash' | 's1-mini' }))} className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                   <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended)</option>
+                                  <option value="s1-mini">S1 Mini</option>
                               </select>
+                              {localSearchSettings.model === 's1-mini' ? (
+                                <p className="text-xs text-gray-500 mt-2">The S1 Mini model is optimized for fast, web-grounded summaries. It always uses Google Search to provide concise answers based on current information. <br/><em>Note: This model still utilizes the Gemini API and requires a valid key.</em></p>
+                              ) : (
+                                <p className="text-xs text-gray-500 mt-2">Select the model used for search summaries and chat.</p>
+                              )}
+                          </div>
+                          <div className={`flex items-center justify-between p-4 border rounded-lg bg-gray-50/50 transition-opacity ${localSearchSettings.model === 's1-mini' ? 'opacity-50' : ''}`}>
+                              <div><label htmlFor="web-search-toggle" className="font-medium text-gray-700">Enable Web Search</label><p className="text-xs text-gray-500 mt-1">Allows the AI to access up-to-date information from Google Search.</p></div>
+                              <button 
+                                  id="web-search-toggle" 
+                                  role="switch" 
+                                  aria-checked={localSearchSettings.useWebSearch || localSearchSettings.model === 's1-mini'} 
+                                  onClick={() => setLocalSearchSettings(s => ({ ...s, useWebSearch: !s.useWebSearch }))} 
+                                  disabled={localSearchSettings.model === 's1-mini'}
+                                  className={`${(localSearchSettings.useWebSearch || localSearchSettings.model === 's1-mini') ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:cursor-not-allowed`}
+                              >
+                                  <span className={`${(localSearchSettings.useWebSearch || localSearchSettings.model === 's1-mini') ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
+                              </button>
                           </div>
                       </div>
                     </section>
@@ -495,7 +587,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
                       </div>
                     </section>
                 ) : activeSection === 'speech-language' ? (
-                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Speech Input</h3> <p className="mt-2 text-gray-600"> Choose the language for voice search input. </p> </div> <div className="grid grid-cols-2 gap-4"> <button onClick={() => setLocalSpeechLanguage('en-US')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'en-US' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> English (US) </button> <button onClick={() => setLocalSpeechLanguage('es-ES')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'es-ES' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> Español (España) </button> </div> </section>
+                    <section> <div className="mb-8"> <h3 className="text-2xl font-bold text-gray-800">Speech & Language</h3> <p className="mt-2 text-gray-600"> Customize language preferences for speech and search results. </p> </div> <div className="space-y-6"> <div className="p-4 border rounded-lg bg-gray-50/50"> <label htmlFor="speech-language" className="block font-medium text-gray-700 mb-2">Speech Input Language</label> <div className="grid grid-cols-2 gap-4"> <button onClick={() => setLocalSpeechLanguage('en-US')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'en-US' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> English (US) </button> <button onClick={() => setLocalSpeechLanguage('es-ES')} className={`p-4 border rounded-lg text-center transition-colors ${localSpeechLanguage === 'es-ES' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}> Español (España) </button> </div> </div> <div className="p-4 border rounded-lg bg-gray-50/50"> <label htmlFor="ui-language" className="block font-medium text-gray-700">UI Language</label> <p className="text-xs text-gray-500 mt-1 mb-2">Change the display language of the app.</p> <select id="ui-language" value={localLanguageSettings.uiLanguage} disabled className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-200 cursor-not-allowed"> <option value="en">English</option> </select> </div> <div className="p-4 border rounded-lg bg-gray-50/50"> <label htmlFor="search-region" className="block font-medium text-gray-700">Search Region</label> <p className="text-xs text-gray-500 mt-1 mb-2">Prioritize search results from a specific region.</p> <select id="search-region" value={localLanguageSettings.searchRegion} onChange={e => setLocalLanguageSettings(s => ({ ...s, searchRegion: e.target.value as 'auto' | 'US' | 'WW' }))} className="w-full px-3 py-2 border border-gray-300 rounded-md"> <option value="auto">Auto-detect</option> <option value="US">United States</option> <option value="WW">Worldwide</option> </select> </div> </div> </section>
                 ) : activeSection === 'delete-data' ? (
                      <section className="space-y-6"> <div> <h3 className="text-2xl font-bold text-gray-800">Danger Zone</h3> <p className="mt-2 text-gray-600"> These actions are permanent and cannot be undone. </p> </div> <div className="p-4 border border-red-300 bg-red-50 rounded-lg"> <h4 className="font-bold text-red-800">Delete All Application Data</h4> <p className="mt-1 text-sm text-red-700"> This will permanently delete all your settings, API keys, recent searches, stickers, and widgets from your browser's storage. The application will be reset to its initial state. </p> <button onClick={handleDeleteAllData} className="mt-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"> Delete All Data </button> </div> </section>
                 ) : activeSection === 'how-it-works' ? (

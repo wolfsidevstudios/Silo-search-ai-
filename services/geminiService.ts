@@ -11,13 +11,13 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   const prompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
   
   const config: GenerateContentConfig = {};
-  if (searchSettings.useWebSearch) {
+  if (searchSettings.useWebSearch || searchSettings.model === 's1-mini') {
     config.tools = [{googleSearch: {}}];
   }
 
   try {
     const response = await ai.models.generateContent({
-      model: searchSettings.model,
+      model: 'gemini-2.5-flash', // S1 Mini is an alias for Flash with forced web search
       contents: prompt,
       config: config,
     });

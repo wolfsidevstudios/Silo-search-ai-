@@ -264,7 +264,7 @@ const App: React.FC = () => {
         const parsed = JSON.parse(item);
         return {
           useWebSearch: typeof parsed.useWebSearch === 'boolean' ? parsed.useWebSearch : true,
-          model: parsed.model === 'gemini-2.5-flash' ? 'gemini-2.5-flash' : 'gemini-2.5-flash',
+          model: (parsed.model === 'gemini-2.5-flash' || parsed.model === 's1-mini') ? parsed.model : 'gemini-2.5-flash',
         };
       }
     } catch (error) {
@@ -604,7 +604,7 @@ const App: React.FC = () => {
   const handleEnterChatMode = (query: string, summary: string) => {
     const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
     chatRef.current = ai.chats.create({ 
-      model: searchSettings.model,
+      model: searchSettings.model === 's1-mini' ? 'gemini-2.5-flash' : searchSettings.model,
       config: {
         systemInstruction: 'You are a helpful AI assistant. The user has just performed a search and received a summary. Continue the conversation by answering follow-up questions about the search topic. Be concise, clear, and organize your answers in short sentences.'
       }

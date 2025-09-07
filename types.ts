@@ -62,7 +62,7 @@ export interface SearchInputSettings {
 
 export interface SearchSettings {
   useWebSearch: boolean;
-  model: 'gemini-2.5-flash';
+  model: 'gemini-2.5-flash' | 's1-mini';
 }
 
 export interface AccessibilitySettings {

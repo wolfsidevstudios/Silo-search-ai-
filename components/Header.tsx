@@ -6,6 +6,12 @@ import { MenuIcon } from './icons/MenuIcon';
 import { IncognitoIcon } from './icons/IncognitoIcon';
 import type { UserProfile } from '../types';
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 interface HeaderProps {
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
@@ -21,8 +27,19 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton, userProfile, onLogout, isGsiScriptLoaded }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const signInRef = useRef<HTMLDivElement>(null);
 
-  // Google Sign-In button rendering is disabled for now.
+  useEffect(() => {
+    if (isGsiScriptLoaded && !userProfile && signInRef.current) {
+        // To prevent duplicate buttons on re-renders
+        if (signInRef.current.childElementCount === 0) {
+            window.google.accounts.id.renderButton(
+                signInRef.current,
+                { theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with' }
+            );
+        }
+    }
+  }, [isGsiScriptLoaded, userProfile]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -80,12 +97,7 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
             )}
           </div>
         ) : (
-          <button
-            onClick={() => alert('Google sign in coming soon')}
-            className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors cursor-default"
-          >
-            Sign In
-          </button>
+          <div ref={signInRef} id="signInButton" />
         )}
       </div>
     </header>
