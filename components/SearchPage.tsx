@@ -127,7 +127,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           onLogout={onLogout}
           isGsiScriptLoaded={isGsiScriptLoaded}
         />
-        <main className="flex-grow flex flex-col items-center justify-center px-4 pb-24 text-center">
+        <main className="flex-grow flex flex-col items-center justify-center px-4 pb-12 text-center">
           {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} temperatureUnit={temperatureUnit} /></div>}
           {isTemporaryMode && (
             <div className="flex flex-col items-center mb-8 text-gray-600">
@@ -142,6 +142,13 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             <SearchInput onSearch={onSearch} initialValue="How to make a great cup of coffee?" isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} />
           </div>
         </main>
+        <footer className="w-full text-center p-4 pb-6 text-sm text-gray-500 z-10">
+            <button onClick={() => onOpenSettings('privacy')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Privacy Policy</button>
+            <span className="mx-1 select-none" aria-hidden="true">·</span>
+            <button onClick={() => onOpenSettings('terms')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Terms & Conditions</button>
+            <span className="mx-1 select-none" aria-hidden="true">·</span>
+            <button onClick={() => onOpenSettings('about')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">About</button>
+        </footer>
       </div>
 
       {/* Edit Mode UI */}
