@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { XIcon } from './icons/XIcon';
@@ -16,6 +15,8 @@ import { LockIcon } from './icons/LockIcon';
 import { KeyIcon } from './icons/KeyIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { PrivacyIcon } from './icons/PrivacyIcon';
+import { MailIcon } from './icons/MailIcon';
+import { ArrowRightIcon } from './icons/ArrowRightIcon';
 
 
 interface LandingPageProps {
@@ -208,8 +209,59 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
             </div>
         </section>
 
+        {/* Coming Soon Section */}
+        <section className="py-16 md:py-24 bg-gray-50 border-t">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-24 lg:items-center">
+                    <div className="relative w-full aspect-[4/3] max-w-lg mx-auto lg:max-w-none">
+                        <div className="absolute inset-0 bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between border">
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-2">
+                                    <LogoIcon className="w-6 h-6" />
+                                    <span className="font-semibold text-sm">Silo Search</span>
+                                </div>
+                                <div className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Gmail Connected</div>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 mb-1">Search your emails...</p>
+                                <div className="relative">
+                                    <input type="text" readOnly value="summary of last week's project update" className="w-full bg-gray-100 rounded-lg p-3 text-sm border-gray-200" />
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
+                                        <ArrowRightIcon />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6 border transform rotate-3">
+                             <h4 className="font-bold">Summary: Project Update</h4>
+                             <p className="text-sm mt-2 text-gray-600">The team completed the UI mockups. John is now working on the backend integration, expected to be done by Friday. Marketing assets are pending review.</p>
+                        </div>
+                    </div>
+                    <div className="mt-16 lg:mt-0">
+                        <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 font-semibold text-sm rounded-full mb-4">Coming Soon</span>
+                        <h2 className="text-3xl font-extrabold text-gray-900">Your personal email assistant.</h2>
+                        <p className="mt-4 text-lg text-gray-500">Connect Gmail to instantly find any email and get intelligent summaries of conversations, right from the search bar.</p>
+                        <dl className="mt-8 space-y-6">
+                            <div className="flex">
+                                <MailIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Lightning-Fast Search.</span> Instantly find any email, attachment, or conversation across your entire inbox.</dd>
+                            </div>
+                            <div className="flex">
+                                <SparklesIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">AI-Powered Summaries.</span> Get the gist of long emails or threads in seconds without having to read everything.</dd>
+                            </div>
+                            <div className="flex">
+                                <LinkIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Seamless Integration.</span> Search your emails alongside the web, all from the same powerful search bar.</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         {/* Logo Cloud Section */}
-        <section className="py-16 bg-gray-50 border-t">
+        <section className="py-16 bg-white border-t">
             <div className="max-w-5xl mx-auto px-4">
                 <div className="text-center">
                     <h2 className="text-base font-semibold text-gray-600 tracking-wider uppercase">Powered by the best</h2>
@@ -224,7 +276,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
         </section>
 
         {/* Final CTA */}
-        <section className="bg-white">
+        <section className="bg-gray-50">
             <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
                 <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                     <span className="block">Ready to transform your search?</span>
