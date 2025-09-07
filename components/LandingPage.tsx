@@ -17,6 +17,8 @@ import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { PrivacyIcon } from './icons/PrivacyIcon';
 import { MailIcon } from './icons/MailIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
+import { NotionIcon } from './icons/NotionIcon';
+import { ZapIcon } from './icons/ZapIcon';
 
 
 interface LandingPageProps {
@@ -209,7 +211,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
             </div>
         </section>
 
-        {/* Coming Soon Section */}
+        {/* Coming Soon Section - Gmail */}
         <section className="py-16 md:py-24 bg-gray-50 border-t">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="lg:grid lg:grid-cols-2 lg:gap-24 lg:items-center">
@@ -260,8 +262,66 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
             </div>
         </section>
 
+        {/* Coming Soon Section - Connected Apps */}
+        <section className="py-16 md:py-24 bg-white border-t">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-24 lg:items-center">
+                    <div className="lg:col-start-2">
+                        <div className="relative w-full aspect-[4/3] max-w-lg mx-auto lg:max-w-none">
+                            <div className="absolute inset-0 bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between border">
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">Search everything...</p>
+                                    <div className="relative">
+                                        <input type="text" readOnly value="marketing plan Q3" className="w-full bg-gray-100 rounded-lg p-3 text-sm border-gray-200" />
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
+                                            <ArrowRightIcon />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <button className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">All</button>
+                                    <button className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">Web</button>
+                                    <button className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">Gmail</button>
+                                    <button className="px-3 py-1 text-xs bg-purple-600 text-white rounded-full ring-2 ring-purple-300">Notion</button>
+                                </div>
+                            </div>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-xl shadow-2xl p-4 border transform -rotate-3">
+                                <div className="flex items-start space-x-3">
+                                    <NotionIcon className="w-5 h-5 mt-1 text-gray-800 flex-shrink-0" />
+                                    <div>
+                                        <h4 className="font-bold text-sm">Q3 Marketing Plan</h4>
+                                        <p className="text-xs mt-1 text-gray-500">The Q3 marketing plan focuses on expanding our reach through content marketing and targeted social media campaigns...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-16 lg:mt-0 lg:row-start-1 lg:col-start-1">
+                        <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 font-semibold text-sm rounded-full mb-4">Coming Soon</span>
+                        <h2 className="text-3xl font-extrabold text-gray-900">Your single source of truth.</h2>
+                        <p className="mt-4 text-lg text-gray-500">Connect your work apps to Silo Search and find anything, anywhere. Stop jumping between tabs and start finding.</p>
+                        <dl className="mt-8 space-y-6">
+                            <div className="flex">
+                                <LinkIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Unified Search.</span> Search across Notion, Slack, Drive, and more from one place.</dd>
+                            </div>
+                            <div className="flex">
+                                <SparklesIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Contextual Answers.</span> Get AI summaries that understand the context of your personal documents and conversations.</dd>
+                            </div>
+                            <div className="flex">
+                                <ZapIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Boost Productivity.</span> Spend less time looking for information and more time using it.</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
         {/* Logo Cloud Section */}
-        <section className="py-16 bg-white border-t">
+        <section className="py-16 bg-gray-50 border-t">
             <div className="max-w-5xl mx-auto px-4">
                 <div className="text-center">
                     <h2 className="text-base font-semibold text-gray-600 tracking-wider uppercase">Powered by the best</h2>
@@ -276,7 +336,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
         </section>
 
         {/* Final CTA */}
-        <section className="bg-gray-50">
+        <section className="bg-white">
             <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
                 <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                     <span className="block">Ready to transform your search?</span>
@@ -289,7 +349,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
         </section>
       </main>
 
-      <footer className="bg-white border-t">
+      <footer className="bg-gray-50 border-t">
           <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                   <div className="col-span-2 md:col-span-1">
