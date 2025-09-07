@@ -19,6 +19,13 @@ import { MailIcon } from './icons/MailIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
 import { NotionIcon } from './icons/NotionIcon';
 import { ZapIcon } from './icons/ZapIcon';
+import { CheckIcon } from './icons/CheckIcon';
+import { BookOpenIcon } from './icons/BookOpenIcon';
+import { ClipboardCheckIcon } from './icons/ClipboardCheckIcon';
+import { LightbulbIcon } from './icons/LightbulbIcon';
+import { LayersIcon } from './icons/LayersIcon';
+import { ListIcon } from './icons/ListIcon';
+import { FileDownIcon } from './icons/FileDownIcon';
 
 
 interface LandingPageProps {
@@ -70,6 +77,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
                 <LogoIcon className="w-8 h-8" />
                 <span className="text-xl font-bold">Silo Search</span>
             </div>
+            <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-600">
+                <a href="#features" className="hover:text-purple-600">Features</a>
+                <a href="#pricing" className="hover:text-purple-600">Pricing</a>
+                <a href="#signin" className="hover:text-purple-600">Sign In</a>
+            </nav>
             <a href="#signin" className="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-full hover:bg-purple-700 transition">
                 Get Started
             </a>
@@ -318,10 +330,169 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
                 </div>
             </div>
         </section>
+        
+        {/* Coming Soon Section - Study Mode */}
+        <section className="py-16 md:py-24 bg-gray-50 border-t">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-24 lg:items-center">
+                    <div className="relative w-full aspect-[4/3] max-w-lg mx-auto lg:max-w-none">
+                        <div className="absolute inset-0 bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between border">
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-2">
+                                    <LogoIcon className="w-6 h-6" />
+                                    <span className="font-semibold text-sm">Silo Search</span>
+                                </div>
+                                <div className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Study Mode</div>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 mb-1">Study topic...</p>
+                                <div className="relative">
+                                    <input type="text" readOnly value="photosynthesis" className="w-full bg-gray-100 rounded-lg p-3 text-sm border-gray-200" />
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
+                                        <SparklesIcon className="w-5 h-5"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-xl shadow-2xl p-4 border transform rotate-3">
+                            <h4 className="font-bold text-sm">Flashcard</h4>
+                            <p className="text-xs mt-1 text-gray-500">What is the role of chlorophyll?</p>
+                            <div className="mt-2 text-center py-2 bg-green-50 rounded-md text-sm text-green-800 font-medium">Flip Card</div>
+                        </div>
+                    </div>
+                    <div className="mt-16 lg:mt-0">
+                        <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 font-semibold text-sm rounded-full mb-4">Coming Soon</span>
+                        <h2 className="text-3xl font-extrabold text-gray-900">Ace your exams with Study Mode.</h2>
+                        <p className="mt-4 text-lg text-gray-500">Turn any search topic into a personalized study session. Generate flashcards, quizzes, and simplified explanations to master any subject.</p>
+                        <dl className="mt-8 space-y-6">
+                            <div className="flex">
+                                <BookOpenIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Generate Flashcards.</span> Automatically create flashcards for key terms and concepts.</dd>
+                            </div>
+                            <div className="flex">
+                                <ClipboardCheckIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Create Practice Quizzes.</span> Test your knowledge with multiple-choice questions based on the topic.</dd>
+                            </div>
+                            <div className="flex">
+                                <LightbulbIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Simplify Complex Topics.</span> Get 'Explain Like I'm 5' summaries for difficult subjects.</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
 
+        {/* Coming Soon Section - Deep Research */}
+        <section className="py-16 md:py-24 bg-white border-t">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-24 lg:items-center">
+                    <div className="lg:col-start-2">
+                         <div className="relative w-full aspect-[4/3] max-w-lg mx-auto lg:max-w-none">
+                            <div className="absolute inset-0 bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between border">
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">Deep Research...</p>
+                                    <div className="relative">
+                                        <input type="text" readOnly value="the future of renewable energy" className="w-full bg-gray-100 rounded-lg p-3 text-sm border-gray-200" />
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
+                                            <ZapIcon className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                     <div className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">5 Sources</div>
+                                     <div className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Outline</div>
+                                     <div className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Summary</div>
+                                </div>
+                            </div>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-xl shadow-2xl p-4 border transform -rotate-3">
+                                 <h4 className="font-bold text-sm">Generated Outline</h4>
+                                 <ul className="mt-2 text-xs text-gray-600 space-y-1 list-decimal list-inside">
+                                    <li>Introduction to Renewable Energy</li>
+                                    <li>Current State of Solar Power</li>
+                                    <li>Innovations in Wind Turbines</li>
+                                    <li>Conclusion and Future Outlook</li>
+                                 </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-16 lg:mt-0 lg:row-start-1 lg:col-start-1">
+                        <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 font-semibold text-sm rounded-full mb-4">Coming Soon</span>
+                        <h2 className="text-3xl font-extrabold text-gray-900">Go beyond the surface with Deep Research.</h2>
+                        <p className="mt-4 text-lg text-gray-500">For when you need more than a quick summary. Our Deep Research mode synthesizes information from multiple sources to give you a comprehensive understanding of any topic.</p>
+                        <dl className="mt-8 space-y-6">
+                            <div className="flex">
+                                <LayersIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Multi-Source Synthesis.</span> Get a unified perspective by pulling information from up to 10 different web sources.</dd>
+                            </div>
+                            <div className="flex">
+                                <ListIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Generate Outlines & Reports.</span> Instantly create structured outlines for essays, articles, or presentations.</dd>
+                            </div>
+                            <div className="flex">
+                                <FileDownIcon className="flex-shrink-0 w-6 h-6 text-purple-600" aria-hidden="true" />
+                                <dd className="ml-3 text-sm text-gray-500"><span className="font-medium text-gray-900">Export to Docs.</span> Send your research directly to a Google Doc or download as a Markdown file.</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-16 md:py-24 bg-gray-50 border-t">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-extrabold text-gray-900">Simple, transparent pricing</h2>
+              <p className="mt-4 text-lg text-gray-500">
+                Start for free. As we add more powerful features, a Pro plan will be introduced.
+              </p>
+            </div>
+            <div className="mt-16 max-w-lg mx-auto grid gap-8 lg:max-w-4xl lg:grid-cols-2">
+              <div className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm p-8">
+                <h3 className="text-2xl font-semibold text-gray-900">Free</h3>
+                <p className="mt-2 text-gray-500">For individuals getting started with smarter search.</p>
+                <div className="mt-6">
+                  <span className="text-5xl font-extrabold text-gray-900">$0</span>
+                  <span className="text-base font-medium text-gray-500">/ month</span>
+                </div>
+                <a href="#signin" className="mt-6 block w-full text-center rounded-lg bg-purple-600 px-6 py-3 text-base font-medium text-white hover:bg-purple-700">
+                  Get Started for Free
+                </a>
+                <ul className="mt-8 space-y-4 text-sm text-gray-600">
+                  <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>AI-Powered Summaries</span></li>
+                  <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>Relevant Quick Links</span></li>
+                  <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>Follow-up Chat Mode</span></li>
+                  <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>Homepage Personalization</span></li>
+                  <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>Local-First Privacy</span></li>
+                </ul>
+              </div>
+              <div className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mr-12 -mt-12">
+                   <div className="bg-purple-100 text-purple-700 text-xs font-semibold tracking-wider uppercase py-4 px-12 transform rotate-45">Coming Soon</div>
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900">Pro</h3>
+                <p className="mt-2 text-gray-500">For power users who need to search across all their apps.</p>
+                <div className="mt-6">
+                  <span className="text-5xl font-extrabold text-gray-400">TBA</span>
+                </div>
+                <button disabled className="mt-6 block w-full text-center rounded-lg bg-gray-300 px-6 py-3 text-base font-medium text-gray-500 cursor-not-allowed">
+                  Notify Me
+                </button>
+                 <ul className="mt-8 space-y-4 text-sm text-gray-600">
+                  <li className="flex space-x-3 font-semibold text-gray-700"><span>Everything in Free, plus:</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Connect Apps (Gmail, Notion, Slack)</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Cloud Sync & Backup</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Access to Advanced AI Models</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Collaboration Features</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Logo Cloud Section */}
-        <section className="py-16 bg-gray-50 border-t">
+        <section className="py-16 bg-white border-t">
             <div className="max-w-5xl mx-auto px-4">
                 <div className="text-center">
                     <h2 className="text-base font-semibold text-gray-600 tracking-wider uppercase">Powered by the best</h2>
@@ -336,7 +507,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
         </section>
 
         {/* Final CTA */}
-        <section className="bg-white">
+        <section className="bg-gray-50 border-t">
             <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
                 <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                     <span className="block">Ready to transform your search?</span>
@@ -349,7 +520,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
         </section>
       </main>
 
-      <footer className="bg-gray-50 border-t">
+      <footer className="bg-white border-t">
           <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                   <div className="col-span-2 md:col-span-1">
@@ -367,6 +538,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
                       <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">Product</h3>
                       <ul className="mt-4 space-y-2">
                           <li><a href="#features" className="text-base text-gray-500 hover:text-gray-900">Features</a></li>
+                           <li><a href="#pricing" className="text-base text-gray-500 hover:text-gray-900">Pricing</a></li>
                           <li><button onClick={() => onOpenLegalPage('about')} className="text-base text-gray-500 hover:text-gray-900">About Us</button></li>
                       </ul>
                   </div>
