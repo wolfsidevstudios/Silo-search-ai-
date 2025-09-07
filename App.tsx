@@ -15,7 +15,7 @@ import { TermsPage } from './components/TermsPage';
 import { PrivacyPage } from './components/PrivacyPage';
 import { AboutPage } from './components/AboutPage';
 import { AccessDeniedPage } from './components/AccessDeniedPage';
-import { LoginPage } from './components/LoginPage';
+import { LandingPage } from './components/LandingPage';
 import { CloseIcon } from './components/icons/CloseIcon';
 import { supabase } from './utils/supabase';
 
@@ -860,7 +860,7 @@ const App: React.FC = () => {
     }
 
     if (!userProfile) {
-      return <LoginPage onGoogleSignIn={handleGoogleSignIn} />;
+      return <LandingPage onGoogleSignIn={handleGoogleSignIn} />;
     }
 
     switch (activeLegalPage) {
