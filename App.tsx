@@ -572,6 +572,38 @@ const App: React.FC = () => {
     };
   }, [handleLoginSuccess]);
 
+  // Handle Spotify Login
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const params = new URLSearchParams(hash.substring(1)); // remove #
+      const token = params.get('access_token');
+      if (token) {
+        fetch('https://api.spotify.com/v1/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => {
+            if (!response.ok) { throw new Error('Failed to fetch Spotify profile'); }
+            return response.json();
+        })
+        .then(data => {
+            const profile: UserProfile = {
+              name: data.display_name,
+              email: data.email,
+              picture: data.images?.[0]?.url || 'https://i.ibb.co/GvWTsPF1/IMG-3744.png'
+            };
+            setUserProfile(profile);
+            window.history.pushState("", document.title, window.location.pathname + window.location.search);
+        })
+        .catch(err => {
+          console.error("Error fetching Spotify profile:", err);
+          window.history.pushState("", document.title, window.location.pathname + window.location.search);
+        });
+      }
+    }
+  }, []);
+
+
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
     
