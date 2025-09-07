@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
@@ -7,6 +8,7 @@ import { DraggableSticker } from './DraggableSticker';
 import { DraggableWidget } from './DraggableWidget';
 import { NoteWidget, WeatherWidget } from './widgets/Widgets';
 import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, TemperatureUnit, SearchInputSettings } from '../types';
+import { Footer } from './Footer';
 
 interface SearchPageProps {
   onSearch: (query: string) => void;
@@ -142,13 +144,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onConnectGmail={onConnectGmail} />
           </div>
         </main>
-        <footer className="w-full text-center p-4 pb-6 text-sm text-gray-500 z-10">
-            <button onClick={() => onOpenLegalPage('privacy')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Privacy Policy</button>
-            <span className="mx-1 select-none" aria-hidden="true">·</span>
-            <button onClick={() => onOpenLegalPage('terms')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Terms & Conditions</button>
-            <span className="mx-1 select-none" aria-hidden="true">·</span>
-            <button onClick={() => onOpenLegalPage('about')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">About</button>
-        </footer>
+        <Footer onOpenLegalPage={onOpenLegalPage} showCopyright={true} className="pb-6" />
       </div>
 
       {/* Edit Mode UI */}

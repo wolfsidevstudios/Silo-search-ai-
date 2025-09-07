@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { SearchResult, UserProfile, SearchInputSettings } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
@@ -7,6 +8,7 @@ import { SearchInput } from './SearchInput';
 import { Header } from './Header';
 import { VolumeUpIcon } from './icons/VolumeUpIcon';
 import { VolumeXIcon } from './icons/VolumeXIcon';
+import { Footer } from './Footer';
 
 
 interface ResultsPageProps {
@@ -24,9 +26,10 @@ interface ResultsPageProps {
   searchInputSettings: SearchInputSettings;
   speechLanguage: 'en-US' | 'es-ES';
   onConnectGmail: () => void;
+  onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onConnectGmail }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onConnectGmail, onOpenLegalPage }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleCopy = () => {
@@ -142,6 +145,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
       <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm">
         <div className="max-w-xl mx-auto">
           <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onConnectGmail={onConnectGmail} />
+          <Footer onOpenLegalPage={onOpenLegalPage} className="p-0 pt-2 text-xs" />
         </div>
       </footer>
     </div>

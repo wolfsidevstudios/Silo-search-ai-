@@ -828,7 +828,7 @@ const App: React.FC = () => {
         return <ErrorState message={error} onRetry={() => handleSearch(currentQuery)} onHome={handleGoHome} />;
       case 'results':
         if (searchResult) {
-          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onConnectGmail={handleOpenComingSoonModal} {...commonProps} />;
+          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onConnectGmail={handleOpenComingSoonModal} onOpenLegalPage={handleOpenLegalPage} {...commonProps} />;
         }
         return <SearchPage {...searchPageProps} />;
       case 'search':
@@ -859,10 +859,6 @@ const App: React.FC = () => {
         return <AccessDeniedPage onDownloadData={handleExportData} onRemoveData={handleDeleteAllData} />;
     }
 
-    if (!userProfile) {
-      return <LandingPage onGoogleSignIn={handleGoogleSignIn} />;
-    }
-
     switch (activeLegalPage) {
         case 'privacy':
             return <PrivacyPage onClose={handleCloseLegalPage} />;
@@ -872,61 +868,67 @@ const App: React.FC = () => {
             return <AboutPage onClose={handleCloseLegalPage} />;
         case 'none':
         default:
-            return (
-              <div className={appClasses} style={appStyle}>
-                {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
-                <Sidebar 
-                  isOpen={isSidebarOpen}
-                  onClose={() => setSidebarOpen(false)}
-                  recentSearches={recentSearches}
-                  onSearch={handleSearch}
-                  onClear={handleClearRecents}
-                  onOpenSettings={handleOpenSettings}
-                  userProfile={userProfile}
-                  onLogout={handleLogout}
-                  proCredits={proCredits}
-                />
-                <SettingsModal
-                  isOpen={isSettingsModalOpen}
-                  onClose={handleCloseSettings}
-                  initialSection={initialSettingsSection}
-                  onOpenLegalPage={handleOpenLegalPage}
-                  apiKeys={apiKeys} onApiKeysChange={setApiKeys}
-                  currentTheme={theme} onThemeChange={setTheme}
-                  customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
-                  isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
-                  clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
-                  temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
-                  speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
-                  stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
-                  customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
-                  widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
-                  searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
-                  searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
-                  accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
-                  languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
-                  notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
-                  developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
-                  analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
-                  proCredits={proCredits}
-                  unlockedProFeatures={unlockedProFeatures}
-                  onUnlockFeature={handleUnlockFeature}
-                />
-                <ChatModal
-                  isOpen={isChatModeOpen}
-                  onClose={handleCloseChatMode}
-                  history={chatHistory}
-                  onSendMessage={handleSendChatMessage}
-                  isLoading={isChatLoading}
-                />
-                <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
-                <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
-                <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
-                  {renderMainContent()}
-                </div>
-              </div>
-            );
+            break;
     }
+
+    if (!userProfile) {
+      return <LandingPage onGoogleSignIn={handleGoogleSignIn} onOpenLegalPage={handleOpenLegalPage} />;
+    }
+
+    return (
+      <div className={appClasses} style={appStyle}>
+        {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
+        <Sidebar 
+          isOpen={isSidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          recentSearches={recentSearches}
+          onSearch={handleSearch}
+          onClear={handleClearRecents}
+          onOpenSettings={handleOpenSettings}
+          userProfile={userProfile}
+          onLogout={handleLogout}
+          proCredits={proCredits}
+        />
+        <SettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={handleCloseSettings}
+          initialSection={initialSettingsSection}
+          onOpenLegalPage={handleOpenLegalPage}
+          apiKeys={apiKeys} onApiKeysChange={setApiKeys}
+          currentTheme={theme} onThemeChange={setTheme}
+          customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
+          isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
+          clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
+          temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
+          speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
+          stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
+          customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
+          widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
+          searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
+          searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
+          accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
+          languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
+          notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
+          developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
+          analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
+          proCredits={proCredits}
+          unlockedProFeatures={unlockedProFeatures}
+          onUnlockFeature={handleUnlockFeature}
+        />
+        <ChatModal
+          isOpen={isChatModeOpen}
+          onClose={handleCloseChatMode}
+          history={chatHistory}
+          onSendMessage={handleSendChatMessage}
+          isLoading={isChatLoading}
+        />
+        <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
+        <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
+        <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
+          {renderMainContent()}
+        </div>
+      </div>
+    );
   };
 
   return renderApp();
