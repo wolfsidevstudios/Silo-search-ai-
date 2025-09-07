@@ -30,15 +30,25 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
   const signInRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isGsiScriptLoaded && !userProfile && signInRef.current) {
-        // To prevent duplicate buttons on re-renders
-        if (signInRef.current.childElementCount === 0) {
+    const currentSignInRef = signInRef.current;
+
+    if (isGsiScriptLoaded && !userProfile && currentSignInRef) {
+        // To prevent duplicate buttons on re-renders, check if it's empty.
+        if (currentSignInRef.childElementCount === 0) {
             window.google.accounts.id.renderButton(
-                signInRef.current,
+                currentSignInRef,
                 { theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with' }
             );
         }
     }
+    
+    // Cleanup function to remove the button rendered by the Google script.
+    // This is crucial for when the user logs in and the sign-in div is removed from the DOM.
+    return () => {
+        if (currentSignInRef) {
+            currentSignInRef.innerHTML = '';
+        }
+    };
   }, [isGsiScriptLoaded, userProfile]);
 
   useEffect(() => {
