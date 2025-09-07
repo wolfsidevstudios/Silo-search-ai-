@@ -15,6 +15,7 @@ interface SearchPageProps {
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
   onOpenSettings: (section?: string) => void;
+  onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
   isClockVisible: boolean;
   clockSettings: ClockSettings;
   stickers: StickerInstance[];
@@ -40,6 +41,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onToggleSidebar, 
   onToggleTemporaryMode, 
   onOpenSettings, 
+  onOpenLegalPage,
   isClockVisible, 
   clockSettings, 
   stickers,
@@ -143,11 +145,11 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           </div>
         </main>
         <footer className="w-full text-center p-4 pb-6 text-sm text-gray-500 z-10">
-            <button onClick={() => onOpenSettings('privacy')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Privacy Policy</button>
+            <button onClick={() => onOpenLegalPage('privacy')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Privacy Policy</button>
             <span className="mx-1 select-none" aria-hidden="true">·</span>
-            <button onClick={() => onOpenSettings('terms')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Terms & Conditions</button>
+            <button onClick={() => onOpenLegalPage('terms')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">Terms & Conditions</button>
             <span className="mx-1 select-none" aria-hidden="true">·</span>
-            <button onClick={() => onOpenSettings('about')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">About</button>
+            <button onClick={() => onOpenLegalPage('about')} className="px-2 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded">About</button>
         </footer>
       </div>
 

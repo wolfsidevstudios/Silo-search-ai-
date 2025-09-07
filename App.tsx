@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -6,12 +7,15 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
-import { UnpackedModal } from './components/UnpackedModal';
 import { fetchSearchResults } from './services/geminiService';
 import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
+import { TermsPage } from './components/TermsPage';
+import { PrivacyPage } from './components/PrivacyPage';
+import { AboutPage } from './components/AboutPage';
+import { AccessDeniedPage } from './components/AccessDeniedPage';
 
 declare global {
   interface Window {
@@ -27,6 +31,8 @@ interface JwtPayload {
 
 type View = 'search' | 'results' | 'loading' | 'error';
 type SpeechLanguage = 'en-US' | 'es-ES';
+type LegalPage = 'none' | 'privacy' | 'terms' | 'about';
+type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
 
 const MAX_RECENT_SEARCHES = 15;
 
@@ -49,9 +55,14 @@ const App: React.FC = () => {
   const chatRef = useRef<Chat | null>(null);
 
   const [showIntroModal, setShowIntroModal] = useState(false);
-  const [showUnpackedModal, setShowUnpackedModal] = useState(false);
   const [isGsiScriptLoaded, setIsGsiScriptLoaded] = useState(false);
   const [showChromeBanner, setShowChromeBanner] = useState(false);
+
+  const [activeLegalPage, setActiveLegalPage] = useState<LegalPage>('none');
+  const [termsAgreement, setTermsAgreement] = useState<TermsAgreement>(() => {
+    const stored = window.localStorage.getItem('termsAgreement_v1');
+    return (stored === 'agreed' || stored === 'disagreed') ? stored : 'pending';
+  });
   
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     try {
@@ -97,11 +108,6 @@ const App: React.FC = () => {
     const hasSeenIntro = window.localStorage.getItem('hasSeenWelcome_v1');
     if (!hasSeenIntro) {
       setShowIntroModal(true);
-    } else {
-      const hasSeenUnpacked = window.localStorage.getItem('hasSeenUnpacked_v1');
-      if (!hasSeenUnpacked) {
-        setShowUnpackedModal(true);
-      }
     }
   }, []);
 
@@ -122,18 +128,8 @@ const App: React.FC = () => {
   const handleCloseIntroModal = () => {
     setShowIntroModal(false);
     window.localStorage.setItem('hasSeenWelcome_v1', 'true');
-    // After closing the first intro, check if we should show the next one.
-    const hasSeenUnpacked = window.localStorage.getItem('hasSeenUnpacked_v1');
-    if (!hasSeenUnpacked) {
-        setShowUnpackedModal(true);
-    }
   };
   
-  const handleCloseUnpackedModal = () => {
-    setShowUnpackedModal(false);
-    window.localStorage.setItem('hasSeenUnpacked_v1', 'true');
-  };
-
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
         const items = window.localStorage.getItem('recentSearches');
@@ -286,6 +282,12 @@ const App: React.FC = () => {
       return item ? JSON.parse(item) : { enabled: true };
     } catch (error) { return { enabled: true }; }
   });
+
+  useEffect(() => {
+    if (termsAgreement !== 'pending') {
+        window.localStorage.setItem('termsAgreement_v1', termsAgreement);
+    }
+  }, [termsAgreement]);
 
   useEffect(() => {
     try {
@@ -647,7 +649,42 @@ const App: React.FC = () => {
     setWidgets([]);
   };
 
-  const renderContent = () => {
+  const handleOpenLegalPage = (page: LegalPage) => {
+    setSettingsModalOpen(false);
+    setActiveLegalPage(page);
+  };
+  const handleCloseLegalPage = () => setActiveLegalPage('none');
+  const handleAgreeToTerms = () => setTermsAgreement('agreed');
+  const handleDisagreeToTerms = () => setTermsAgreement('disagreed');
+
+  const handleDeleteAllData = () => {
+    if (window.confirm('Are you sure you want to delete all app data? This action is irreversible and will reset the application to its default state.')) {
+        window.localStorage.clear();
+        window.location.reload();
+    }
+  };
+
+  const handleExportData = () => {
+    const exportableData = {
+        'ai-api-keys': apiKeys, 'silo-theme': theme, 'customWallpaper': customWallpaper, 'isClockVisible': isClockVisible,
+        'clockSettings': clockSettings, 'temperatureUnit': temperatureUnit, 'speechLanguage': speechLanguage,
+        'searchInputSettings': searchInputSettings, 'searchSettings': searchSettings, 'accessibilitySettings': accessibilitySettings,
+        'stickers': stickers, 'widgets': widgets, 'customStickers': customStickers, 'languageSettings': languageSettings,
+        'notificationSettings': notificationSettings, 'developerSettings': developerSettings, 'analyticsSettings': analyticsSettings,
+    };
+    const blob = new Blob([JSON.stringify(exportableData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `silo-search-settings-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+
+  const renderMainContent = () => {
     const commonProps = {
       isTemporaryMode,
       onToggleSidebar: handleToggleSidebar,
@@ -674,6 +711,7 @@ const App: React.FC = () => {
         onExitWidgetEditMode: () => setWidgetEditMode(false),
         searchInputSettings: searchInputSettings,
         speechLanguage: speechLanguage,
+        onOpenLegalPage: handleOpenLegalPage,
         ...commonProps
     };
 
@@ -706,55 +744,77 @@ const App: React.FC = () => {
     accessibilitySettings.highContrast ? 'high-contrast' : ''
   ].join(' ');
 
-  return (
-    <div className={appClasses} style={appStyle}>
-      {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
-      <Sidebar 
-        isOpen={isSidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        recentSearches={recentSearches}
-        onSearch={handleSearch}
-        onClear={handleClearRecents}
-        onOpenSettings={handleOpenSettings}
-        userProfile={userProfile}
-        onLogout={handleLogout}
-      />
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={handleCloseSettings}
-        initialSection={initialSettingsSection}
-        apiKeys={apiKeys} onApiKeysChange={setApiKeys}
-        currentTheme={theme} onThemeChange={setTheme}
-        customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
-        isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
-        clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
-        temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
-        speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
-        stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
-        customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
-        widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
-        searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
-        searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
-        accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
-        languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
-        notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
-        developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
-        analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
-      />
-      <ChatModal
-        isOpen={isChatModeOpen}
-        onClose={handleCloseChatMode}
-        history={chatHistory}
-        onSendMessage={handleSendChatMessage}
-        isLoading={isChatLoading}
-      />
-      <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
-      <UnpackedModal isOpen={showUnpackedModal} onClose={handleCloseUnpackedModal} />
-      <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || showUnpackedModal ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
-        {renderContent()}
-      </div>
-    </div>
-  );
+  const renderApp = () => {
+    if (termsAgreement === 'pending') {
+      return <TermsPage isInitialPrompt={true} onAgree={handleAgreeToTerms} onDisagree={handleDisagreeToTerms} />;
+    }
+
+    if (termsAgreement === 'disagreed') {
+        return <AccessDeniedPage onDownloadData={handleExportData} onRemoveData={handleDeleteAllData} />;
+    }
+
+    switch (activeLegalPage) {
+        case 'privacy':
+            return <PrivacyPage onClose={handleCloseLegalPage} />;
+        case 'terms':
+            return <TermsPage isInitialPrompt={false} onClose={handleCloseLegalPage} />;
+        case 'about':
+            return <AboutPage onClose={handleCloseLegalPage} />;
+        case 'none':
+        default:
+            return (
+              <div className={appClasses} style={appStyle}>
+                {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
+                <Sidebar 
+                  isOpen={isSidebarOpen}
+                  onClose={() => setSidebarOpen(false)}
+                  recentSearches={recentSearches}
+                  onSearch={handleSearch}
+                  onClear={handleClearRecents}
+                  onOpenSettings={handleOpenSettings}
+                  userProfile={userProfile}
+                  onLogout={handleLogout}
+                />
+                <SettingsModal
+                  isOpen={isSettingsModalOpen}
+                  onClose={handleCloseSettings}
+                  initialSection={initialSettingsSection}
+                  onOpenLegalPage={handleOpenLegalPage}
+                  apiKeys={apiKeys} onApiKeysChange={setApiKeys}
+                  currentTheme={theme} onThemeChange={setTheme}
+                  customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
+                  isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
+                  clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
+                  temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
+                  speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
+                  stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
+                  customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
+                  widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
+                  searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
+                  searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
+                  accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
+                  languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
+                  notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
+                  developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
+                  analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
+                />
+                <ChatModal
+                  isOpen={isChatModeOpen}
+                  onClose={handleCloseChatMode}
+                  history={chatHistory}
+                  onSendMessage={handleSendChatMessage}
+                  isLoading={isChatLoading}
+                />
+                <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
+                <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
+                  {renderMainContent()}
+                </div>
+              </div>
+            );
+    }
+  };
+
+  return renderApp();
 };
 
 const LoadingState: React.FC<{query: string}> = ({ query }) => (
