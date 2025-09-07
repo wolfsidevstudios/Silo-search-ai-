@@ -1,4 +1,5 @@
 
+
 import React, { useRef } from 'react';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
@@ -29,7 +30,6 @@ interface SearchPageProps {
   onExitWidgetEditMode: () => void;
   userProfile: UserProfile | null;
   onLogout: () => void;
-  isGsiScriptLoaded: boolean;
   temperatureUnit: TemperatureUnit;
   searchInputSettings: SearchInputSettings;
   speechLanguage: 'en-US' | 'es-ES';
@@ -55,7 +55,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onExitWidgetEditMode,
   userProfile,
   onLogout,
-  isGsiScriptLoaded,
   temperatureUnit,
   searchInputSettings,
   speechLanguage,
@@ -127,7 +126,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           onOpenSettings={onOpenSettings}
           userProfile={userProfile}
           onLogout={onLogout}
-          isGsiScriptLoaded={isGsiScriptLoaded}
         />
         <main className="flex-grow flex flex-col items-center justify-center px-4 pb-12 text-center">
           {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} temperatureUnit={temperatureUnit} /></div>}

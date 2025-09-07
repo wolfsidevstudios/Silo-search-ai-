@@ -1,16 +1,11 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { HomeIcon } from './icons/HomeIcon';
 import { MenuIcon } from './icons/MenuIcon';
 import { IncognitoIcon } from './icons/IncognitoIcon';
 import type { UserProfile } from '../types';
-
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
 
 interface HeaderProps {
   isTemporaryMode: boolean;
@@ -21,35 +16,11 @@ interface HeaderProps {
   showHomeButton?: boolean;
   userProfile: UserProfile | null;
   onLogout: () => void;
-  isGsiScriptLoaded: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton, userProfile, onLogout, isGsiScriptLoaded }) => {
+export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton, userProfile, onLogout }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const signInRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const currentSignInRef = signInRef.current;
-
-    if (isGsiScriptLoaded && !userProfile && currentSignInRef) {
-        // To prevent duplicate buttons on re-renders, check if it's empty.
-        if (currentSignInRef.childElementCount === 0) {
-            window.google.accounts.id.renderButton(
-                currentSignInRef,
-                { theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with' }
-            );
-        }
-    }
-    
-    // Cleanup function to remove the button rendered by the Google script.
-    // This is crucial for when the user logs in and the sign-in div is removed from the DOM.
-    return () => {
-        if (currentSignInRef) {
-            currentSignInRef.innerHTML = '';
-        }
-    };
-  }, [isGsiScriptLoaded, userProfile]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -106,9 +77,7 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
               </div>
             )}
           </div>
-        ) : (
-          <div ref={signInRef} id="signInButton" />
-        )}
+        ) : null}
       </div>
     </header>
   );

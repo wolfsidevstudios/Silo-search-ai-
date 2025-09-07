@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -17,6 +18,7 @@ import { TermsPage } from './components/TermsPage';
 import { PrivacyPage } from './components/PrivacyPage';
 import { AboutPage } from './components/AboutPage';
 import { AccessDeniedPage } from './components/AccessDeniedPage';
+import { LoginPage } from './components/LoginPage';
 
 declare global {
   interface Window {
@@ -535,13 +537,6 @@ const App: React.FC = () => {
     };
   }, [handleLoginSuccess]);
 
-
-  useEffect(() => {
-    if (isGsiScriptLoaded && !userProfile) {
-        window.google.accounts.id.prompt();
-    }
-  }, [isGsiScriptLoaded, userProfile]);
-
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
     
@@ -757,7 +752,6 @@ const App: React.FC = () => {
       onOpenSettings: handleOpenSettings,
       userProfile: userProfile,
       onLogout: handleLogout,
-      isGsiScriptLoaded,
     };
     
     const searchPageProps = {
@@ -816,6 +810,10 @@ const App: React.FC = () => {
 
     if (termsAgreement === 'disagreed') {
         return <AccessDeniedPage onDownloadData={handleExportData} onRemoveData={handleDeleteAllData} />;
+    }
+
+    if (!userProfile) {
+      return <LoginPage isGsiScriptLoaded={isGsiScriptLoaded} onLoginSuccess={handleLoginSuccess} />;
     }
 
     switch (activeLegalPage) {

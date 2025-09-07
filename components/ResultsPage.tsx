@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { SearchResult, UserProfile, SearchInputSettings } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
@@ -22,12 +23,11 @@ interface ResultsPageProps {
   onOpenSettings: (section?: string) => void;
   userProfile: UserProfile | null;
   onLogout: () => void;
-  isGsiScriptLoaded: boolean;
   searchInputSettings: SearchInputSettings;
   speechLanguage: 'en-US' | 'es-ES';
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, isGsiScriptLoaded, searchInputSettings, speechLanguage }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleCopy = () => {
@@ -88,7 +88,6 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         showHomeButton={true}
         userProfile={userProfile}
         onLogout={onLogout}
-        isGsiScriptLoaded={isGsiScriptLoaded}
       />
 
       <main className="flex-grow flex flex-col items-center justify-center text-center px-4 pb-32">
