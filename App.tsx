@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -16,25 +17,18 @@ import { AboutPage } from './components/AboutPage';
 import { AccessDeniedPage } from './components/AccessDeniedPage';
 import { LoginPage } from './components/LoginPage';
 import { CloseIcon } from './components/icons/CloseIcon';
-
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
-
-interface JwtPayload {
-  name: string;
-  email: string;
-  picture: string;
-}
+import { supabase } from './utils/supabase';
 
 type View = 'search' | 'results' | 'loading' | 'error';
 type SpeechLanguage = 'en-US' | 'es-ES';
 type LegalPage = 'none' | 'privacy' | 'terms' | 'about';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
 
-const MAX_RECENT_SEARCHES = 15;
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 interface ComingSoonModalProps {
   isOpen: boolean;
@@ -68,6 +62,8 @@ const ComingSoonModal: React.FC<ComingSoonModalProps> = ({ isOpen, onClose }) =>
   );
 };
 
+// FIX: Define MAX_RECENT_SEARCHES constant to limit the number of recent searches stored.
+const MAX_RECENT_SEARCHES = 20;
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('search');
@@ -88,7 +84,6 @@ const App: React.FC = () => {
   const chatRef = useRef<Chat | null>(null);
 
   const [showIntroModal, setShowIntroModal] = useState(false);
-  const [isGsiScriptLoaded, setIsGsiScriptLoaded] = useState(false);
   const [showChromeBanner, setShowChromeBanner] = useState(false);
 
   const [activeLegalPage, setActiveLegalPage] = useState<LegalPage>('none');
@@ -99,13 +94,53 @@ const App: React.FC = () => {
   
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     try {
-      const item = window.localStorage.getItem('userProfile');
-      return item ? JSON.parse(item) : null;
-    } catch (error) {
-      console.error("Could not parse user profile from localStorage", error);
-      return null;
-    }
+      const storedUser = window.localStorage.getItem('userProfile');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.provider === 'google') {
+          return parsed;
+        }
+      }
+    } catch(e) { /* ignore */ }
+    return null;
   });
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+            setUserProfile({
+                name: session.user.user_metadata.full_name || session.user.user_metadata.name || 'User',
+                email: session.user.user_metadata.email || session.user.email || 'No email',
+                picture: session.user.user_metadata.avatar_url || session.user.user_metadata.picture || '',
+                provider: session.user.app_metadata.provider,
+            });
+        } else {
+            // Only clear profile if it's not a Google user, to avoid conflicts
+            if (userProfile && userProfile.provider !== 'google') {
+                setUserProfile(null);
+            }
+        }
+    });
+
+    // Also check for initial Supabase session on load if no user is already loaded
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+             setUserProfile({
+                name: session.user.user_metadata.full_name || session.user.user_metadata.name || 'User',
+                email: session.user.user_metadata.email || session.user.email || 'No email',
+                picture: session.user.user_metadata.avatar_url || session.user.user_metadata.picture || '',
+                provider: session.user.app_metadata.provider,
+            });
+        }
+    };
+    if (!userProfile) {
+        checkSession();
+    }
+
+
+    return () => subscription.unsubscribe();
+  }, [userProfile]);
 
   const [stickers, setStickers] = useState<StickerInstance[]>(() => {
     try {
@@ -185,11 +220,11 @@ const App: React.FC = () => {
   // Daily login bonus
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    if (lastDailyCredit !== today) {
+    if (lastDailyCredit !== today && userProfile) {
       setProCredits(c => c + 5);
       setLastDailyCredit(today);
     }
-  }, []); // Run only on initial app load
+  }, [userProfile]); // Run when user logs in
 
   const handleCloseChromeBanner = () => {
     setShowChromeBanner(false);
@@ -518,123 +553,35 @@ const App: React.FC = () => {
       window.localStorage.removeItem('lastDailyCredit');
     }
   }, [lastDailyCredit]);
-
-
-  const handleLoginSuccess = useCallback((response: { credential?: string }) => {
-    if (response.credential) {
-      try {
-        const payload: JwtPayload = JSON.parse(atob(response.credential.split('.')[1]));
-        setUserProfile({
-          name: payload.name,
-          email: payload.email,
-          picture: payload.picture,
-        });
-      } catch (e) {
-        console.error("Error decoding JWT", e);
-      }
-    }
-  }, []);
   
-  const handleLogout = () => {
-    setUserProfile(null);
-    if (window.google) {
-      window.google.accounts.id.disableAutoSelect();
+  const handleGoogleSignIn = (response: any) => {
+    try {
+        const credential = response.credential;
+        const payload = JSON.parse(atob(credential.split('.')[1]));
+        const profile: UserProfile = {
+            name: payload.name,
+            email: payload.email,
+            picture: payload.picture,
+            provider: 'google'
+        };
+        setUserProfile(profile);
+    } catch (error) {
+        console.error("Google Sign-In error:", error);
     }
   };
+  
+  const handleLogout = async () => {
+    const provider = userProfile?.provider;
 
-  useEffect(() => {
-    const gsiScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
-    
-    const onGsiLoad = () => {
-        if (!window.google) {
-            console.error('Google script loaded but window.google is not available.');
-            return;
-        }
-        window.google.accounts.id.initialize({
-            client_id: '127898517822-f4j5ha3e2n6futbhehvtf06cfqhjhgej.apps.googleusercontent.com',
-            callback: handleLoginSuccess,
-        });
-        setIsGsiScriptLoaded(true);
-    };
-
-    if (window.google) {
-        onGsiLoad();
-    } else if (gsiScript) {
-        gsiScript.addEventListener('load', onGsiLoad);
-    } else {
-        console.error('GSI script tag not found.');
+    if (provider === 'google' && window.google) {
+      window.google.accounts.id.disableAutoSelect();
+    } else if (provider) {
+      // For Supabase providers
+      const { error } = await supabase.auth.signOut();
+      if (error) console.error('Error logging out:', error);
     }
-
-    return () => {
-        if (gsiScript) {
-            gsiScript.removeEventListener('load', onGsiLoad);
-        }
-    };
-  }, [handleLoginSuccess]);
-
-  useEffect(() => {
-    const handleXCallback = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-  
-      if (code) {
-        window.history.replaceState({}, document.title, "/");
-  
-        const clientId = 'YlVKNkxzUnZuTDZIaG5VODloRi06MTpjaQ';
-        const redirectUri = 'https://silosearchai.netlify.app/';
-        const codeVerifier = sessionStorage.getItem('x_code_verifier');
-  
-        if (!codeVerifier) {
-          console.error("Code verifier not found for X login.");
-          return;
-        }
-  
-        try {
-          const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              code,
-              grant_type: 'authorization_code',
-              client_id: clientId,
-              redirect_uri: redirectUri,
-              code_verifier: codeVerifier,
-            }),
-          });
-  
-          const tokenData = await tokenResponse.json();
-          if (!tokenResponse.ok) throw new Error(tokenData.error_description || 'Token exchange failed');
-          
-          const accessToken = tokenData.access_token;
-  
-          const userResponse = await fetch('https://api.twitter.com/2/users/me?user.fields=profile_image_url', {
-            headers: { 'Authorization': `Bearer ${accessToken}` },
-          });
-          
-          const userData = await userResponse.json();
-          if (!userResponse.ok) throw new Error('Failed to fetch user data from X');
-  
-          const { name, username, profile_image_url } = userData.data;
-          
-          setUserProfile({
-            name: name,
-            email: `@${username}`, // Use username as the unique identifier
-            picture: profile_image_url.replace('_normal', ''), // Get higher resolution image
-          });
-  
-        } catch (err) {
-          console.error('X login error:', err);
-          setError('Something went wrong during the Sign in with X process. Please try again.');
-          setView('error');
-        } finally {
-          sessionStorage.removeItem('x_code_verifier');
-        }
-      }
-    };
-  
-    handleXCallback();
-  }, []);
-
+    setUserProfile(null);
+  };
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
@@ -913,7 +860,7 @@ const App: React.FC = () => {
     }
 
     if (!userProfile) {
-      return <LoginPage isGsiScriptLoaded={isGsiScriptLoaded} onLoginSuccess={handleLoginSuccess} />;
+      return <LoginPage onGoogleSignIn={handleGoogleSignIn} />;
     }
 
     switch (activeLegalPage) {

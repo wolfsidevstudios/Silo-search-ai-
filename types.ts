@@ -53,6 +53,7 @@ export interface UserProfile {
   name: string;
   email: string;
   picture: string;
+  provider?: string;
 }
 
 export interface SearchInputSettings {
