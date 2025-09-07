@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -19,6 +15,7 @@ import { PrivacyPage } from './components/PrivacyPage';
 import { AboutPage } from './components/AboutPage';
 import { AccessDeniedPage } from './components/AccessDeniedPage';
 import { LoginPage } from './components/LoginPage';
+import { CloseIcon } from './components/icons/CloseIcon';
 
 declare global {
   interface Window {
@@ -38,6 +35,39 @@ type LegalPage = 'none' | 'privacy' | 'terms' | 'about';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
 
 const MAX_RECENT_SEARCHES = 15;
+
+interface ComingSoonModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ComingSoonModal: React.FC<ComingSoonModalProps> = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="coming-soon-title">
+      <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity" onClick={onClose} aria-hidden="true"></div>
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center transform transition-all">
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Close">
+          <CloseIcon />
+        </button>
+        <h2 id="coming-soon-title" className="text-2xl font-bold text-gray-800">Coming Soon!</h2>
+        <p className="mt-4 text-gray-600">
+          Get ready to supercharge your search. Soon, you'll be able to connect your Gmail account to Silo Search.
+        </p>
+        <p className="mt-2 text-gray-600">
+          You'll be able to instantly find any email and get an intelligent summary of its content, right from the search bar.
+        </p>
+        <div className="mt-8">
+            <button onClick={onClose} className="px-6 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
+                Got it
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('search');
@@ -130,6 +160,11 @@ const App: React.FC = () => {
   const [lastDailyCredit, setLastDailyCredit] = useState<string | null>(() => {
     return window.localStorage.getItem('lastDailyCredit');
   });
+
+  const [isComingSoonModalOpen, setComingSoonModalOpen] = useState(false);
+  const handleOpenComingSoonModal = () => setComingSoonModalOpen(true);
+  const handleCloseComingSoonModal = () => setComingSoonModalOpen(false);
+
 
   useEffect(() => {
     const hasSeenIntro = window.localStorage.getItem('hasSeenWelcome_v1');
@@ -771,6 +806,7 @@ const App: React.FC = () => {
         searchInputSettings: searchInputSettings,
         speechLanguage: speechLanguage,
         onOpenLegalPage: handleOpenLegalPage,
+        onConnectGmail: handleOpenComingSoonModal,
         ...commonProps
     };
 
@@ -781,7 +817,7 @@ const App: React.FC = () => {
         return <ErrorState message={error} onRetry={() => handleSearch(currentQuery)} onHome={handleGoHome} />;
       case 'results':
         if (searchResult) {
-          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} {...commonProps} />;
+          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onConnectGmail={handleOpenComingSoonModal} {...commonProps} />;
         }
         return <SearchPage {...searchPageProps} />;
       case 'search':
@@ -873,7 +909,8 @@ const App: React.FC = () => {
                   isLoading={isChatLoading}
                 />
                 <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
-                <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
+                <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
+                <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
                   {renderMainContent()}
                 </div>
               </div>

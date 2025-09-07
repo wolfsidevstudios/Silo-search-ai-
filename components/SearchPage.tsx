@@ -1,5 +1,3 @@
-
-
 import React, { useRef } from 'react';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
@@ -33,6 +31,7 @@ interface SearchPageProps {
   temperatureUnit: TemperatureUnit;
   searchInputSettings: SearchInputSettings;
   speechLanguage: 'en-US' | 'es-ES';
+  onConnectGmail: () => void;
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -58,6 +57,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   temperatureUnit,
   searchInputSettings,
   speechLanguage,
+  onConnectGmail,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -139,7 +139,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             Silo Search
           </h1>
           <div className="w-full max-w-2xl">
-            <SearchInput onSearch={onSearch} initialValue="How to make a great cup of coffee?" isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} />
+            <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onConnectGmail={onConnectGmail} />
           </div>
         </main>
         <footer className="w-full text-center p-4 pb-6 text-sm text-gray-500 z-10">

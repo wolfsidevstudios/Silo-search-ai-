@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -53,6 +52,13 @@ interface CustomWindow extends Window {
 }
 declare const window: CustomWindow;
 
+const GmailIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+    </svg>
+);
+
 
 interface SearchInputProps {
   onSearch: (query: string) => void;
@@ -60,9 +66,10 @@ interface SearchInputProps {
   isLarge?: boolean;
   isGlossy?: boolean;
   speechLanguage: 'en-US' | 'es-ES';
+  onConnectGmail: () => void;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onConnectGmail }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -143,6 +150,14 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
   const buttonClasses = isLarge ? 'w-12 h-12' : 'w-9 h-9';
   
+  const connectGmailButtonClasses = [
+    'flex-shrink-0 flex items-center space-x-2 px-3 mr-2 rounded-full transition-colors text-sm',
+    isLarge ? 'py-2' : 'py-1.5',
+    isGlossy 
+      ? 'bg-white/20 text-white hover:bg-white/30'
+      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+  ].join(' ');
+  
   const micButtonClasses = [
     'flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-2',
     buttonClasses,
@@ -170,6 +185,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         placeholder="Ask anything..."
         className={inputClasses}
       />
+      <button type="button" onClick={onConnectGmail} className={connectGmailButtonClasses}>
+        <GmailIcon className="w-4 h-4" />
+        <span className="font-medium">Connect Gmail</span>
+      </button>
       {hasRecognitionSupport && (
         <button
             type="button"

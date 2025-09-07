@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import type { SearchResult, UserProfile, SearchInputSettings } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
@@ -25,9 +23,10 @@ interface ResultsPageProps {
   onLogout: () => void;
   searchInputSettings: SearchInputSettings;
   speechLanguage: 'en-US' | 'es-ES';
+  onConnectGmail: () => void;
 }
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onConnectGmail }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleCopy = () => {
@@ -142,7 +141,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
 
       <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm">
         <div className="max-w-xl mx-auto">
-          <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} />
+          <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onConnectGmail={onConnectGmail} />
         </div>
       </footer>
     </div>
