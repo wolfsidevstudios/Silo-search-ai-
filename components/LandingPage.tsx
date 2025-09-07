@@ -261,7 +261,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
                   <div>
                       <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">Legal</h3>
                       <ul className="mt-4 space-y-2">
-                          <li><button onClick={() => onOpenLegalPage('privacy')} className="text-base text-gray-500 hover:text-gray-900">Privacy Policy</button></li>
+                          <li><a href="https://www.freeprivacypolicy.com/live/b441984d-6ae7-468f-b21d-0e7b93a9ed4e" target="_blank" rel="noopener noreferrer" className="text-base text-gray-500 hover:text-gray-900">Privacy Policy</a></li>
                           <li><button onClick={() => onOpenLegalPage('terms')} className="text-base text-gray-500 hover:text-gray-900">Terms of Service</button></li>
                       </ul>
                   </div>
