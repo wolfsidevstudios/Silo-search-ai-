@@ -26,7 +26,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onGoogleSignIn }) => {
       try {
         window.google.accounts.id.initialize({
           // IMPORTANT: Replace with your actual Google Client ID
-          client_id: '127898517822-f4j5ha3e2n6futbhehvtf06cfqhjhgej.apps.googleusercontent.com',
+          client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
           callback: onGoogleSignIn,
         });
         window.google.accounts.id.renderButton(
