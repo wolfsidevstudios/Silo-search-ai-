@@ -2,6 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
+import { MoreVerticalIcon } from './icons/MoreVerticalIcon';
+import { BookOpenIcon } from './icons/BookOpenIcon';
+import { LayersIcon } from './icons/LayersIcon';
+import { MailIcon } from './icons/MailIcon';
+import { NotionIcon } from './icons/NotionIcon';
+import { LockIcon } from './icons/LockIcon';
+import { CloseIcon } from './icons/CloseIcon';
 
 // FIX: Add type definitions for Web Speech API to resolve TypeScript errors. These types are not part of the standard TypeScript library.
 interface SpeechRecognitionAlternative {
@@ -52,27 +59,24 @@ interface CustomWindow extends Window {
 }
 declare const window: CustomWindow;
 
-const GmailIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-        <polyline points="22,6 12,13 2,6"></polyline>
-    </svg>
-);
-
-
 interface SearchInputProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, studyMode: boolean) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
   speechLanguage: 'en-US' | 'es-ES';
-  onConnectGmail: () => void;
+  onOpenComingSoonModal: () => void;
+  isStudyMode: boolean;
+  setIsStudyMode: (isStudyMode: boolean) => void;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onConnectGmail }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -86,125 +90,92 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     recognition.interimResults = true;
     recognition.lang = speechLanguage;
 
-    recognition.onstart = () => {
-      setIsListening(true);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
     recognition.onerror = (event) => {
       console.error('Speech recognition error', event.error);
       setIsListening(false);
     };
-
     recognition.onresult = (event) => {
-      const transcript = Array.from(event.results)
-        .map(result => result[0])
-        .map(result => result.transcript)
-        .join('');
+      const transcript = Array.from(event.results).map(result => result[0]).map(result => result.transcript).join('');
       setQuery(transcript);
     };
-
     recognitionRef.current = recognition;
-
-    return () => {
-      recognition.stop();
-    };
+    return () => { recognition.stop(); };
   }, [speechLanguage]);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && moreButtonRef.current && !moreButtonRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleMicClick = () => {
     if (!recognitionRef.current) return;
-    
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      recognitionRef.current.start();
-    }
+    if (isListening) recognitionRef.current.stop();
+    else recognitionRef.current.start();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isListening) {
-      recognitionRef.current?.stop();
-    }
-    onSearch(query);
+    if (isListening) recognitionRef.current?.stop();
+    onSearch(query, isStudyMode);
   };
 
   const hasRecognitionSupport = !!recognitionRef.current;
-
-  const containerClasses = [
-    'flex items-center w-full transition-shadow duration-300 focus-within:shadow-xl',
-    isLarge ? 'p-2 pl-6 rounded-full shadow-lg' : 'p-1 pl-4 rounded-full',
-    isGlossy 
-      ? 'bg-white/20 backdrop-blur-md border border-white/30'
-      : 'bg-white border border-gray-200'
-  ].join(' ');
-    
-  const inputClasses = [
-    'w-full h-full px-4 bg-transparent outline-none border-none',
-    isLarge ? 'text-lg' : 'text-base',
-    isGlossy ? 'text-white placeholder-white/70' : ''
-  ].join(' ');
-
+  const containerClasses = ['flex items-center w-full transition-shadow duration-300 focus-within:shadow-xl relative', isLarge ? 'p-2 pl-6 rounded-full shadow-lg' : 'p-1 pl-4 rounded-full', isGlossy ? 'bg-white/20 backdrop-blur-md border border-white/30' : 'bg-white border border-gray-200'].join(' ');
+  const inputClasses = ['w-full h-full px-4 bg-transparent outline-none border-none', isLarge ? 'text-lg' : 'text-base', isGlossy ? 'text-white placeholder-white/70' : ''].join(' ');
   const buttonClasses = isLarge ? 'w-12 h-12' : 'w-9 h-9';
-  
-  const connectGmailButtonClasses = [
-    'flex-shrink-0 flex items-center space-x-2 px-3 mr-2 rounded-full transition-colors text-sm',
-    isLarge ? 'py-2' : 'py-1.5',
-    isGlossy 
-      ? 'bg-white/20 text-white hover:bg-white/30'
-      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-  ].join(' ');
-  
-  const micButtonClasses = [
-    'flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-2',
-    buttonClasses,
-    isListening 
-      ? (isGlossy ? 'bg-red-500/50 text-white animate-pulse' : 'bg-red-100 text-red-500 animate-pulse')
-      : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')
-  ].join(' ');
-  
-  const submitButtonClasses = [
-      'flex-shrink-0 flex items-center justify-center rounded-full transition-colors',
-      buttonClasses,
-      isGlossy ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-black text-white hover:bg-gray-800'
-  ].join(' ');
+  const micButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1', buttonClasses, isListening ? (isGlossy ? 'bg-red-500/50 text-white animate-pulse' : 'bg-red-100 text-red-500 animate-pulse') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')].join(' ');
+  const submitButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors', buttonClasses, isGlossy ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-black text-white hover:bg-gray-800'].join(' ');
+
+  const handleSelectStudyMode = () => {
+    setIsStudyMode(true);
+    setDropdownOpen(false);
+  };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={containerClasses}
-    >
+    <form onSubmit={handleSubmit} className={containerClasses}>
       <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Ask anything..."
-        className={inputClasses}
-      />
-      <button type="button" onClick={onConnectGmail} className={connectGmailButtonClasses}>
-        <GmailIcon className="w-4 h-4" />
-        <span className="font-medium">Connect Gmail</span>
-      </button>
-      {hasRecognitionSupport && (
-        <button
-            type="button"
-            onClick={handleMicClick}
-            className={micButtonClasses}
-            aria-label={isListening ? 'Stop listening' : 'Start voice search'}
-        >
-            <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} />
+      {isStudyMode && (
+          <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-green-100 text-green-800">
+              <BookOpenIcon className="w-4 h-4" />
+              <span className="font-medium">Study Mode</span>
+              <button type="button" onClick={() => setIsStudyMode(false)} className="p-0.5 rounded-full hover:bg-green-200"><CloseIcon className="w-3 h-3" /></button>
+          </div>
+      )}
+      <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
+      {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
+      
+      {!isStudyMode && (
+        <button ref={moreButtonRef} type="button" onClick={() => setDropdownOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600'}`} aria-label="More search options" aria-haspopup="true" aria-expanded={isDropdownOpen}>
+          <MoreVerticalIcon className={isGlossy ? 'text-white/80' : 'text-gray-600'} />
         </button>
       )}
-      <button
-        type="submit"
-        className={submitButtonClasses}
-      >
-        <ArrowRightIcon />
-      </button>
+
+      {isDropdownOpen && (
+        <div ref={dropdownRef} className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
+          <button onClick={handleSelectStudyMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <BookOpenIcon className="w-5 h-5 text-gray-500" /><span>Study Mode</span>
+          </button>
+          <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+            <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+          </button>
+          <div className="my-2 border-t border-gray-100"></div>
+          <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+            <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+          </button>
+          <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+            <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+          </button>
+        </div>
+      )}
+
+      <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
     </form>
   );
 };

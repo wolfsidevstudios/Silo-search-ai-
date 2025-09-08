@@ -1,4 +1,5 @@
 
+
 import React, { useRef } from 'react';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
@@ -11,7 +12,7 @@ import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, Use
 import { Footer } from './Footer';
 
 interface SearchPageProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, studyMode: boolean) => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
@@ -33,7 +34,9 @@ interface SearchPageProps {
   temperatureUnit: TemperatureUnit;
   searchInputSettings: SearchInputSettings;
   speechLanguage: 'en-US' | 'es-ES';
-  onConnectGmail: () => void;
+  onOpenComingSoonModal: () => void;
+  isStudyMode: boolean;
+  setIsStudyMode: (isStudyMode: boolean) => void;
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -59,7 +62,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   temperatureUnit,
   searchInputSettings,
   speechLanguage,
-  onConnectGmail,
+  onOpenComingSoonModal,
+  isStudyMode,
+  setIsStudyMode,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -141,7 +146,15 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             Silo Search
           </h1>
           <div className="w-full max-w-2xl">
-            <SearchInput onSearch={onSearch} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onConnectGmail={onConnectGmail} />
+            <SearchInput 
+              onSearch={onSearch} 
+              isLarge={searchInputSettings.isLarge} 
+              isGlossy={searchInputSettings.isGlossy} 
+              speechLanguage={speechLanguage} 
+              onOpenComingSoonModal={onOpenComingSoonModal} 
+              isStudyMode={isStudyMode}
+              setIsStudyMode={setIsStudyMode}
+            />
           </div>
         </main>
         <Footer onOpenLegalPage={onOpenLegalPage} showCopyright={true} className="pb-6" />

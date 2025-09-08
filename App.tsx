@@ -51,10 +51,7 @@ const ComingSoonModal: React.FC<ComingSoonModalProps> = ({ isOpen, onClose }) =>
         </button>
         <h2 id="coming-soon-title" className="text-2xl font-bold text-gray-800">Coming Soon!</h2>
         <p className="mt-4 text-gray-600">
-          Get ready to supercharge your search. Soon, you'll be able to connect your Gmail account to Silo Search.
-        </p>
-        <p className="mt-2 text-gray-600">
-          You'll be able to instantly find any email and get an intelligent summary of its content, right from the search bar.
+          This feature is under development. We're working hard to bring you more ways to supercharge your search. Stay tuned!
         </p>
         <div className="mt-8">
             <button onClick={onClose} className="px-6 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
@@ -82,6 +79,7 @@ const App: React.FC = () => {
   const [isTemporaryMode, setTemporaryMode] = useState(false);
   const [isStickerEditMode, setStickerEditMode] = useState(false);
   const [isWidgetEditMode, setWidgetEditMode] = useState(false);
+  const [isStudyMode, setIsStudyMode] = useState(false);
   
   const [isChatModeOpen, setChatModeOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -589,7 +587,7 @@ const App: React.FC = () => {
     setAuthView('landing');
   };
 
-  const handleSearch = useCallback(async (query: string) => {
+  const handleSearch = useCallback(async (query: string, studyMode: boolean) => {
     if (!query.trim()) return;
 
     if (!apiKeys.gemini) {
@@ -602,6 +600,7 @@ const App: React.FC = () => {
     setView('loading');
     setCurrentQuery(query);
     setError(null);
+    setIsStudyMode(studyMode);
 
     if (!isTemporaryMode) {
       setRecentSearches(prevSearches => {
@@ -614,7 +613,7 @@ const App: React.FC = () => {
       // FIX: Refactored promise handling to use a typed tuple with `Promise.allSettled`.
       // This ensures that TypeScript correctly infers the result types, fixing issues
       // with spreading properties from a union type and handling optional promises.
-      const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings);
+      const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode);
       const youtubePromise = apiKeys.youtube
         ? fetchYouTubeVideos(query, apiKeys.youtube)
         : Promise.resolve<YouTubeVideo[] | undefined>(undefined);
@@ -651,6 +650,7 @@ const App: React.FC = () => {
     setSearchResult(null);
     setCurrentQuery('');
     setError(null);
+    setIsStudyMode(false);
   };
   
   const handleToggleSidebar = () => {
@@ -845,7 +845,9 @@ const App: React.FC = () => {
         searchInputSettings: searchInputSettings,
         speechLanguage: speechLanguage,
         onOpenLegalPage: handleOpenLegalPage,
-        onConnectGmail: handleOpenComingSoonModal,
+        onOpenComingSoonModal: handleOpenComingSoonModal,
+        isStudyMode,
+        setIsStudyMode,
         ...commonProps
     };
 
@@ -853,10 +855,10 @@ const App: React.FC = () => {
       case 'loading':
         return <LoadingState query={currentQuery} />;
       case 'error':
-        return <ErrorState message={error} onRetry={() => handleSearch(currentQuery)} onHome={handleGoHome} />;
+        return <ErrorState message={error} onRetry={() => handleSearch(currentQuery, isStudyMode)} onHome={handleGoHome} />;
       case 'results':
         if (searchResult) {
-          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onConnectGmail={handleOpenComingSoonModal} onOpenLegalPage={handleOpenLegalPage} {...commonProps} />;
+          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={handleOpenLegalPage} {...commonProps} />;
         }
         return <SearchPage {...searchPageProps} />;
       case 'search':
@@ -920,7 +922,7 @@ const App: React.FC = () => {
           isOpen={isSidebarOpen}
           onClose={() => setSidebarOpen(false)}
           recentSearches={recentSearches}
-          onSearch={handleSearch}
+          onSearch={(query) => handleSearch(query, isStudyMode)}
           onClear={handleClearRecents}
           onOpenSettings={handleOpenSettings}
           userProfile={userProfile}

@@ -11,10 +11,24 @@ export interface YouTubeVideo {
   videoUrl: string;
 }
 
+export interface Flashcard {
+  question: string;
+  answer: string;
+}
+
+export interface QuizItem {
+  question: string;
+  options: string[];
+  correctAnswer: string; // The text of the correct option
+}
+
 export interface SearchResult {
   summary:string;
   quickLinks: QuickLink[];
   videos?: YouTubeVideo[];
+  isStudyQuery?: boolean;
+  flashcards?: Flashcard[];
+  quiz?: QuizItem[];
 }
 
 export interface ChatMessage {

@@ -1,14 +1,14 @@
-import { GoogleGenAI, GenerateContentConfig } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings } from '../types';
+import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem } from '../types';
 
-export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings): Promise<SearchResult> {
+export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean): Promise<SearchResult> {
   if (!apiKey) {
     throw new Error("Gemini API key is missing.");
   }
   
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
+  const summaryPrompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
   
   const config: GenerateContentConfig = {};
   if (searchSettings.useWebSearch || searchSettings.model === 's1-mini') {
@@ -16,24 +16,83 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   }
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash', // S1 Mini is an alias for Flash with forced web search
-      contents: prompt,
+    const summaryResponse = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: summaryPrompt,
       config: config,
     });
 
-    const summary = response.text;
+    const summary = summaryResponse.text;
     if (!summary) {
         throw new Error("Received an empty summary from the API.");
     }
     
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-
+    const groundingChunks = summaryResponse.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     const quickLinks: QuickLink[] = groundingChunks
         .map((chunk: any) => chunk.web)
         .filter((web: any): web is QuickLink => !!(web && web.title && web.uri));
     
-    return { summary, quickLinks };
+    const baseResult: SearchResult = { summary, quickLinks, isStudyQuery: isStudyMode };
+
+    if (isStudyMode) {
+      const flashcardPrompt = `Based on the user's query "${query}", generate 5 flashcards for studying. Each flashcard should have a 'question' and an 'answer'.`;
+      const quizPrompt = `Based on the user's query "${query}", generate a 3-question multiple-choice quiz. Each question should have a 'question', an array of 4 'options', and the 'correctAnswer' (which must be one of the options).`;
+
+      const flashcardSchema = {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            question: { type: Type.STRING },
+            answer: { type: Type.STRING },
+          },
+          required: ["question", "answer"]
+        }
+      };
+
+      const quizSchema = {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            question: { type: Type.STRING },
+            options: { type: Type.ARRAY, items: { type: Type.STRING } },
+            correctAnswer: { type: Type.STRING },
+          },
+          required: ["question", "options", "correctAnswer"]
+        }
+      };
+      
+      const flashcardPromise = ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: flashcardPrompt,
+        config: { responseMimeType: "application/json", responseSchema: flashcardSchema },
+      });
+
+      const quizPromise = ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: quizPrompt,
+        config: { responseMimeType: "application/json", responseSchema: quizSchema },
+      });
+      
+      const [flashcardResult, quizResult] = await Promise.allSettled([flashcardPromise, quizPromise]);
+
+      if (flashcardResult.status === 'fulfilled') {
+        try {
+          const flashcards: Flashcard[] = JSON.parse(flashcardResult.value.text);
+          baseResult.flashcards = flashcards;
+        } catch (e) { console.error("Failed to parse flashcards JSON", e); }
+      }
+
+      if (quizResult.status === 'fulfilled') {
+        try {
+          const quiz: QuizItem[] = JSON.parse(quizResult.value.text);
+          baseResult.quiz = quiz;
+        } catch (e) { console.error("Failed to parse quiz JSON", e); }
+      }
+    }
+    
+    return baseResult;
 
   } catch (error) {
     console.error("Error fetching from Gemini API:", error);
