@@ -20,8 +20,10 @@ import { AccessDeniedPage } from './components/AccessDeniedPage';
 import { LandingPage } from './components/LandingPage';
 import { CloseIcon } from './components/icons/CloseIcon';
 import { supabase } from './utils/supabase';
+import { LoginPage } from './components/LoginPage';
 
 type View = 'search' | 'results' | 'loading' | 'error';
+type AuthView = 'landing' | 'login';
 type SpeechLanguage = 'en-US' | 'es-ES';
 type LegalPage = 'none' | 'privacy' | 'terms' | 'about';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -69,6 +71,7 @@ const MAX_RECENT_SEARCHES = 20;
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('search');
+  const [authView, setAuthView] = useState<AuthView>('landing');
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [currentQuery, setCurrentQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -583,6 +586,7 @@ const App: React.FC = () => {
       if (error) console.error('Error logging out:', error);
     }
     setUserProfile(null);
+    setAuthView('landing');
   };
 
   const handleSearch = useCallback(async (query: string) => {
@@ -896,7 +900,17 @@ const App: React.FC = () => {
     }
 
     if (!userProfile) {
-      return <LandingPage onGoogleSignIn={handleGoogleSignIn} onOpenLegalPage={handleOpenLegalPage} />;
+      if (authView === 'login') {
+        return <LoginPage 
+          onGoogleSignIn={handleGoogleSignIn} 
+          onOpenLegalPage={handleOpenLegalPage}
+          onBackToLanding={() => setAuthView('landing')} 
+        />;
+      }
+      return <LandingPage 
+        onNavigateToLogin={() => setAuthView('login')} 
+        onOpenLegalPage={handleOpenLegalPage} 
+      />;
     }
 
     return (

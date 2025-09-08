@@ -1,9 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { XIcon } from './icons/XIcon';
 import { GitHubIcon } from './icons/GitHubIcon';
-import { supabase } from '../utils/supabase';
-import { SpotifyIcon } from './icons/SpotifyIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { LinkIcon } from './icons/LinkIcon';
 import { BrushIcon } from './icons/BrushIcon';
@@ -15,30 +13,14 @@ import { LockIcon } from './icons/LockIcon';
 import { KeyIcon } from './icons/KeyIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { PrivacyIcon } from './icons/PrivacyIcon';
-import { MailIcon } from './icons/MailIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
-import { NotionIcon } from './icons/NotionIcon';
-import { ZapIcon } from './icons/ZapIcon';
 import { CheckIcon } from './icons/CheckIcon';
-import { BookOpenIcon } from './icons/BookOpenIcon';
-import { ClipboardCheckIcon } from './icons/ClipboardCheckIcon';
-import { LightbulbIcon } from './icons/LightbulbIcon';
-import { LayersIcon } from './icons/LayersIcon';
-import { ListIcon } from './icons/ListIcon';
-import { FileDownIcon } from './icons/FileDownIcon';
 
 
 interface LandingPageProps {
-  onGoogleSignIn: (response: any) => void;
+  onNavigateToLogin: () => void;
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
 }
-
-const handleLogin = async (provider: 'github' | 'twitter' | 'spotify') => {
-  const { error } = await supabase.auth.signInWithOAuth({ provider });
-  if (error) {
-    console.error(`Error logging in with ${provider}:`, error.message);
-  }
-};
 
 const AnimatedSearchPrompt: React.FC = () => {
   const questions = [
@@ -69,26 +51,9 @@ const AnimatedSearchPrompt: React.FC = () => {
   );
 };
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpenLegalPage }) => {
-  const googleButtonRef = useRef<HTMLDivElement>(null);
+export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onOpenLegalPage }) => {
   const [headerScrolled, setHeaderScrolled] = useState(false);
-
-  useEffect(() => {
-    if (window.google && googleButtonRef.current) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: '127898517822-f4j5ha3e2n6futbhehvtf06cfqhjhgej.apps.googleusercontent.com',
-          callback: onGoogleSignIn,
-        });
-        window.google.accounts.id.renderButton(
-          googleButtonRef.current,
-          { theme: 'outline', size: 'large', type: 'standard', shape: 'pill', text: 'continue_with', width: '350' }
-        );
-      } catch (error) {
-        console.error("Error initializing Google Sign-In:", error);
-      }
-    }
-  }, [onGoogleSignIn]);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,6 +62,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onNavigateToLogin();
+  };
 
   return (
     <div className="bg-gray-50 text-gray-800 font-sans antialiased">
@@ -109,11 +79,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
             <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-600">
                 <a href="#features" className="hover:text-purple-600">Features</a>
                 <a href="#pricing" className="hover:text-purple-600">Pricing</a>
-                <a href="#signin" className="hover:text-purple-600">Sign In</a>
+                <button onClick={onNavigateToLogin} className="hover:text-purple-600">Sign In</button>
             </nav>
-            <a href="#signin" className="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-full hover:bg-purple-700 transition">
+            <button onClick={onNavigateToLogin} className="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-full hover:bg-purple-700 transition">
                 Get Started
-            </a>
+            </button>
         </div>
       </header>
 
@@ -130,8 +100,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
                 </p>
                 <AnimatedSearchPrompt />
                 <div className="mt-6 max-w-xl mx-auto">
-                    <form action="#signin" className="hero-search-box-container">
-                        <input type="search" readOnly placeholder="Ask anything..." className="hero-search-input" />
+                    <form onSubmit={handleSearchSubmit} className="hero-search-box-container">
+                        <input 
+                          type="search" 
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          placeholder="Ask anything..." 
+                          className="hero-search-input" />
                         <button type="submit" className="hero-search-button" aria-label="Search">
                             <ArrowRightIcon />
                         </button>
@@ -251,30 +226,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
             </div>
         </section>
 
-        {/* Sign In Section */}
-        <section id="signin" className="py-16 md:py-24 bg-gray-50 border-y">
-            <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="text-3xl font-extrabold text-gray-900">Create your account</h2>
-                <p className="mt-4 text-lg text-gray-500">
-                Sign in to unlock a customizable, private, and intelligent search experience.
-                </p>
-                <div className="mt-8 sm:max-w-sm sm:mx-auto">
-                    <div ref={googleButtonRef} className="flex justify-center"></div>
-                    <div className="mt-6 relative">
-                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300" /></div>
-                        <div className="relative flex justify-center text-sm"><span className="px-2 bg-gray-50 text-gray-500">Or sign in with</span></div>
-                    </div>
-                    <div className="mt-4 flex justify-center space-x-4">
-                        <button onClick={() => handleLogin('twitter')} className="p-3 bg-white border rounded-full hover:bg-gray-100 shadow-sm transition" aria-label="Sign in with X"><XIcon className="w-5 h-5 text-gray-700" /></button>
-                        <button onClick={() => handleLogin('github')} className="p-3 bg-white border rounded-full hover:bg-gray-100 shadow-sm transition" aria-label="Sign in with GitHub"><GitHubIcon className="w-5 h-5 text-gray-700" /></button>
-                        <button onClick={() => handleLogin('spotify')} className="p-3 bg-white border rounded-full hover:bg-gray-100 shadow-sm transition" aria-label="Sign in with Spotify"><SpotifyIcon className="w-5 h-5 text-gray-700" /></button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         {/* Pricing Section */}
-        <section id="pricing" className="py-16 md:py-24 bg-white border-t">
+        <section id="pricing" className="py-16 md:py-24 bg-gray-50 border-y">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-gray-900">Simple, transparent pricing</h2>
@@ -290,9 +243,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
                   <span className="text-5xl font-extrabold text-gray-900">$0</span>
                   <span className="text-base font-medium text-gray-500">/ month</span>
                 </div>
-                <a href="#signin" className="mt-6 block w-full text-center rounded-lg bg-purple-600 px-6 py-3 text-base font-medium text-white hover:bg-purple-700">
+                <button onClick={onNavigateToLogin} className="mt-6 block w-full text-center rounded-lg bg-purple-600 px-6 py-3 text-base font-medium text-white hover:bg-purple-700">
                   Get Started for Free
-                </a>
+                </button>
                 <ul className="mt-8 space-y-4 text-sm text-gray-600">
                   <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>AI-Powered Summaries</span></li>
                   <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>Relevant Quick Links</span></li>
@@ -326,7 +279,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
         </section>
 
         {/* Logo Cloud Section */}
-        <section className="py-16 bg-gray-50 border-t">
+        <section className="py-16 bg-white border-t">
             <div className="max-w-5xl mx-auto px-4">
                 <div className="text-center">
                     <h2 className="text-base font-semibold text-gray-600 tracking-wider uppercase">Powered by the best</h2>
@@ -341,15 +294,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoogleSignIn, onOpen
         </section>
 
         {/* Final CTA */}
-        <section className="bg-white">
+        <section className="bg-gray-50">
             <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
                 <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                     <span className="block">Ready to transform your search?</span>
                 </h2>
                 <p className="mt-4 text-lg leading-6 text-gray-500">Create an account today and experience the future of information.</p>
-                <a href="#signin" className="mt-8 w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700 sm:w-auto">
+                <button onClick={onNavigateToLogin} className="mt-8 w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700 sm:w-auto">
                     Get Started Now
-                </a>
+                </button>
             </div>
         </section>
       </main>
