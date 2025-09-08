@@ -33,6 +33,8 @@ declare global {
   }
 }
 
+const GEMINI_API_KEY = 'AIzaSyA6gHTOOCiOhk0CFvquK2Lv4Einis2C0GY';
+
 interface ComingSoonModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -605,12 +607,6 @@ const App: React.FC = () => {
         return;
     }
 
-    if (!apiKeys.gemini) {
-      setError('Please configure your Google Gemini API key in the settings before searching.');
-      setView('error');
-      return;
-    }
-
     const studyMode = options.studyMode ?? isStudyMode;
 
     setView('loading');
@@ -625,7 +621,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode);
+      const geminiPromise = fetchSearchResults(query, GEMINI_API_KEY, searchSettings, studyMode);
       const youtubePromise = apiKeys.youtube
         ? fetchYouTubeVideos(query, apiKeys.youtube)
         : Promise.resolve<YouTubeVideo[] | undefined>(undefined);
@@ -684,7 +680,7 @@ const App: React.FC = () => {
   };
 
   const handleEnterChatMode = (query: string, summary: string) => {
-    const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
+    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     chatRef.current = ai.chats.create({ 
       model: searchSettings.model === 's1-mini' ? 'gemini-2.5-flash' : searchSettings.model,
       config: {
@@ -879,7 +875,7 @@ const App: React.FC = () => {
             initialQuery={mapQuery}
             onSearch={(query) => handleSearch(query, { mapSearch: true })}
             onHome={handleGoHome}
-            geminiApiKey={apiKeys.gemini || ''}
+            geminiApiKey={GEMINI_API_KEY}
             onOpenLegalPage={handleOpenLegalPage}
             {...commonProps} 
         />;

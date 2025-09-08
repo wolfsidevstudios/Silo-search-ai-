@@ -80,7 +80,6 @@ interface SettingsModalProps {
 }
 
 const AI_PROVIDERS = [
-    { id: 'gemini', name: 'Google Gemini', Icon: (props: any) => <LogoIcon {...props} />, description: 'The Silo Search core functionality is powered by Gemini. You can get your API key from Google AI Studio.', placeholder: 'Enter your Google Gemini API key', getLink: 'https://aistudio.google.com/app/apikey' },
     { id: 'youtube', name: 'YouTube Data API', Icon: YouTubeIcon, description: 'Required for the video search feature. Get your key from the Google Cloud Console.', placeholder: 'Enter your YouTube Data v3 API key', getLink: 'https://console.cloud.google.com/apis/library/youtube.googleapis.com' },
     { id: 'openai', name: 'OpenAI', Icon: OpenAIIcon, description: 'You can find your OpenAI API key on your OpenAI account page.', placeholder: 'Enter your OpenAI API key (e.g., sk-...)', getLink: 'https://platform.openai.com/api-keys' },
     { id: 'anthropic', name: 'Anthropic', Icon: AnthropicIcon, description: 'Access your Anthropic API key from the Anthropic console settings.', placeholder: 'Enter your Anthropic API key', getLink: 'https://console.anthropic.com/settings/keys' },
