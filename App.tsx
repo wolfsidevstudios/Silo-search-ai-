@@ -594,11 +594,6 @@ const App: React.FC = () => {
     setError(null);
 
     if (options.mapSearch) {
-        if (!apiKeys.googleMaps) {
-          setError('Please configure your Google Maps API key in settings before searching.');
-          setView('error');
-          return;
-        }
         setMapQuery(query);
         setView('map');
         if (!isTemporaryMode) {
@@ -884,7 +879,7 @@ const App: React.FC = () => {
             initialQuery={mapQuery}
             onSearch={(query) => handleSearch(query, { mapSearch: true })}
             onHome={handleGoHome}
-            apiKey={apiKeys.googleMaps || ''}
+            geminiApiKey={apiKeys.gemini || ''}
             onOpenLegalPage={handleOpenLegalPage}
             {...commonProps} 
         />;

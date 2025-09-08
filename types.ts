@@ -112,21 +112,16 @@ export interface AnalyticsSettings {
   enabled: boolean;
 }
 
-export interface PlaceResult {
-  place_id: string;
+export interface AIPlaceResult {
   name: string;
-  formatted_address: string;
-  rating?: number;
-  user_ratings_total?: number;
-  price_level?: number;
-  photos?: {
-    getUrl: () => string;
-  }[];
+  address: string;
+  rating?: string;
   website?: string;
-  geometry?: {
-    location: {
-      lat: () => number;
-      lng: () => number;
-    };
-  };
+  description?: string;
+}
+
+export interface MapSearchResult {
+  places: AIPlaceResult[];
+  locationName: string;
+  boundingBox: [number, number, number, number]; // minLon, minLat, maxLon, maxLat
 }
