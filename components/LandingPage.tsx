@@ -91,11 +91,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         {/* Hero Section */}
         <section className="relative text-center pt-32 pb-16 lg:pt-40 lg:pb-20 overflow-hidden">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <a href="#pricing" className="inline-flex items-center space-x-2 bg-purple-100 text-purple-700 font-semibold px-4 py-1.5 rounded-full text-sm mb-6 hover:bg-purple-200 transition-colors">
+                    <CheckCircleIcon className="w-5 h-5" />
+                    <span>No credit card required</span>
+                </a>
                 <h1 className="text-4xl tracking-tight font-extrabold sm:text-5xl xl:text-6xl">
                     <span className="block text-gray-900">Search, Summarized.</span>
                     <span className="block text-purple-600">Instantly.</span>
                 </h1>
-                <p className="mt-5 max-w-2xl mx-auto text-base text-gray-500 sm:text-xl lg:text-lg xl:text-xl">
+                <p className="mt-4 text-xl font-medium text-gray-700 tracking-tight">
+                    Search Smarter, Not Harder.
+                </p>
+                <p className="mt-4 max-w-2xl mx-auto text-base text-gray-500 sm:text-xl lg:text-lg xl:text-xl">
                     Get instant AI-powered answers and quick links, cutting through the clutter of traditional search.
                 </p>
                 <AnimatedSearchPrompt />
