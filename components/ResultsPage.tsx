@@ -92,9 +92,9 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         onLogout={onLogout}
       />
 
-      <main className="flex-grow flex flex-col items-center justify-center text-center px-4 pb-32">
-        <div className="w-full max-w-3xl">
-          <p className="text-lg leading-relaxed text-gray-800">
+      <main className="flex-grow flex flex-col items-center justify-center px-4 pb-32">
+        <div className="w-full max-w-4xl">
+          <p className="text-lg leading-relaxed text-gray-800 text-center">
             {result.summary}
           </p>
 
@@ -126,19 +126,44 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
             </button>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-3 mt-12">
-            {result.quickLinks.slice(0, 5).map((link, index) => (
-              <a 
-                key={index} 
-                href={link.uri}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-gray-100 text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-gray-200 transition-colors"
-              >
-                {link.title}
-              </a>
-            ))}
-          </div>
+          {result.quickLinks && result.quickLinks.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-3 mt-12">
+              {result.quickLinks.slice(0, 5).map((link, index) => (
+                <a 
+                  key={index} 
+                  href={link.uri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gray-100 text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-gray-200 transition-colors"
+                >
+                  {link.title}
+                </a>
+              ))}
+            </div>
+          )}
+
+          {result.videos && result.videos.length > 0 && (
+            <div className="mt-16 w-full">
+                <h2 className="text-2xl font-bold text-center mb-6">Top Video Results</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {result.videos.map(video => (
+                        <a 
+                            key={video.id}
+                            href={video.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow group"
+                        >
+                            <img src={video.thumbnailUrl} alt={video.title} className="w-full h-40 object-cover" />
+                            <div className="p-4">
+                                <h3 className="font-semibold text-gray-800 leading-tight group-hover:text-black truncate">{video.title}</h3>
+                                <p className="text-sm text-gray-500 mt-1">{video.channelTitle}</p>
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </div>
+          )}
         </div>
       </main>
 

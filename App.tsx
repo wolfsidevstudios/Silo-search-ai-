@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -7,7 +8,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { fetchSearchResults } from './services/geminiService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings } from './types';
+import { fetchYouTubeVideos } from './services/youtubeService';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -306,10 +308,10 @@ const App: React.FC = () => {
   const [apiKeys, setApiKeys] = useState<{ [key: string]: string }>(() => {
     try {
       const items = window.localStorage.getItem('ai-api-keys');
-      return items ? JSON.parse(items) : {};
+      return items ? JSON.parse(items) : { youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU' };
     } catch (error) {
       console.error("Could not parse API keys from localStorage", error);
-      return {};
+      return { youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU' };
     }
   });
 
@@ -585,7 +587,7 @@ const App: React.FC = () => {
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
-    
+
     if (!apiKeys.gemini) {
       setError('Please configure your Google Gemini API key in the settings before searching.');
       setView('error');
@@ -598,22 +600,44 @@ const App: React.FC = () => {
     setError(null);
 
     if (!isTemporaryMode) {
-        setRecentSearches(prevSearches => {
-            const updatedSearches = [query, ...prevSearches.filter(s => s !== query)];
-            return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
-        });
+      setRecentSearches(prevSearches => {
+        const updatedSearches = [query, ...prevSearches.filter(s => s !== query)];
+        return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
+      });
     }
 
     try {
-      const result = await fetchSearchResults(query, apiKeys.gemini, searchSettings);
-      setSearchResult(result);
+      // FIX: Refactored promise handling to use a typed tuple with `Promise.allSettled`.
+      // This ensures that TypeScript correctly infers the result types, fixing issues
+      // with spreading properties from a union type and handling optional promises.
+      const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings);
+      const youtubePromise = apiKeys.youtube
+        ? fetchYouTubeVideos(query, apiKeys.youtube)
+        : Promise.resolve<YouTubeVideo[] | undefined>(undefined);
+
+      const [geminiSettledResult, youtubeSettledResult] = await Promise.allSettled([geminiPromise, youtubePromise]);
+      
+      if (geminiSettledResult.status === 'rejected') {
+        throw geminiSettledResult.reason;
+      }
+      
+      const geminiValue = geminiSettledResult.value;
+      const youtubeValue = youtubeSettledResult.status === 'fulfilled' ? youtubeSettledResult.value : undefined;
+
+      const combinedResult: SearchResult = {
+        ...geminiValue,
+        videos: youtubeValue,
+      };
+
+      setSearchResult(combinedResult);
       setView('results');
+
       if (!isTemporaryMode) {
         setProCredits(c => c + 1);
       }
     } catch (err) {
       console.error(err);
-      setError('Sorry, something went wrong. Please check your API key and try again.');
+      setError('Sorry, something went wrong. Please check your API key(s) and try again.');
       setView('error');
     }
   }, [isTemporaryMode, apiKeys, searchSettings]);

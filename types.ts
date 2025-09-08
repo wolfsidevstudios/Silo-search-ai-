@@ -3,9 +3,18 @@ export interface QuickLink {
   uri: string;
 }
 
+export interface YouTubeVideo {
+  id: string;
+  title: string;
+  thumbnailUrl: string;
+  channelTitle: string;
+  videoUrl: string;
+}
+
 export interface SearchResult {
   summary:string;
   quickLinks: QuickLink[];
+  videos?: YouTubeVideo[];
 }
 
 export interface ChatMessage {
