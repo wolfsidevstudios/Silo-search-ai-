@@ -10,7 +10,6 @@ import { NotionIcon } from './icons/NotionIcon';
 import { BookOpenIcon } from './icons/BookOpenIcon';
 import { ZapIcon } from './icons/ZapIcon';
 import { LayersIcon } from './icons/LayersIcon';
-import { KeyIcon } from './icons/KeyIcon';
 import { LockIcon } from './icons/LockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 
@@ -70,14 +69,18 @@ export const AppPreviewAnimation: React.FC = () => {
         <div className={`preview-scene scene-intro-api-key ${currentSceneId === 'intro-api-key' ? 'active' : ''}`}>
             <div className="w-full max-w-sm text-center">
                 <div className="flex items-center justify-center space-x-2 animated-element" style={{ animationDelay: '0.3s' }}>
-                    <KeyIcon className="w-5 h-5 text-gray-600" />
-                    <h3 className="font-semibold text-gray-700">Add Your API Key</h3>
+                    <SparklesIcon className="w-5 h-5 text-purple-600" />
+                    <h3 className="font-semibold text-gray-700">Gemini Included</h3>
                 </div>
                 <p className="mt-2 text-xs text-gray-500 animated-element" style={{ animationDelay: '0.6s' }}>
-                    Connect your Gemini key from Google AI Studio to power your searches.
+                    Enjoy complimentary access to Google's Gemini model. You can also add your own keys for other AI providers in settings.
                 </p>
                 <div className="mt-3 p-3 bg-white rounded-lg border animated-element" style={{ animationDelay: '1.2s' }}>
-                    <div className="mock-input"></div>
+                    <div className="flex items-center space-x-2 text-xs">
+                        <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                        <span className="font-medium text-gray-700">Google Gemini:</span>
+                        <span className="text-gray-500">Connected</span>
+                    </div>
                 </div>
             </div>
         </div>

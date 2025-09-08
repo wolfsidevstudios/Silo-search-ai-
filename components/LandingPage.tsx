@@ -124,6 +124,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
             </div>
         </section>
 
+        {/* API Key Announcement Section */}
+        <section className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12 text-center">
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="bg-white/20 p-3 rounded-full">
+                <SparklesIcon className="w-7 h-7" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">API Key No Longer Required for Gemini</h2>
+            </div>
+            <p className="mt-4 text-lg text-purple-100 max-w-3xl mx-auto">
+              Getting started is now easier than ever! Silo Search now provides complimentary access to Google's Gemini model, so you can enjoy AI-powered summaries without needing your own API key.
+            </p>
+          </div>
+        </section>
+
         {/* App Preview Section */}
         <section className="py-16 md:py-24 bg-gray-50 border-y">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -194,8 +209,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                     </div>
                     <div className="flex flex-col items-center text-center">
                         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-md ring-1 ring-gray-200"><span className="text-2xl font-bold text-purple-600">2</span></div>
-                        <h3 className="mt-4 font-semibold text-lg">Add Your API Key</h3>
-                        <p className="mt-1 text-gray-600 text-sm">Head to settings and add your API key from a provider like Google AI Studio.</p>
+                        <h3 className="mt-4 font-semibold text-lg">Personalize Your Dashboard</h3>
+                        <p className="mt-1 text-gray-600 text-sm">Head to settings to customize your wallpaper, clock, and add widgets to make it your own.</p>
                     </div>
                     <div className="flex flex-col items-center text-center">
                         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-md ring-1 ring-gray-200"><span className="text-2xl font-bold text-purple-600">3</span></div>
