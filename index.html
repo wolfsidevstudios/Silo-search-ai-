@@ -85,7 +85,7 @@
       .high-contrast input::placeholder { color: #aaa !important; }
       .high-contrast .shadow-lg, .high-contrast .shadow-xl, .high-contrast .shadow-2xl { box-shadow: 0 0 5px rgba(255,255,255,0.5) !important; }
       
-      /* Landing Page Animation - 1 Minute Showcase */
+      /* Landing Page Animation */
       .preview-container {
         position: relative;
         width: 100%;
@@ -137,53 +137,86 @@
       .animated-element { opacity: 0; animation-fill-mode: forwards; }
       .preview-scene.active .animated-element { animation: fadeInUp 0.6s ease-out; }
 
-      /* Scene 1: Search */
+      /* Scenes 0-2: Welcome Features */
+      .scene-welcome-feature { background: white; }
+      .welcome-feature-text {
+        font-size: 1.5rem; font-weight: 700; line-height: 1.5;
+        background: linear-gradient(45deg, #a855f7, #ec4899, #f59e0b);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text; text-fill-color: transparent;
+      }
+      .scene-welcome-feature.active .welcome-feature-text { animation: scaleIn 0.8s ease-out 0.5s forwards; }
+
+      /* Scene 3: Search */
       .scene-search.active .brand-logo { animation: scaleIn 0.8s ease-out 0.2s forwards; }
       .scene-search.active .brand-title { animation: fadeInUp 0.8s ease-out 0.4s forwards; }
       .scene-search.active .search-bar { animation: scaleIn 0.6s ease-out 1.5s forwards; }
       .scene-search.active .typing-text {
-        display: inline-block;
-        overflow: hidden;
-        white-space: nowrap;
-        border-right: .1em solid black;
+        display: inline-block; overflow: hidden; white-space: nowrap; border-right: .1em solid black;
         animation: typing-kf 3s steps(60, end) 2.5s forwards, blink-caret-kf .75s step-end infinite;
         width: 0%;
       }
       .scene-search.active .search-button { animation: scaleIn 0.5s ease-in-out 6s forwards; }
 
-      /* Scene 2: Summary */
+      /* Scene 4: Summary */
       .scene-summary.active .thinking-text { animation: fadeIn 0.5s ease-out 0.2s forwards; }
       .scene-summary.active .summary-title { animation: fadeInUp 0.6s ease-out 1.5s forwards; }
       .scene-summary.active .summary-box { animation: scaleIn 0.6s ease-out 1.8s forwards; }
-      .shimmer {
-        background: #f6f7f8;
-        background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-        background-repeat: no-repeat;
-        background-size: 800px 104px;
-        animation: shimmer 1.5s linear infinite;
-      }
       .scene-summary.active .summary-p1 { animation: fadeIn 0.5s ease-out 2.5s forwards; }
-      .scene-summary.active .summary-p2 { animation: fadeIn 0.5s ease-out 3.5s forwards; }
-      .scene-summary.active .links-title { animation: fadeInUp 0.6s ease-out 5s forwards; }
+      .scene-summary.active .links-title { animation: fadeInUp 0.6s ease-out 4s forwards; }
       .scene-summary.active .link-tag { animation: scaleIn 0.5s ease-out forwards; }
-      .scene-summary.active .videos-title { animation: fadeInUp 0.6s ease-out 6.5s forwards; }
-      .scene-summary.active .video-card { animation: fadeInUp 0.6s ease-out forwards; }
 
-      /* Scene 3: Chat */
+      /* Scene 5: Chat */
       .scene-chat.active .chat-button { animation: scaleIn 0.6s ease-out 0.3s forwards; }
       .scene-chat.active .chat-bubble { animation-duration: 0.6s; animation-timing-function: ease-out; }
       .scene-chat.active .chat-bubble-user { animation-name: slideInFromRight; }
       .scene-chat.active .chat-bubble-ai { animation-name: slideInFromLeft; }
-      .scene-chat.active .chat-typing { animation: fadeIn 0.4s ease-out forwards; }
-      .typing-indicator span {
-          display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #9ca3af;
-          animation: pulse-dot 1.2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
-      }
-      .typing-indicator span:nth-child(1) { animation-delay: 0s; }
-      .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
-      .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
 
-      /* Scene 4: Final */
+      /* Scene 6: Gmail */
+      .coming-soon-badge {
+        position: absolute; top: 0.75rem; right: 0.75rem;
+        background-color: #eef2ff; color: #4338ca;
+        padding: 0.125rem 0.5rem; border-radius: 9999px;
+        font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+      }
+      .scene-gmail.active .search-bar { animation: scaleIn 0.6s ease-out 0.5s forwards; }
+      .scene-gmail.active .gmail-badge { animation: fadeIn 0.5s ease-out 1.2s forwards; }
+      .scene-gmail.active .typing-text-gmail {
+        animation: typing-kf 3s steps(60, end) 2s forwards, blink-caret-kf .75s step-end infinite; width: 0%;
+      }
+      .scene-gmail.active .summary-card { animation: fadeInUp 0.7s ease-out 6s forwards; }
+      
+      /* Scene 7: Connected Apps */
+      .scene-apps.active .search-bar { animation: scaleIn 0.6s ease-out 0.5s forwards; }
+      .scene-apps.active .app-tabs button { animation: fadeInUp 0.5s ease-out forwards; }
+      .scene-apps.active .typing-text-apps {
+        animation: typing-kf 2.5s steps(40, end) 3s forwards, blink-caret-kf .75s step-end infinite; width: 0%;
+      }
+      .scene-apps.active .notion-result { animation: fadeInUp 0.7s ease-out 6.5s forwards; }
+
+      /* Scene 8: Study Mode */
+      .scene-study.active .search-bar { animation: scaleIn 0.6s ease-out 0.5s forwards; }
+      .scene-study.active .typing-text-study {
+        animation: typing-kf 2s steps(40, end) 2s forwards, blink-caret-kf .75s step-end infinite; width: 0%;
+      }
+      .scene-study.active .flashcard-container {
+        animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 5s forwards;
+      }
+      @keyframes flip-in {
+        from { transform: perspective(1000px) rotateY(-90deg); opacity: 0; }
+        to { transform: perspective(1000px) rotateY(0deg); opacity: 1; }
+      }
+      .scene-study.active .flashcard-answer { animation: flip-in 0.6s ease-out 7s forwards; }
+
+      /* Scene 9: Deep Research */
+      .scene-research.active .search-bar { animation: scaleIn 0.6s ease-out 0.5s forwards; }
+      .scene-research.active .typing-text-research {
+        animation: typing-kf 3.5s steps(70, end) 2s forwards, blink-caret-kf .75s step-end infinite; width: 0%;
+      }
+      .scene-research.active .outline-card { animation: fadeInUp 0.7s ease-out 6.5s forwards; }
+      .scene-research.active .outline-list li { animation: fadeInUp 0.5s ease-out forwards; }
+      
+      /* Scene 10: Final */
       .scene-final.active .final-logo { animation: scaleIn 0.8s ease-out 0.5s forwards; }
       .scene-final.active .final-title { animation: fadeInUp 0.8s ease-out 0.8s forwards; }
       .scene-final.active .final-subtitle { animation: fadeInUp 0.8s ease-out 1.1s forwards; }

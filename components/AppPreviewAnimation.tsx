@@ -5,11 +5,23 @@ import { ArrowRightIcon } from './icons/ArrowRightIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { LinkIcon } from './icons/LinkIcon';
 import { MessageSquareIcon } from './icons/MessageSquareIcon';
+import { MailIcon } from './icons/MailIcon';
+import { NotionIcon } from './icons/NotionIcon';
+import { BookOpenIcon } from './icons/BookOpenIcon';
+import { ZapIcon } from './icons/ZapIcon';
+import { LayersIcon } from './icons/LayersIcon';
 
 const scenes = [
-  { id: 'search', duration: 12000 },
-  { id: 'summary', duration: 18000 },
-  { id: 'chat', duration: 25000 },
+  { id: 'welcome-summary', duration: 3000 },
+  { id: 'welcome-chat', duration: 3000 },
+  { id: 'welcome-personalization', duration: 3000 },
+  { id: 'search', duration: 8000 },
+  { id: 'summary', duration: 7000 },
+  { id: 'chat', duration: 8000 },
+  { id: 'gmail', duration: 9000 },
+  { id: 'apps', duration: 9000 },
+  { id: 'study', duration: 9000 },
+  { id: 'research', duration: 10000 },
   { id: 'final', duration: 5000 },
 ];
 
@@ -37,7 +49,19 @@ export const AppPreviewAnimation: React.FC = () => {
       </div>
 
       <div className="relative w-full h-full bg-gray-50">
-        {/* Scene 1: Search */}
+        {/* Welcome Scenes */}
+        <div className={`preview-scene scene-welcome-feature ${currentSceneId === 'welcome-summary' ? 'active' : ''}`}>
+            <h2 className="animated-element welcome-feature-text">AI-Powered Summaries</h2>
+        </div>
+        <div className={`preview-scene scene-welcome-feature ${currentSceneId === 'welcome-chat' ? 'active' : ''}`}>
+            <h2 className="animated-element welcome-feature-text">Follow-up Chat</h2>
+        </div>
+        <div className={`preview-scene scene-welcome-feature ${currentSceneId === 'welcome-personalization' ? 'active' : ''}`}>
+            <h2 className="animated-element welcome-feature-text">Full Personalization</h2>
+        </div>
+
+
+        {/* Scene 3: Search */}
         <div className={`preview-scene scene-search ${currentSceneId === 'search' ? 'active' : ''}`}>
             <div className="flex flex-col items-center space-y-2">
                 <LogoIcon className="w-8 h-8 animated-element brand-logo" />
@@ -54,7 +78,7 @@ export const AppPreviewAnimation: React.FC = () => {
             </div>
         </div>
         
-        {/* Scene 2: Summary & Links */}
+        {/* Scene 4: Summary & Links */}
         <div className={`preview-scene scene-summary ${currentSceneId === 'summary' ? 'active' : ''}`}>
             <div className="w-full max-w-md">
                  <div className="text-gray-500 text-sm mb-4 animated-element thinking-text">
@@ -67,30 +91,20 @@ export const AppPreviewAnimation: React.FC = () => {
                 </div>
                 <div className="mt-2 p-3 bg-white rounded-lg border animated-element summary-box text-left text-xs text-gray-700 space-y-2">
                      <p className="animated-element summary-p1">For a 1-week solo trip to Tokyo, focus on iconic districts. Start in Shinjuku for its vibrant nightlife and the serene Gyoen National Garden. Then, explore Shibuya to experience the famous scramble crossing and trendy youth culture.</p>
-                     <p className="animated-element summary-p2">Dedicate time to Akihabara for electronics and anime, and Asakusa for the historic Senso-ji Temple. A day trip to nearby Hakone for views of Mt. Fuji is highly recommended if time permits.</p>
                 </div>
                 <div className="flex items-center space-x-2 text-gray-500 text-sm mt-4 animated-element links-title">
                     <LinkIcon className="w-5 h-5" />
                     <span>Verified Sources</span>
                 </div>
                 <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                    <div className="px-2 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag" style={{ animationDelay: '5.5s' }}>Japan Guide</div>
-                    <div className="px-2 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag" style={{ animationDelay: '5.6s' }}>Time Out Tokyo</div>
-                    <div className="px-2 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag" style={{ animationDelay: '5.7s' }}>TripAdvisor</div>
-                    <div className="px-2 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag" style={{ animationDelay: '5.8s' }}>Lonely Planet</div>
-                </div>
-                 <div className="text-gray-500 text-sm mt-4 animated-element videos-title">
-                    <span>Top Video Results</span>
-                </div>
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                    <div className="bg-white rounded border p-1 animated-element video-card" style={{ animationDelay: '7.0s' }}><div className="w-full aspect-video bg-gray-300 rounded-sm"></div></div>
-                    <div className="bg-white rounded border p-1 animated-element video-card" style={{ animationDelay: '7.2s' }}><div className="w-full aspect-video bg-gray-300 rounded-sm"></div></div>
-                    <div className="bg-white rounded border p-1 animated-element video-card" style={{ animationDelay: '7.4s' }}><div className="w-full aspect-video bg-gray-300 rounded-sm"></div></div>
+                    <div className="px-2 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag" style={{ animationDelay: '4.5s' }}>Japan Guide</div>
+                    <div className="px-2 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag" style={{ animationDelay: '4.6s' }}>Time Out Tokyo</div>
+                    <div className="px-2 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag" style={{ animationDelay: '4.7s' }}>TripAdvisor</div>
                 </div>
             </div>
         </div>
 
-        {/* Scene 3: Chat */}
+        {/* Scene 5: Chat */}
         <div className={`preview-scene scene-chat ${currentSceneId === 'chat' ? 'active' : ''}`}>
             <div className="w-full max-w-sm">
                 <button className="flex items-center justify-center space-x-2 text-gray-700 text-sm mb-4 bg-white p-2 px-4 rounded-full shadow border animated-element chat-button">
@@ -98,25 +112,100 @@ export const AppPreviewAnimation: React.FC = () => {
                     <span>Enter Chat Mode</span>
                 </button>
                 <div className="space-y-3 text-sm w-full text-left">
-                    <div className="p-2.5 bg-gray-200 rounded-xl max-w-[85%] animated-element chat-bubble chat-bubble-ai" style={{ animationDelay: '1.5s' }}>What are some must-see districts for a first-timer?</div>
+                    <div className="p-2.5 bg-gray-200 rounded-xl max-w-[85%] animated-element chat-bubble chat-bubble-ai" style={{ animationDelay: '1.5s' }}>What's the best way to get around?</div>
                     <div className="flex justify-end">
-                        <div className="p-2.5 bg-black text-white rounded-xl max-w-[85%] animated-element chat-bubble chat-bubble-user" style={{ animationDelay: '3.5s' }}>Shibuya for the crossing, Shinjuku for nightlife, and Akihabara for anime culture.</div>
+                        <div className="p-2.5 bg-black text-white rounded-xl max-w-[85%] animated-element chat-bubble chat-bubble-user" style={{ animationDelay: '4s' }}>The subway system is incredibly efficient. Get a Suica or Pasmo card to easily tap and go on all trains and buses.</div>
                     </div>
-                     <div className="p-2.5 bg-gray-200 rounded-xl max-w-[85%] animated-element chat-bubble chat-bubble-ai" style={{ animationDelay: '6s' }}>Is it expensive to eat there?</div>
-                    <div className="flex justify-end">
-                      <div className="p-2.5 bg-black text-white rounded-xl max-w-[85%] animated-element chat-bubble chat-bubble-user" style={{ animationDelay: '8s' }}>Not at all! There are tons of budget-friendly options like ramen shops, konbini (convenience stores), and standing soba noodle stalls.</div>
-                    </div>
-                    <div className="flex justify-start">
-                        <div className="p-2.5 bg-gray-200 rounded-xl animated-element chat-typing typing-indicator" style={{ animationDelay: '11.5s' }}>
-                            <span></span><span></span><span></span>
-                        </div>
-                    </div>
-                    <div className="p-2.5 bg-gray-200 rounded-xl max-w-[85%] animated-element chat-bubble chat-bubble-ai" style={{ animationDelay: '13.5s' }}>Awesome, thanks for the tips!</div>
+                </div>
+            </div>
+        </div>
+        
+        {/* Scene 6: Gmail */}
+        <div className={`preview-scene scene-gmail ${currentSceneId === 'gmail' ? 'active' : ''}`}>
+             <div className="coming-soon-badge">Coming Soon</div>
+             <div className="mt-4 flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
+                <MailIcon className="text-blue-500 w-5 h-5" />
+                <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
+                    <span className="typing-text-gmail">summary of last week's project update</span>
+                </div>
+                <div className="animated-element gmail-badge ml-auto mr-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Gmail</div>
+            </div>
+            <div className="mt-4 w-full max-w-sm bg-white rounded-xl shadow-lg p-4 border animated-element summary-card text-left">
+                <h4 className="font-bold text-sm">Summary: Project Update</h4>
+                <p className="text-xs mt-1.5 text-gray-600">The team completed the UI mockups. John is now working on the backend integration, expected to be done by Friday. Marketing assets are pending review from Sarah.</p>
+            </div>
+        </div>
+
+        {/* Scene 7: Connected Apps */}
+        <div className={`preview-scene scene-apps ${currentSceneId === 'apps' ? 'active' : ''}`}>
+            <div className="coming-soon-badge">Coming Soon</div>
+            <div className="flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
+                <SearchIcon className="text-gray-400 w-5 h-5" />
+                <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
+                    <span className="typing-text-apps">marketing plan Q3</span>
+                </div>
+            </div>
+            <div className="mt-3 flex space-x-2 text-xs font-medium animated-element app-tabs">
+                <button className="px-3 py-1 bg-gray-200 rounded-full" style={{ animationDelay: '1.5s' }}>Web</button>
+                <button className="px-3 py-1 bg-gray-200 rounded-full" style={{ animationDelay: '1.7s' }}>Gmail</button>
+                <button className="px-3 py-1 bg-black text-white rounded-full ring-2 ring-gray-300" style={{ animationDelay: '1.9s' }}>Notion</button>
+            </div>
+            <div className="mt-4 w-full max-w-sm bg-white rounded-xl shadow-lg p-4 border animated-element notion-result text-left flex items-start space-x-3">
+                <NotionIcon className="w-5 h-5 mt-0.5 text-gray-800 flex-shrink-0" />
+                <div>
+                    <h4 className="font-bold text-sm">Q3 Marketing Plan</h4>
+                    <p className="text-xs mt-1 text-gray-500">The Q3 marketing plan focuses on expanding our reach through content marketing and targeted social media campaigns...</p>
                 </div>
             </div>
         </div>
 
-        {/* Scene 4: Final */}
+        {/* Scene 8: Study Mode */}
+        <div className={`preview-scene scene-study ${currentSceneId === 'study' ? 'active' : ''}`}>
+             <div className="coming-soon-badge">Coming Soon</div>
+             <div className="flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
+                <BookOpenIcon className="text-green-600 w-5 h-5" />
+                <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
+                    <span className="typing-text-study">photosynthesis</span>
+                </div>
+            </div>
+             <div className="mt-4 w-full max-w-xs animated-element flashcard-container">
+                <div className="relative w-full aspect-[3/2] bg-white rounded-xl shadow-lg p-4 border text-center flex flex-col justify-between">
+                    <div>
+                        <h4 className="font-bold text-sm">Flashcard</h4>
+                        <p className="text-xs mt-1 text-gray-500">What is the role of chlorophyll?</p>
+                    </div>
+                    <div className="p-2 bg-green-50 text-green-700 text-xs font-medium rounded-md">Flip Card</div>
+                    <div className="absolute inset-0 bg-white rounded-xl p-4 text-center animated-element flashcard-answer flex items-center justify-center">
+                        <p className="text-xs text-gray-700">Chlorophyll absorbs sunlight and uses its energy to synthesize carbohydrates from CO2 and water.</p>
+                    </div>
+                </div>
+             </div>
+        </div>
+
+        {/* Scene 9: Deep Research */}
+        <div className={`preview-scene scene-research ${currentSceneId === 'research' ? 'active' : ''}`}>
+            <div className="coming-soon-badge">Coming Soon</div>
+            <div className="flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
+                <LayersIcon className="text-purple-600 w-5 h-5" />
+                <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
+                    <span className="typing-text-research">the future of renewable energy sources</span>
+                </div>
+                 <div className="ml-auto flex-shrink-0 w-9 h-9 flex items-center justify-center bg-black text-white rounded-full">
+                    <ZapIcon className="w-5 h-5" />
+                </div>
+            </div>
+            <div className="mt-4 w-full max-w-sm bg-white rounded-xl shadow-lg p-4 border animated-element outline-card text-left">
+                <h4 className="font-bold text-sm">Generated Outline</h4>
+                <ul className="mt-2 text-xs text-gray-600 space-y-1 list-decimal list-inside animated-element outline-list">
+                    <li style={{ animationDelay: '7.0s' }}>Introduction to Renewable Energy</li>
+                    <li style={{ animationDelay: '7.3s' }}>Current State of Solar Power</li>
+                    <li style={{ animationDelay: '7.6s' }}>Innovations in Wind Turbines</li>
+                    <li style={{ animationDelay: '7.9s' }}>Conclusion and Future Outlook</li>
+                </ul>
+            </div>
+        </div>
+
+        {/* Scene 10: Final */}
         <div className={`preview-scene scene-final ${currentSceneId === 'final' ? 'active' : ''}`}>
           <div className="flex flex-col items-center text-center">
             <LogoIcon className="w-12 h-12 animated-element final-logo" />
