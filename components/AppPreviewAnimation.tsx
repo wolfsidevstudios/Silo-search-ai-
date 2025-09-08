@@ -16,7 +16,8 @@ const scenes = [
   { id: 'welcome-chat', duration: 3000 },
   { id: 'welcome-personalization', duration: 3000 },
   { id: 'search', duration: 8000 },
-  { id: 'summary', duration: 7000 },
+  { id: 'summary-text', duration: 6000 },
+  { id: 'summary-videos', duration: 5000 },
   { id: 'chat', duration: 8000 },
   { id: 'gmail', duration: 9000 },
   { id: 'apps', duration: 9000 },
@@ -78,8 +79,8 @@ export const AppPreviewAnimation: React.FC = () => {
             </div>
         </div>
         
-        {/* Scene 4: Summary & Links */}
-        <div className={`preview-scene scene-summary ${currentSceneId === 'summary' ? 'active' : ''}`}>
+        {/* Scene 4a: Summary & Links */}
+        <div className={`preview-scene scene-summary-text ${currentSceneId === 'summary-text' ? 'active' : ''}`}>
             <div className="w-full max-w-md">
                  <div className="text-gray-500 text-sm mb-4 animated-element thinking-text">
                     <SparklesIcon className="w-5 h-5 inline-block mr-1.5" />
@@ -103,6 +104,31 @@ export const AppPreviewAnimation: React.FC = () => {
                 </div>
             </div>
         </div>
+        
+        {/* Scene 4b: Summary Videos */}
+        <div className={`preview-scene scene-videos ${currentSceneId === 'summary-videos' ? 'active' : ''}`}>
+            <div className="w-full max-w-md">
+                <h3 className="animated-element videos-title text-base font-semibold text-gray-700">Top Video Results</h3>
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                    <div className="animated-element video-card" style={{ animationDelay: '0.8s' }}>
+                        <div className="w-full aspect-video bg-gray-300 rounded"></div>
+                        <div className="mt-1.5 h-2 w-5/6 bg-gray-300 rounded-full"></div>
+                        <div className="mt-1 h-2 w-3/4 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="animated-element video-card" style={{ animationDelay: '1.0s' }}>
+                        <div className="w-full aspect-video bg-gray-300 rounded"></div>
+                        <div className="mt-1.5 h-2 w-5/6 bg-gray-300 rounded-full"></div>
+                        <div className="mt-1 h-2 w-3/4 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="animated-element video-card" style={{ animationDelay: '1.2s' }}>
+                        <div className="w-full aspect-video bg-gray-300 rounded"></div>
+                        <div className="mt-1.5 h-2 w-5/6 bg-gray-300 rounded-full"></div>
+                        <div className="mt-1 h-2 w-3/4 bg-gray-200 rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         {/* Scene 5: Chat */}
         <div className={`preview-scene scene-chat ${currentSceneId === 'chat' ? 'active' : ''}`}>
@@ -123,7 +149,8 @@ export const AppPreviewAnimation: React.FC = () => {
         {/* Scene 6: Gmail */}
         <div className={`preview-scene scene-gmail ${currentSceneId === 'gmail' ? 'active' : ''}`}>
              <div className="coming-soon-badge">Coming Soon</div>
-             <div className="mt-4 flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
+             <h3 className="animated-element feature-title">Connect Gmail</h3>
+             <div className="flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
                 <MailIcon className="text-blue-500 w-5 h-5" />
                 <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
                     <span className="typing-text-gmail">summary of last week's project update</span>
@@ -139,6 +166,7 @@ export const AppPreviewAnimation: React.FC = () => {
         {/* Scene 7: Connected Apps */}
         <div className={`preview-scene scene-apps ${currentSceneId === 'apps' ? 'active' : ''}`}>
             <div className="coming-soon-badge">Coming Soon</div>
+            <h3 className="animated-element feature-title">Connected Apps</h3>
             <div className="flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
                 <SearchIcon className="text-gray-400 w-5 h-5" />
                 <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
@@ -146,9 +174,9 @@ export const AppPreviewAnimation: React.FC = () => {
                 </div>
             </div>
             <div className="mt-3 flex space-x-2 text-xs font-medium animated-element app-tabs">
-                <button className="px-3 py-1 bg-gray-200 rounded-full" style={{ animationDelay: '1.5s' }}>Web</button>
-                <button className="px-3 py-1 bg-gray-200 rounded-full" style={{ animationDelay: '1.7s' }}>Gmail</button>
-                <button className="px-3 py-1 bg-black text-white rounded-full ring-2 ring-gray-300" style={{ animationDelay: '1.9s' }}>Notion</button>
+                <button className="px-3 py-1 bg-gray-200 rounded-full" style={{ animationDelay: '1.6s' }}>Web</button>
+                <button className="px-3 py-1 bg-gray-200 rounded-full" style={{ animationDelay: '1.8s' }}>Gmail</button>
+                <button className="px-3 py-1 bg-black text-white rounded-full ring-2 ring-gray-300" style={{ animationDelay: '2.0s' }}>Notion</button>
             </div>
             <div className="mt-4 w-full max-w-sm bg-white rounded-xl shadow-lg p-4 border animated-element notion-result text-left flex items-start space-x-3">
                 <NotionIcon className="w-5 h-5 mt-0.5 text-gray-800 flex-shrink-0" />
@@ -162,6 +190,7 @@ export const AppPreviewAnimation: React.FC = () => {
         {/* Scene 8: Study Mode */}
         <div className={`preview-scene scene-study ${currentSceneId === 'study' ? 'active' : ''}`}>
              <div className="coming-soon-badge">Coming Soon</div>
+             <h3 className="animated-element feature-title">Study Mode</h3>
              <div className="flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
                 <BookOpenIcon className="text-green-600 w-5 h-5" />
                 <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
@@ -185,6 +214,7 @@ export const AppPreviewAnimation: React.FC = () => {
         {/* Scene 9: Deep Research */}
         <div className={`preview-scene scene-research ${currentSceneId === 'research' ? 'active' : ''}`}>
             <div className="coming-soon-badge">Coming Soon</div>
+            <h3 className="animated-element feature-title">Deep Research Mode</h3>
             <div className="flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
                 <LayersIcon className="text-purple-600 w-5 h-5" />
                 <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
@@ -197,10 +227,10 @@ export const AppPreviewAnimation: React.FC = () => {
             <div className="mt-4 w-full max-w-sm bg-white rounded-xl shadow-lg p-4 border animated-element outline-card text-left">
                 <h4 className="font-bold text-sm">Generated Outline</h4>
                 <ul className="mt-2 text-xs text-gray-600 space-y-1 list-decimal list-inside animated-element outline-list">
-                    <li style={{ animationDelay: '7.0s' }}>Introduction to Renewable Energy</li>
-                    <li style={{ animationDelay: '7.3s' }}>Current State of Solar Power</li>
-                    <li style={{ animationDelay: '7.6s' }}>Innovations in Wind Turbines</li>
-                    <li style={{ animationDelay: '7.9s' }}>Conclusion and Future Outlook</li>
+                    <li style={{ animationDelay: '7.3s' }}>Introduction to Renewable Energy</li>
+                    <li style={{ animationDelay: '7.6s' }}>Current State of Solar Power</li>
+                    <li style={{ animationDelay: '7.9s' }}>Innovations in Wind Turbines</li>
+                    <li style={{ animationDelay: '8.2s' }}>Conclusion and Future Outlook</li>
                 </ul>
             </div>
         </div>
