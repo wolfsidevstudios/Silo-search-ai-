@@ -167,23 +167,6 @@
         from { transform: translateY(100%); }
         to { transform: translateY(0); }
       }
-
-      .scene-sticker {
-        position: absolute;
-        font-size: 2.5rem;
-        animation: sticker-fly-in 1s ease-out forwards;
-      }
-      @keyframes sticker-fly-in {
-        from { transform: translate(-50px, -50px) scale(0.5) rotate(-45deg); opacity: 0; }
-        to { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
-      }
-
-      .scene-wallpaper {
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        transition: background-image 0.8s ease-in-out, background 0.8s ease-in-out;
-      }
     </style>
   <script type="importmap">
 {
