@@ -1,5 +1,3 @@
-
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -21,8 +19,9 @@ import { LandingPage } from './components/LandingPage';
 import { CloseIcon } from './components/icons/CloseIcon';
 import { supabase } from './utils/supabase';
 import { LoginPage } from './components/LoginPage';
+import { MapPage } from './components/MapPage';
 
-type View = 'search' | 'results' | 'loading' | 'error';
+type View = 'search' | 'results' | 'loading' | 'error' | 'map';
 type AuthView = 'landing' | 'login';
 type SpeechLanguage = 'en-US' | 'es-ES';
 type LegalPage = 'none' | 'privacy' | 'terms' | 'about';
@@ -71,6 +70,7 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<AuthView>('landing');
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [currentQuery, setCurrentQuery] = useState<string>('');
+  const [mapQuery, setMapQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -587,8 +587,28 @@ const App: React.FC = () => {
     setAuthView('landing');
   };
 
-  const handleSearch = useCallback(async (query: string, studyMode: boolean) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => {
     if (!query.trim()) return;
+
+    setSidebarOpen(false);
+    setError(null);
+
+    if (options.mapSearch) {
+        if (!apiKeys.googleMaps) {
+          setError('Please configure your Google Maps API key in settings before searching.');
+          setView('error');
+          return;
+        }
+        setMapQuery(query);
+        setView('map');
+        if (!isTemporaryMode) {
+          setRecentSearches(prevSearches => {
+            const updatedSearches = [`map: ${query}`, ...prevSearches.filter(s => s !== `map: ${query}`)];
+            return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
+          });
+        }
+        return;
+    }
 
     if (!apiKeys.gemini) {
       setError('Please configure your Google Gemini API key in the settings before searching.');
@@ -596,10 +616,10 @@ const App: React.FC = () => {
       return;
     }
 
-    setSidebarOpen(false);
+    const studyMode = options.studyMode ?? isStudyMode;
+
     setView('loading');
     setCurrentQuery(query);
-    setError(null);
     setIsStudyMode(studyMode);
 
     if (!isTemporaryMode) {
@@ -610,9 +630,6 @@ const App: React.FC = () => {
     }
 
     try {
-      // FIX: Refactored promise handling to use a typed tuple with `Promise.allSettled`.
-      // This ensures that TypeScript correctly infers the result types, fixing issues
-      // with spreading properties from a union type and handling optional promises.
       const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode);
       const youtubePromise = apiKeys.youtube
         ? fetchYouTubeVideos(query, apiKeys.youtube)
@@ -643,12 +660,13 @@ const App: React.FC = () => {
       setError('Sorry, something went wrong. Please check your API key(s) and try again.');
       setView('error');
     }
-  }, [isTemporaryMode, apiKeys, searchSettings]);
+  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode]);
 
   const handleGoHome = () => {
     setView('search');
     setSearchResult(null);
     setCurrentQuery('');
+    setMapQuery('');
     setError(null);
     setIsStudyMode(false);
   };
@@ -855,12 +873,21 @@ const App: React.FC = () => {
       case 'loading':
         return <LoadingState query={currentQuery} />;
       case 'error':
-        return <ErrorState message={error} onRetry={() => handleSearch(currentQuery, isStudyMode)} onHome={handleGoHome} />;
+        return <ErrorState message={error} onRetry={() => handleSearch(currentQuery, { studyMode: isStudyMode })} onHome={handleGoHome} />;
       case 'results':
         if (searchResult) {
           return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={handleOpenLegalPage} {...commonProps} />;
         }
         return <SearchPage {...searchPageProps} />;
+      case 'map':
+        return <MapPage 
+            initialQuery={mapQuery}
+            onSearch={(query) => handleSearch(query, { mapSearch: true })}
+            onHome={handleGoHome}
+            apiKey={apiKeys.googleMaps || ''}
+            onOpenLegalPage={handleOpenLegalPage}
+            {...commonProps} 
+        />;
       case 'search':
       default:
         return <SearchPage {...searchPageProps} />;
@@ -922,7 +949,7 @@ const App: React.FC = () => {
           isOpen={isSidebarOpen}
           onClose={() => setSidebarOpen(false)}
           recentSearches={recentSearches}
-          onSearch={(query) => handleSearch(query, isStudyMode)}
+          onSearch={(query) => handleSearch(query, {})}
           onClear={handleClearRecents}
           onOpenSettings={handleOpenSettings}
           userProfile={userProfile}

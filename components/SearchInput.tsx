@@ -9,6 +9,7 @@ import { MailIcon } from './icons/MailIcon';
 import { NotionIcon } from './icons/NotionIcon';
 import { LockIcon } from './icons/LockIcon';
 import { CloseIcon } from './icons/CloseIcon';
+import { MapPinIcon } from './icons/MapPinIcon';
 
 // FIX: Add type definitions for Web Speech API to resolve TypeScript errors. These types are not part of the standard TypeScript library.
 interface SpeechRecognitionAlternative {
@@ -60,7 +61,7 @@ interface CustomWindow extends Window {
 declare const window: CustomWindow;
 
 interface SearchInputProps {
-  onSearch: (query: string, studyMode: boolean) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
@@ -123,7 +124,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isListening) recognitionRef.current?.stop();
-    onSearch(query, isStudyMode);
+    onSearch(query, { studyMode: isStudyMode });
   };
 
   const hasRecognitionSupport = !!recognitionRef.current;
@@ -135,6 +136,15 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
   const handleSelectStudyMode = () => {
     setIsStudyMode(true);
+    setDropdownOpen(false);
+  };
+  
+  const handleSelectMapMode = () => {
+    if (!query.trim()) {
+        alert("Please enter a location or place to search for on the map.");
+        return;
+    }
+    onSearch(query, { mapSearch: true });
     setDropdownOpen(false);
   };
 
@@ -161,6 +171,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         <div ref={dropdownRef} className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
           <button onClick={handleSelectStudyMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
             <BookOpenIcon className="w-5 h-5 text-gray-500" /><span>Study Mode</span>
+          </button>
+           <button onClick={handleSelectMapMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <MapPinIcon className="w-5 h-5 text-gray-500" /><span>Search Maps</span>
           </button>
           <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
             <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />

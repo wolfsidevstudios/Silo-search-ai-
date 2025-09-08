@@ -1,5 +1,3 @@
-
-
 import React, { useRef } from 'react';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
@@ -12,7 +10,7 @@ import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, Use
 import { Footer } from './Footer';
 
 interface SearchPageProps {
-  onSearch: (query: string, studyMode: boolean) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;

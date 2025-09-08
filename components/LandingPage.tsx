@@ -15,6 +15,7 @@ import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { PrivacyIcon } from './icons/PrivacyIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
 import { CheckIcon } from './icons/CheckIcon';
+import { StarIcon } from './icons/StarIcon';
 
 
 interface LandingPageProps {
@@ -79,6 +80,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
             <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-600">
                 <a href="#features" className="hover:text-purple-600">Features</a>
                 <a href="#pricing" className="hover:text-purple-600">Pricing</a>
+                <a href="#testimonials" className="hover:text-purple-600">Reviews</a>
                 <button onClick={onNavigateToLogin} className="hover:text-purple-600">Sign In</button>
             </nav>
             <button onClick={onNavigateToLogin} className="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-full hover:bg-purple-700 transition">
@@ -296,6 +298,79 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                         <div className="col-span-1 flex justify-center"><AnthropicIcon className="h-10"/></div>
                         <div className="col-span-1 flex justify-center items-center"><p className="text-gray-500 font-semibold text-lg">+ many more</p></div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section id="testimonials" className="py-16 md:py-24 bg-gray-50 border-y">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center">
+                    <h2 className="text-3xl font-extrabold text-gray-900">Loved by users worldwide</h2>
+                    <p className="mt-4 text-lg text-gray-500">Don't just take our word for it. Here's what people are saying.</p>
+                </div>
+                <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="flex items-center">
+                            <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=a" alt="User avatar" />
+                            <div className="ml-4">
+                                <div className="text-sm font-semibold text-gray-900">Sarah D.</div>
+                                <div className="text-sm text-gray-500">UX Designer</div>
+                            </div>
+                        </div>
+                        <div className="flex mt-4">
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                        </div>
+                        <p className="mt-4 text-gray-600 text-sm">"Silo Search has completely changed how I research. The AI summaries are a huge time-saver and the interface is beautiful and intuitive."</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="flex items-center">
+                            <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=b" alt="User avatar" />
+                            <div className="ml-4">
+                                <div className="text-sm font-semibold text-gray-900">Alex M.</div>
+                                <div className="text-sm text-gray-500">Student</div>
+                            </div>
+                        </div>
+                        <div className="flex mt-4">
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                        </div>
+                        <p className="mt-4 text-gray-600 text-sm">"As a student, getting to the point quickly is crucial. Silo helps me understand complex topics fast. The study mode is a lifesaver for exam prep!"</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="flex items-center">
+                            <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=c" alt="User avatar" />
+                            <div className="ml-4">
+                                <div className="text-sm font-semibold text-gray-900">David L.</div>
+                                <div className="text-sm text-gray-500">Developer</div>
+                            </div>
+                        </div>
+                        <div className="flex mt-4">
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                            <StarIcon className="w-5 h-5 text-yellow-400" />
+                        </div>
+                        <p className="mt-4 text-gray-600 text-sm">"Love the BYOK model. I have full control over my API usage and costs. The app is clean, fast, and respects my privacy. Highly recommend."</p>
+                    </div>
+                </div>
+                <div className="mt-12 text-center">
+                    <a 
+                        href="https://testimonial.to/siloseearchai" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
+                    >
+                        Leave a review
+                    </a>
                 </div>
             </div>
         </section>

@@ -111,3 +111,22 @@ export interface DeveloperSettings {
 export interface AnalyticsSettings {
   enabled: boolean;
 }
+
+export interface PlaceResult {
+  place_id: string;
+  name: string;
+  formatted_address: string;
+  rating?: number;
+  user_ratings_total?: number;
+  price_level?: number;
+  photos?: {
+    getUrl: () => string;
+  }[];
+  website?: string;
+  geometry?: {
+    location: {
+      lat: () => number;
+      lng: () => number;
+    };
+  };
+}
