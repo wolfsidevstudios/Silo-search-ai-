@@ -8,8 +8,8 @@ import { MessageSquareIcon } from './icons/MessageSquareIcon';
 
 const scenes = [
   { id: 'search', duration: 4000 },
-  { id: 'summary', duration: 5000 },
-  { id: 'chat', duration: 5000 },
+  { id: 'summary', duration: 5500 },
+  { id: 'chat', duration: 6000 },
 ];
 
 export const AppPreviewAnimation: React.FC = () => {
@@ -23,7 +23,7 @@ export const AppPreviewAnimation: React.FC = () => {
     return () => clearInterval(interval);
   }, [sceneIndex]);
 
-  const currentScene = scenes[sceneIndex].id;
+  const currentSceneId = scenes[sceneIndex].id;
 
   return (
     <div className="preview-container">
@@ -35,62 +35,69 @@ export const AppPreviewAnimation: React.FC = () => {
         </div>
       </div>
 
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full bg-gray-50">
         {/* Scene 1: Search */}
-        <div className={`preview-scene ${currentScene === 'search' ? 'active' : ''} flex flex-col justify-center items-center text-center`}>
-            <div className="flex items-center space-x-2 text-gray-700">
-                <LogoIcon className="w-7 h-7" />
-                <span className="text-lg font-semibold">Silo Search</span>
+        <div className={`preview-scene ${currentSceneId === 'search' ? 'active' : ''}`}>
+            <div className="flex flex-col items-center space-y-2 animated-element">
+                <LogoIcon className="w-8 h-8" />
+                <span className="text-xl font-semibold text-gray-800">Silo Search</span>
             </div>
-            <p className="mt-2 text-sm text-gray-500">Ask anything...</p>
-            <div className="mt-4 flex items-center w-full max-w-xs p-2 pl-4 rounded-full shadow-lg bg-white border border-gray-200">
-                <SearchIcon className="text-gray-500 w-5 h-5" />
+            <div className="mt-4 flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
+                <SearchIcon className="text-gray-400 w-5 h-5" />
                 <div className="ml-2 text-gray-700 text-sm flex-grow text-left">
-                    {currentScene === 'search' && <span className="typing-effect">Latest breakthroughs in AI?</span>}
+                    <span className="typing-text">Latest breakthroughs in AI?</span>
                 </div>
-                <button className="ml-auto flex-shrink-0 w-10 h-10 flex items-center justify-center bg-black text-white rounded-full">
+                <button className="ml-auto flex-shrink-0 w-9 h-9 flex items-center justify-center bg-black text-white rounded-full">
                     <ArrowRightIcon />
                 </button>
             </div>
         </div>
         
         {/* Scene 2: Summary & Links */}
-        <div className={`preview-scene ${currentScene === 'summary' ? 'active' : ''} flex flex-col justify-center items-center text-center w-full`}>
-            <div className="w-full max-w-xs">
-                <div className="flex items-center space-x-2 text-gray-500 text-sm">
+        <div className={`preview-scene ${currentSceneId === 'summary' ? 'active' : ''}`}>
+            <div className="w-full max-w-sm">
+                <div className="flex items-center space-x-2 text-gray-500 text-sm animated-element summary-title">
                     <SparklesIcon className="w-5 h-5" />
                     <span>Instant AI Summary</span>
                 </div>
-                <div className="mt-2 p-4 bg-gray-50 rounded-lg scene-summary-box">
-                     <div className="space-y-1.5">
-                         <div className="h-2.5 w-full bg-gray-200 rounded-full animate-pulse"></div>
-                         <div className="h-2.5 w-5/6 bg-gray-200 rounded-full animate-pulse"></div>
-                         <div className="h-2.5 w-3/4 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="mt-2 p-4 bg-white rounded-lg border animated-element summary-box">
+                     <p className="text-left text-sm text-gray-700">Recent AI breakthroughs include advancements in large language models, leading to more capable assistants, and new diffusion techniques for hyper-realistic image generation.</p>
+                     <div className="mt-3 space-y-2 shimmer">
+                         <div className="h-2.5 w-full bg-gray-300 rounded-full"></div>
+                         <div className="h-2.5 w-5/6 bg-gray-300 rounded-full"></div>
                      </div>
                 </div>
-                <div className="flex items-center space-x-2 text-gray-500 text-sm mt-6">
+                <div className="flex items-center space-x-2 text-gray-500 text-sm mt-6 animated-element links-title">
                     <LinkIcon className="w-5 h-5" />
                     <span>Verified Sources</span>
                 </div>
                 <div className="mt-2 flex flex-wrap justify-center gap-2">
-                    <div className="px-3 py-1 text-xs bg-gray-200 rounded-full">Source 1</div>
-                    <div className="px-3 py-1 text-xs bg-gray-200 rounded-full">Source 2</div>
-                    <div className="px-3 py-1 text-xs bg-gray-200 rounded-full">Source 3</div>
+                    <div className="px-3 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag-1">TechCrunch</div>
+                    <div className="px-3 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag-2">The Verge</div>
+                    <div className="px-3 py-1 text-xs bg-gray-200 rounded-full animated-element link-tag-3">Wired</div>
                 </div>
             </div>
         </div>
 
         {/* Scene 3: Chat */}
-        <div className={`preview-scene ${currentScene === 'chat' ? 'active' : ''} flex flex-col justify-end`}>
-            <div className="scene-chat-modal p-4 flex flex-col">
-                <div className="flex items-center justify-center space-x-2 text-gray-500 text-sm mb-4">
+        <div className={`preview-scene ${currentSceneId === 'chat' ? 'active' : ''}`}>
+            <div className="w-full max-w-sm">
+                <div className="flex items-center justify-center space-x-2 text-gray-500 text-sm mb-4 animated-element chat-title">
                     <MessageSquareIcon className="w-5 h-5" />
                     <span>Follow-up with Chat</span>
                 </div>
-                <div className="space-y-3 text-xs w-full max-w-xs mx-auto">
-                    <div className="p-2 bg-gray-100 rounded-lg max-w-xs text-left">Here's the summary of AI breakthroughs.</div>
-                    <div className="p-2 bg-black text-white rounded-lg max-w-xs ml-auto text-left">
-                        {currentScene === 'chat' && <span className="typing-effect">Explain in simpler terms.</span>}
+                <div className="space-y-3 text-sm w-full">
+                    <div className="p-2.5 bg-gray-200 rounded-xl max-w-[85%] text-left animated-element chat-bubble-1">What are "diffusion techniques"?</div>
+                    <div className="flex justify-end">
+                        <div className="p-2.5 bg-black text-white rounded-xl max-w-[85%] text-left animated-element chat-bubble-2">It's a method where AI starts with random noise and gradually refines it into a detailed image based on a text prompt.</div>
+                    </div>
+                    <div className="flex justify-start">
+                        <div className="p-2.5 bg-gray-200 rounded-xl animated-element chat-typing typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <div className="flex justify-end">
+                         <div className="p-2.5 bg-black text-white rounded-xl max-w-[85%] text-left animated-element chat-bubble-3">Got it, thanks!</div>
                     </div>
                 </div>
             </div>

@@ -85,7 +85,7 @@
       .high-contrast input::placeholder { color: #aaa !important; }
       .high-contrast .shadow-lg, .high-contrast .shadow-xl, .high-contrast .shadow-2xl { box-shadow: 0 0 5px rgba(255,255,255,0.5) !important; }
       
-      /* Landing Page Animation Styles v2 */
+      /* Landing Page Animation Styles v3 */
       .preview-container {
         position: relative;
         width: 100%;
@@ -117,56 +117,86 @@
         position: absolute;
         inset: 0;
         padding: 1rem 1.5rem;
-        opacity: 0;
-        transition: opacity 0.5s ease-in-out;
-        top: 2.25rem; /* below header */
+        top: 2.25rem;
         height: calc(100% - 2.25rem);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.4s ease-in-out;
+        opacity: 0;
+        pointer-events: none;
       }
       .preview-scene.active {
         opacity: 1;
-        z-index: 10;
+        pointer-events: auto;
       }
 
-      /* Typing animation */
+      /* Animation keyframes */
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
       @keyframes typing-kf { from { width: 0; } to { width: 100%; } }
       @keyframes blink-caret-kf { from, to { border-color: transparent; } 50% { border-color: black; } }
+      @keyframes shimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
+      @keyframes slideInFromRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes slideInFromLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes pulse-dot { 0%, 100% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
 
-      .typing-effect {
+      /* Scene-specific animation classes */
+      .animated-element {
+        opacity: 0;
+        animation-fill-mode: forwards;
+      }
+      .preview-scene.active .animated-element {
+        animation-name: fadeInUp;
+        animation-duration: 0.6s;
+        animation-timing-function: ease-out;
+      }
+      
+      /* Search Scene */
+      .preview-scene.active .search-bar { animation-name: scaleIn; animation-duration: 0.5s; animation-delay: 0.2s; }
+      .preview-scene.active .typing-text {
         display: inline-block;
         overflow: hidden;
         white-space: nowrap;
         border-right: .1em solid black;
-        animation: typing-kf 2s steps(40, end), blink-caret-kf .75s step-end infinite;
-        width: 100%;
-        vertical-align: middle;
+        animation: typing-kf 1.5s steps(30, end) 0.8s forwards, blink-caret-kf .75s step-end 8;
+        width: 0%;
       }
 
-      /* Specific scene styles */
-      .scene-summary-box {
-        animation: summary-appear 1s ease-in-out forwards;
+      /* Summary Scene */
+      .preview-scene.active .summary-title { animation-delay: 0.1s; }
+      .preview-scene.active .summary-box { animation-name: scaleIn; animation-duration: 0.5s; animation-delay: 0.3s; }
+      .shimmer {
+        background: #f6f7f8;
+        background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+        background-repeat: no-repeat;
+        background-size: 800px 104px;
+        animation: shimmer 1.5s linear infinite;
       }
-      @keyframes summary-appear {
-        from { transform: scale(0.95); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-      }
+      .preview-scene.active .links-title { animation-delay: 1.2s; }
+      .preview-scene.active .link-tag-1 { animation-delay: 1.4s; }
+      .preview-scene.active .link-tag-2 { animation-delay: 1.5s; }
+      .preview-scene.active .link-tag-3 { animation-delay: 1.6s; }
 
-      .scene-chat-modal {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 80%;
-        background: white;
-        border-top: 1px solid #e5e7eb;
-        border-radius: 0.75rem 0.75rem 0 0;
-        box-shadow: 0 -10px 15px -3px rgba(0,0,0,0.1);
-        transform: translateY(100%);
-        animation: slide-in-from-bottom 0.7s ease-out forwards;
+      /* Chat Scene */
+      .preview-scene.active .chat-title { animation-delay: 0.1s; }
+      .preview-scene.active .chat-bubble-1 { animation-name: slideInFromLeft; animation-duration: 0.5s; animation-delay: 0.4s; }
+      .preview-scene.active .chat-bubble-2 { animation-name: slideInFromRight; animation-duration: 0.5s; animation-delay: 1.2s; }
+      .preview-scene.active .chat-typing { animation-delay: 2.2s; }
+      .preview-scene.active .chat-bubble-3 { animation-name: slideInFromLeft; animation-duration: 0.5s; animation-delay: 3.5s; }
+      .typing-indicator span {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #9ca3af;
+          animation: pulse-dot 1.2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
       }
-      @keyframes slide-in-from-bottom {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
-      }
+      .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+      .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+      .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
     </style>
   <script type="importmap">
 {
