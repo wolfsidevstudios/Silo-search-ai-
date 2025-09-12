@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -76,7 +77,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [isSettingsPageOpen, setSettingsPageOpen] = useState(false);
   const [initialSettingsSection, setInitialSettingsSection] = useState<string | undefined>();
   const [isTemporaryMode, setTemporaryMode] = useState(false);
   const [isStickerEditMode, setStickerEditMode] = useState(false);
@@ -668,14 +669,14 @@ const App: React.FC = () => {
   const handleToggleTemporaryMode = () => setTemporaryMode(prev => !prev);
   const handleClearRecents = () => setRecentSearches([]);
 
-  const handleOpenSettings = (section?: string) => {
+  const handleOpenSettingsPage = (section?: string) => {
     setSidebarOpen(false);
     setInitialSettingsSection(section);
-    setSettingsModalOpen(true);
+    setSettingsPageOpen(true);
   };
 
-  const handleCloseSettings = () => {
-    setSettingsModalOpen(false);
+  const handleCloseSettingsPage = () => {
+    setSettingsPageOpen(false);
     setInitialSettingsSection(undefined);
   };
 
@@ -720,7 +721,7 @@ const App: React.FC = () => {
   };
   
   const handleEnterStickerEditMode = () => {
-    setSettingsModalOpen(false);
+    setSettingsPageOpen(false);
     setStickerEditMode(true);
   }
 
@@ -758,7 +759,7 @@ const App: React.FC = () => {
   };
 
   const handleEnterWidgetEditMode = () => {
-    setSettingsModalOpen(false);
+    setSettingsPageOpen(false);
     setWidgetEditMode(true);
   };
 
@@ -783,7 +784,7 @@ const App: React.FC = () => {
   };
 
   const handleOpenLegalPage = (page: LegalPage) => {
-    setSettingsModalOpen(false);
+    setSettingsPageOpen(false);
     setActiveLegalPage(page);
   };
   const handleCloseLegalPage = () => setActiveLegalPage('none');
@@ -832,7 +833,7 @@ const App: React.FC = () => {
       isTemporaryMode,
       onToggleSidebar: handleToggleSidebar,
       onToggleTemporaryMode: handleToggleTemporaryMode,
-      onOpenSettings: handleOpenSettings,
+      onOpenSettings: handleOpenSettingsPage,
       userProfile: userProfile,
       onLogout: handleLogout,
     };
@@ -933,6 +934,42 @@ const App: React.FC = () => {
       />;
     }
 
+    if (isSettingsPageOpen) {
+      return (
+        <div className={appClasses} style={appStyle}>
+            <SettingsModal
+              onClose={handleCloseSettingsPage}
+              initialSection={initialSettingsSection}
+              onOpenLegalPage={handleOpenLegalPage}
+              apiKeys={apiKeys} onApiKeysChange={setApiKeys}
+              currentTheme={theme} onThemeChange={setTheme}
+              customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
+              isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
+              clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
+              temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
+              speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
+              stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
+              customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
+              widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
+              searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
+              searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
+              accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
+              languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
+              notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
+              developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
+              analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
+              proCredits={proCredits}
+              unlockedProFeatures={unlockedProFeatures}
+              onUnlockFeature={handleUnlockFeature}
+              userProfile={userProfile}
+              onLogout={handleLogout}
+              onDeleteAllData={handleDeleteAllData}
+              onExportData={handleExportData}
+            />
+        </div>
+      );
+    }
+    
     return (
       <div className={appClasses} style={appStyle}>
         {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
@@ -942,36 +979,10 @@ const App: React.FC = () => {
           recentSearches={recentSearches}
           onSearch={(query) => handleSearch(query, {})}
           onClear={handleClearRecents}
-          onOpenSettings={handleOpenSettings}
+          onOpenSettings={handleOpenSettingsPage}
           userProfile={userProfile}
           onLogout={handleLogout}
           proCredits={proCredits}
-        />
-        <SettingsModal
-          isOpen={isSettingsModalOpen}
-          onClose={handleCloseSettings}
-          initialSection={initialSettingsSection}
-          onOpenLegalPage={handleOpenLegalPage}
-          apiKeys={apiKeys} onApiKeysChange={setApiKeys}
-          currentTheme={theme} onThemeChange={setTheme}
-          customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
-          isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
-          clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
-          temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
-          speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
-          stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
-          customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
-          widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
-          searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
-          searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
-          accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
-          languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
-          notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
-          developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
-          analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
-          proCredits={proCredits}
-          unlockedProFeatures={unlockedProFeatures}
-          onUnlockFeature={handleUnlockFeature}
         />
         <ChatModal
           isOpen={isChatModeOpen}
@@ -982,7 +993,7 @@ const App: React.FC = () => {
         />
         <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
         <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
-        <div className={`${isSidebarOpen || isSettingsModalOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
+        <div className={`${isSidebarOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
           {renderMainContent()}
         </div>
       </div>
