@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { XIcon } from './icons/XIcon';
@@ -323,7 +322,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                 Start for free. As we add more powerful features, a Pro plan will be introduced.
               </p>
             </div>
-            <div className="mt-16 max-w-lg mx-auto grid gap-8 lg:max-w-4xl lg:grid-cols-2">
+            <div className="mt-16 max-w-lg mx-auto grid gap-8 lg:max-w-7xl lg:grid-cols-3">
               <div className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm p-8 scroll-animate">
                 <h3 className="text-2xl font-semibold text-gray-900">Free</h3>
                 <p className="mt-2 text-gray-500">For individuals getting started with smarter search.</p>
@@ -360,6 +359,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                   <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Cloud Sync & Backup</span></li>
                   <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Access to Advanced AI Models</span></li>
                   <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Collaboration Features</span></li>
+                </ul>
+              </div>
+               <div className="flex flex-col rounded-2xl border-2 border-purple-600 bg-white shadow-lg p-8 relative scroll-animate" style={{ transitionDelay: '400ms' }}>
+                <div className="absolute top-0 right-0 -mr-12 -mt-12">
+                   <div className="bg-purple-600 text-white text-xs font-semibold tracking-wider uppercase py-4 px-12 transform rotate-45">Coming Soon</div>
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900">Ultra</h3>
+                <p className="mt-2 text-gray-500">For teams needing advanced AI and collaboration tools.</p>
+                <div className="mt-6">
+                  <span className="text-5xl font-extrabold text-gray-400">TBA</span>
+                </div>
+                <button disabled className="mt-6 block w-full text-center rounded-lg bg-gray-300 px-6 py-3 text-base font-medium text-gray-500 cursor-not-allowed">
+                  Notify Me
+                </button>
+                 <ul className="mt-8 space-y-4 text-sm text-gray-600">
+                  <li className="flex space-x-3 font-semibold text-gray-700"><span>Everything in Pro, plus:</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>AI Agents for Autonomous Research</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Team Workspaces & Collaboration</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Priority Support & Onboarding</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>API Access for Custom Integrations</span></li>
                 </ul>
               </div>
             </div>
