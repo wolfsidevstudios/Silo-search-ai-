@@ -87,6 +87,32 @@
       .high-contrast .shadow-lg, .high-contrast .shadow-xl, .high-contrast .shadow-2xl { box-shadow: 0 0 5px rgba(255,255,255,0.5) !important; }
       
       /* Landing Page Animation */
+      .hero-search-box-container {
+        transform-style: preserve-3d;
+        transform: perspective(1000px);
+        transition: transform 0.4s ease;
+      }
+      .hero-search-box-container:hover {
+        transform: perspective(1000px) rotateX(4deg) rotateY(-2deg) scale3d(1.02, 1.02, 1.02);
+      }
+      .hero-search-input::placeholder {
+        transition: color 0.3s;
+      }
+      .scroll-animate {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+      }
+      .scroll-animate.is-visible {
+        opacity: 1;
+        transform: translateY(0px);
+      }
+      .login-left-pane {
+        background: linear-gradient(-45deg, #4c1d95, #5b21b6, #7c3aed, #c084fc);
+        background-size: 400% 400%;
+        animation: animated-gradient 15s ease infinite;
+      }
+
       .preview-container {
         position: relative;
         width: 100%;
@@ -133,11 +159,28 @@
       @keyframes slideInFromRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
       @keyframes slideInFromLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
       @keyframes pulse-dot { 0%, 100% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+      @keyframes float-bg { 
+        0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+        25% { transform: translateY(-30px) translateX(20px) rotate(45deg); }
+        50% { transform: translateY(0px) translateX(0px) rotate(90deg); }
+        75% { transform: translateY(30px) translateX(-20px) rotate(135deg); }
+        100% { transform: translateY(0px) translateX(0px) rotate(180deg); }
+      }
 
       /* Base animated element */
       .animated-element { opacity: 0; animation-fill-mode: forwards; }
       .preview-scene.active .animated-element { animation: fadeInUp 0.6s ease-out; }
 
+      /* Landing Page v2 styles */
+      .hero-background { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+      .shape { position: absolute; border-radius: 50%; background: #f5f3ff; animation: float-bg 20s infinite linear; opacity: 0.7; }
+      .shape1 { width: 400px; height: 400px; top: -150px; left: -150px; animation-duration: 35s; animation-delay: -5s; }
+      .shape2 { width: 300px; height: 300px; bottom: -100px; right: -100px; animation-duration: 40s; }
+      .shape3 { width: 150px; height: 150px; top: 50%; left: 20%; animation-duration: 30s; animation-delay: -10s; }
+      .shape4 { width: 200px; height: 200px; top: 10%; right: 15%; animation-duration: 45s; }
+      .feature-card { transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; }
+      .feature-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.08), 0 10px 10px -5px rgba(124, 58, 237, 0.04); background-color: white; }
+      
       /* Scenes 0-2: Welcome Features */
       .scene-welcome-feature { background: white; }
       .welcome-feature-text {

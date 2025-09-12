@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { XIcon } from './icons/XIcon';
@@ -23,38 +24,79 @@ interface LandingPageProps {
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
 }
 
-const AnimatedSearchPrompt: React.FC = () => {
-  const questions = [
-    "what's a cat?",
-    "how does photosynthesis work?",
-    "best places to visit in Italy",
-    "explain quantum computing simply",
-  ];
-  const [index, setIndex] = useState(0);
-
+const useAnimateOnScroll = () => {
   useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prevIndex) => (prevIndex + 1) % questions.length);
-    }, 2000); // Change every 2 seconds
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
 
-    return () => clearInterval(timer);
-  }, [questions.length]);
+    const targets = document.querySelectorAll('.scroll-animate');
+    targets.forEach((target) => observer.observe(target));
 
-  return (
-    <div className="text-xl text-gray-500 mt-8 text-center">
-      Search for{' '}
-      <span className="inline-block font-medium text-gray-700">
-        <span key={index} className="animated-question">
-          {questions[index]}
-        </span>
-      </span>
-    </div>
-  );
+    return () => observer.disconnect();
+  }, []);
 };
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onOpenLegalPage }) => {
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [query, setQuery] = useState('');
+  const [placeholder, setPlaceholder] = useState('');
+  
+  useAnimateOnScroll();
+
+  useEffect(() => {
+    const questions = [
+      "how does photosynthesis work?",
+      "best places to visit in Italy",
+      "explain quantum computing simply",
+      "plan a 1-week trip to Tokyo",
+    ];
+    let currentIndex = 0;
+    let currentText = '';
+    let isDeleting = false;
+    let typingSpeed = 120;
+    let typingTimeout: ReturnType<typeof setTimeout>;
+
+    const type = () => {
+        const fullText = questions[currentIndex];
+        if (isDeleting) {
+            currentText = fullText.substring(0, currentText.length - 1);
+        } else {
+            currentText = fullText.substring(0, currentText.length + 1);
+        }
+
+        setPlaceholder(currentText + '|');
+
+        let timeoutSpeed = typingSpeed;
+        if (isDeleting) {
+            timeoutSpeed /= 2;
+        }
+
+        if (!isDeleting && currentText === fullText) {
+            isDeleting = true;
+            timeoutSpeed = 2000;
+            setPlaceholder(currentText); // Remove cursor at pause
+        } else if (isDeleting && currentText === '') {
+            isDeleting = false;
+            currentIndex = (currentIndex + 1) % questions.length;
+            timeoutSpeed = 500;
+        }
+
+        typingTimeout = setTimeout(type, timeoutSpeed);
+    };
+
+    typingTimeout = setTimeout(type, 500);
+
+    return () => clearTimeout(typingTimeout);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,8 +112,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
   };
 
   return (
-    <div className="bg-gray-50 text-gray-800 font-sans antialiased">
-      <header className={`fixed top-0 left-0 right-0 p-4 transition-all duration-300 z-50 ${headerScrolled ? 'bg-white/80 backdrop-blur-sm shadow-md' : ''}`}>
+    <div className="bg-white text-gray-800 font-sans antialiased">
+      <header className={`fixed top-0 left-0 right-0 p-4 transition-all duration-300 z-50 ${headerScrolled ? 'bg-white/80 backdrop-blur-sm shadow-sm' : ''}`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
             <div className="flex items-center space-x-2">
                 <LogoIcon className="w-8 h-8" />
@@ -84,69 +126,79 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                 <button onClick={onNavigateToLogin} className="hover:text-purple-600">Sign In</button>
             </nav>
             <button onClick={onNavigateToLogin} className="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-full hover:bg-purple-700 transition">
-                Get Started
+                Get Started Free
             </button>
         </div>
       </header>
 
       <main>
         {/* Hero Section */}
-        <section className="relative text-center pt-32 pb-16 lg:pt-40 lg:pb-20 overflow-hidden">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <a href="#pricing" className="inline-flex items-center space-x-2 bg-purple-100 text-purple-700 font-semibold px-4 py-1.5 rounded-full text-sm mb-6 hover:bg-purple-200 transition-colors">
-                    <CheckCircleIcon className="w-5 h-5" />
-                    <span>No credit card required</span>
-                </a>
-                <h1 className="text-4xl tracking-tight font-extrabold sm:text-5xl xl:text-6xl">
-                    <span className="block text-gray-900">Search, Summarized.</span>
-                    <span className="block text-purple-600">Instantly.</span>
-                </h1>
-                <p className="mt-4 text-xl font-medium text-gray-700 tracking-tight">
-                    Search Smarter, Not Harder.
-                </p>
-                <p className="mt-4 max-w-2xl mx-auto text-base text-gray-500 sm:text-xl lg:text-lg xl:text-xl">
-                    Get instant AI-powered answers and quick links, cutting through the clutter of traditional search.
-                </p>
-                <AnimatedSearchPrompt />
-                <div className="mt-6 max-w-xl mx-auto">
-                    <form onSubmit={handleSearchSubmit} className="hero-search-box-container">
-                        <input 
-                          type="search" 
-                          value={query}
-                          onChange={(e) => setQuery(e.target.value)}
-                          placeholder="Ask anything..." 
-                          className="hero-search-input" />
-                        <button type="submit" className="hero-search-button" aria-label="Search">
-                            <ArrowRightIcon />
-                        </button>
-                    </form>
+        <section className="relative overflow-hidden bg-white">
+            <div className="hero-background" aria-hidden="true">
+                <div className="shape shape1"></div>
+                <div className="shape shape2"></div>
+                <div className="shape shape3"></div>
+                <div className="shape shape4"></div>
+            </div>
+            <div className="relative text-center pt-32 pb-16 lg:pt-40 lg:pb-20 z-10">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <a href="#pricing" className="inline-flex items-center space-x-2 bg-purple-100 text-purple-700 font-semibold px-4 py-1.5 rounded-full text-sm mb-6 hover:bg-purple-200 transition-colors">
+                        <CheckCircleIcon className="w-5 h-5" />
+                        <span>No credit card required to start</span>
+                    </a>
+                    <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl xl:text-6xl">
+                        <span className="block">Search, Summarized.</span>
+                        <span className="block text-purple-600">Instantly.</span>
+                    </h1>
+                    <p className="mt-6 max-w-2xl mx-auto text-lg text-gray-600">
+                        Get instant AI-powered answers and quick links, cutting through the clutter of traditional search.
+                    </p>
+                    <div className="mt-8 max-w-xl mx-auto">
+                        <form onSubmit={handleSearchSubmit} className="hero-search-box-container relative">
+                            <input 
+                              type="search" 
+                              value={query}
+                              onChange={(e) => setQuery(e.target.value)}
+                              placeholder={placeholder} 
+                              className="w-full p-4 pr-20 text-lg rounded-full border border-gray-300 shadow-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none" />
+                            <button type="submit" className="absolute right-2 top-2 bottom-2 w-14 flex items-center justify-center rounded-full bg-purple-600 text-white hover:bg-purple-700 transition" aria-label="Search">
+                                <ArrowRightIcon />
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </section>
 
-        {/* API Key Announcement Section */}
-        <section className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12 text-center">
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
-              <div className="bg-white/20 p-3 rounded-full">
-                <SparklesIcon className="w-7 h-7" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">API Key No Longer Required for Gemini</h2>
+        {/* Logo Cloud Section */}
+        <section className="py-12 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <p className="text-center text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                    Powered by the world's leading AI models
+                </p>
+                <div className="mt-8 flex justify-center items-center flex-wrap gap-x-12 gap-y-8">
+                    <LogoIcon className="h-10 text-gray-500 transition-opacity hover:opacity-100 opacity-60" title="Google Gemini" />
+                    {/* FIX: The 'title' prop is not a valid attribute on SVG components in React. Wrapped in a span to provide a tooltip. */}
+                    <span title="OpenAI">
+                        <OpenAIIcon className="h-10 text-gray-500 transition-opacity hover:opacity-100 opacity-60" />
+                    </span>
+                    {/* FIX: The 'title' prop is not a valid attribute on SVG components in React. Wrapped in a span to provide a tooltip. */}
+                    <span title="Anthropic">
+                        <AnthropicIcon className="h-10 text-gray-500 transition-opacity hover:opacity-100 opacity-60" />
+                    </span>
+                </div>
             </div>
-            <p className="mt-4 text-lg text-purple-100 max-w-3xl mx-auto">
-              Getting started is now easier than ever! Silo Search now provides complimentary access to Google's Gemini model, so you can enjoy AI-powered summaries without needing your own API key.
-            </p>
-          </div>
         </section>
+
 
         {/* App Preview Section */}
         <section className="py-16 md:py-24 bg-gray-50 border-y">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12">
+                <div className="text-center mb-12 scroll-animate">
                     <h2 className="text-3xl font-extrabold text-gray-900">See How It Works</h2>
                     <p className="mt-4 text-lg text-gray-500">A new, intuitive way to explore information.</p>
                 </div>
-                <div className="max-w-5xl mx-auto">
+                <div className="max-w-5xl mx-auto scroll-animate" style={{ transitionDelay: '200ms' }}>
                     <AppPreviewAnimation />
                 </div>
             </div>
@@ -155,40 +207,52 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         {/* Features Section */}
         <section id="features" className="py-16 md:py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center">
+                <div className="text-center scroll-animate">
                     <h2 className="text-3xl font-extrabold text-gray-900">A smarter way to find information</h2>
                     <p className="mt-4 text-lg text-gray-500">Silo Search reimagines the search experience from the ground up.</p>
                 </div>
-                <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><SparklesIcon className="w-7 h-7" /></div>
-                        <h3 className="mt-4 font-semibold text-lg">AI-Powered Summaries</h3>
-                        <p className="mt-1 text-gray-600 text-sm">No more endless scrolling. Get a concise, easy-to-read summary for any query.</p>
+                <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate">
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <SparklesIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">AI-Powered Summaries</h3>
+                        <p className="mt-2 text-gray-600 text-sm">No more endless scrolling. Get a concise, easy-to-read summary for any query.</p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><LinkIcon className="w-7 h-7" /></div>
-                        <h3 className="mt-4 font-semibold text-lg">Relevant Quick Links</h3>
-                        <p className="mt-1 text-gray-600 text-sm">Dive deeper with a curated list of the most relevant sources used to generate your summary.</p>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '100ms' }}>
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <LinkIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">Relevant Quick Links</h3>
+                        <p className="mt-2 text-gray-600 text-sm">Dive deeper with a curated list of the most relevant sources used to generate your summary.</p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><MessageSquareIcon className="w-7 h-7" /></div>
-                        <h3 className="mt-4 font-semibold text-lg">Deep Dive with Chat</h3>
-                        <p className="mt-1 text-gray-600 text-sm">Ask follow-up questions and have a natural conversation to explore topics further.</p>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '200ms' }}>
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <MessageSquareIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">Deep Dive with Chat</h3>
+                        <p className="mt-2 text-gray-600 text-sm">Ask follow-up questions and have a natural conversation to explore topics further.</p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><BrushIcon className="w-7 h-7" /></div>
-                        <h3 className="mt-4 font-semibold text-lg">Your Personal Dashboard</h3>
-                        <p className="mt-1 text-gray-600 text-sm">Make it your own. Personalize your search page with wallpapers, widgets, and custom themes.</p>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '300ms' }}>
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <BrushIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">Your Personal Dashboard</h3>
+                        <p className="mt-2 text-gray-600 text-sm">Make it your own. Personalize your search page with wallpapers, widgets, and custom themes.</p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><LockIcon className="w-7 h-7" /></div>
-                        <h3 className="mt-4 font-semibold text-lg">Private by Design</h3>
-                        <p className="mt-1 text-gray-600 text-sm">Your API keys and settings are stored locally on your device, never on our servers.</p>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '400ms' }}>
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <LockIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">Private by Design</h3>
+                        <p className="mt-2 text-gray-600 text-sm">Your API keys and settings are stored locally on your device, never on our servers.</p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><KeyIcon className="w-7 h-7" /></div>
-                        <h3 className="mt-4 font-semibold text-lg">Bring Your Own Key</h3>
-                        <p className="mt-1 text-gray-600 text-sm">Connect your own API keys from leading AI providers for complete control over your usage.</p>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '500ms' }}>
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <KeyIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">Bring Your Own Key</h3>
+                        <p className="mt-2 text-gray-600 text-sm">Connect your own API keys from leading AI providers for complete control over your usage.</p>
                     </div>
                 </div>
             </div>
@@ -197,22 +261,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         {/* How it works Section */}
         <section className="py-16 md:py-24 bg-gray-50 border-y">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center">
+                <div className="text-center scroll-animate">
                     <h2 className="text-3xl font-extrabold text-gray-900">Get started in minutes</h2>
                     <p className="mt-4 text-lg text-gray-500">Three simple steps to a better search experience.</p>
                 </div>
                 <div className="mt-12 space-y-8 md:space-y-0 md:grid md:grid-cols-3 md:gap-8">
-                    <div className="flex flex-col items-center text-center">
+                    <div className="flex flex-col items-center text-center scroll-animate">
                         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-md ring-1 ring-gray-200"><span className="text-2xl font-bold text-purple-600">1</span></div>
                         <h3 className="mt-4 font-semibold text-lg">Create an Account</h3>
                         <p className="mt-1 text-gray-600 text-sm">Sign in quickly and securely using Google or your favorite social provider.</p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
+                    <div className="flex flex-col items-center text-center scroll-animate" style={{ transitionDelay: '200ms' }}>
                         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-md ring-1 ring-gray-200"><span className="text-2xl font-bold text-purple-600">2</span></div>
                         <h3 className="mt-4 font-semibold text-lg">Personalize Your Dashboard</h3>
                         <p className="mt-1 text-gray-600 text-sm">Head to settings to customize your wallpaper, clock, and add widgets to make it your own.</p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
+                    <div className="flex flex-col items-center text-center scroll-animate" style={{ transitionDelay: '400ms' }}>
                         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-md ring-1 ring-gray-200"><span className="text-2xl font-bold text-purple-600">3</span></div>
                         <h3 className="mt-4 font-semibold text-lg">Start Searching</h3>
                         <p className="mt-1 text-gray-600 text-sm">Ask anything and get instant, intelligent summaries and related links.</p>
@@ -224,7 +288,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         {/* Privacy Section */}
         <section className="bg-white py-16 md:py-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center scroll-animate">
                     <div>
                         <h2 className="text-3xl font-extrabold text-gray-900">Your Search, Your Data. Period.</h2>
                         <p className="mt-4 text-lg text-gray-500">We believe your information belongs to you. That's why Silo Search is built with privacy at its core.</p>
@@ -253,14 +317,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         {/* Pricing Section */}
         <section id="pricing" className="py-16 md:py-24 bg-gray-50 border-y">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
+            <div className="text-center scroll-animate">
               <h2 className="text-3xl font-extrabold text-gray-900">Simple, transparent pricing</h2>
               <p className="mt-4 text-lg text-gray-500">
                 Start for free. As we add more powerful features, a Pro plan will be introduced.
               </p>
             </div>
             <div className="mt-16 max-w-lg mx-auto grid gap-8 lg:max-w-4xl lg:grid-cols-2">
-              <div className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm p-8">
+              <div className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm p-8 scroll-animate">
                 <h3 className="text-2xl font-semibold text-gray-900">Free</h3>
                 <p className="mt-2 text-gray-500">For individuals getting started with smarter search.</p>
                 <div className="mt-6">
@@ -278,7 +342,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                   <li className="flex space-x-3"><CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" /><span>Local-First Privacy</span></li>
                 </ul>
               </div>
-              <div className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm p-8 relative overflow-hidden">
+              <div className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm p-8 relative overflow-hidden scroll-animate" style={{ transitionDelay: '200ms' }}>
                 <div className="absolute top-0 right-0 -mr-12 -mt-12">
                    <div className="bg-purple-100 text-purple-700 text-xs font-semibold tracking-wider uppercase py-4 px-12 transform rotate-45">Coming Soon</div>
                 </div>
@@ -302,30 +366,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
           </div>
         </section>
 
-        {/* Logo Cloud Section */}
-        <section className="py-16 bg-white border-t">
-            <div className="max-w-5xl mx-auto px-4">
-                <div className="text-center">
-                    <h2 className="text-base font-semibold text-gray-600 tracking-wider uppercase">Powered by the best</h2>
-                    <div className="mt-6 grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-4">
-                        <div className="col-span-1 flex justify-center"><LogoIcon className="h-10"/></div>
-                        <div className="col-span-1 flex justify-center"><OpenAIIcon className="h-10"/></div>
-                        <div className="col-span-1 flex justify-center"><AnthropicIcon className="h-10"/></div>
-                        <div className="col-span-1 flex justify-center items-center"><p className="text-gray-500 font-semibold text-lg">+ many more</p></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         {/* Testimonials Section */}
-        <section id="testimonials" className="py-16 md:py-24 bg-gray-50 border-y">
+        <section id="testimonials" className="py-16 md:py-24 bg-white border-y">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center">
+                <div className="text-center scroll-animate">
                     <h2 className="text-3xl font-extrabold text-gray-900">Loved by users worldwide</h2>
                     <p className="mt-4 text-lg text-gray-500">Don't just take our word for it. Here's what people are saying.</p>
                 </div>
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate">
                         <div className="flex items-center">
                             <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=a" alt="User avatar" />
                             <div className="ml-4">
@@ -342,7 +391,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                         </div>
                         <p className="mt-4 text-gray-600 text-sm">"Silo Search has completely changed how I research. The AI summaries are a huge time-saver and the interface is beautiful and intuitive."</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate" style={{ transitionDelay: '200ms' }}>
                         <div className="flex items-center">
                             <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=b" alt="User avatar" />
                             <div className="ml-4">
@@ -359,7 +408,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                         </div>
                         <p className="mt-4 text-gray-600 text-sm">"As a student, getting to the point quickly is crucial. Silo helps me understand complex topics fast. The study mode is a lifesaver for exam prep!"</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                    <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate" style={{ transitionDelay: '400ms' }}>
                         <div className="flex items-center">
                             <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=c" alt="User avatar" />
                             <div className="ml-4">
@@ -392,7 +441,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
 
         {/* Final CTA */}
         <section className="bg-gray-50">
-            <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
+            <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8 scroll-animate">
                 <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                     <span className="block">Ready to transform your search?</span>
                 </h2>
