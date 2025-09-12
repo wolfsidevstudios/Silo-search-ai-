@@ -10,6 +10,9 @@ import { NotionIcon } from './icons/NotionIcon';
 import { LockIcon } from './icons/LockIcon';
 import { CloseIcon } from './icons/CloseIcon';
 import { MapPinIcon } from './icons/MapPinIcon';
+import { YouTubeIcon } from './icons/YouTubeIcon';
+import { WikipediaIcon } from './icons/WikipediaIcon';
+import { RedditIcon } from './icons/RedditIcon';
 
 // FIX: Add type definitions for Web Speech API to resolve TypeScript errors. These types are not part of the standard TypeScript library.
 interface SpeechRecognitionAlternative {
@@ -148,6 +151,15 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     setDropdownOpen(false);
   };
 
+  const handleExternalSearch = (urlTemplate: string) => {
+    if (!query.trim()) {
+        alert("Please enter a search query first.");
+        return;
+    }
+    window.open(urlTemplate.replace('{query}', encodeURIComponent(query)), '_blank');
+    setDropdownOpen(false);
+  };
+
   return (
     <form onSubmit={handleSubmit} className={containerClasses}>
       <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
@@ -169,6 +181,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
       {isDropdownOpen && (
         <div ref={dropdownRef} className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
+          <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Modes</p>
           <button onClick={handleSelectStudyMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
             <BookOpenIcon className="w-5 h-5 text-gray-500" /><span>Study Mode</span>
           </button>
@@ -178,13 +191,28 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
           <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
             <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
           </button>
+          
           <div className="my-2 border-t border-gray-100"></div>
+          <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
           <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
             <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
           </button>
           <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
             <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
           </button>
+
+          <div className="my-2 border-t border-gray-100"></div>
+          <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Elsewhere</p>
+          <button onClick={() => handleExternalSearch('https://www.youtube.com/results?search_query={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <YouTubeIcon className="w-5 h-5 text-gray-500" /><span>Search on YouTube</span>
+          </button>
+          <button onClick={() => handleExternalSearch('https://en.wikipedia.org/w/index.php?search={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <WikipediaIcon className="w-5 h-5 text-gray-500" /><span>Search on Wikipedia</span>
+          </button>
+          <button onClick={() => handleExternalSearch('https://www.reddit.com/search/?q={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <RedditIcon className="w-5 h-5 text-gray-500" /><span>Search on Reddit</span>
+          </button>
+
         </div>
       )}
 
