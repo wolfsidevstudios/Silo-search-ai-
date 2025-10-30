@@ -32,7 +32,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onGoogleSignIn, onOpenLega
     if (window.google && googleButtonRef.current) {
       try {
         window.google.accounts.id.initialize({
-          client_id: '127898517822-f4j5ha3e2n6futbhehvtf06cfqhjhgej.apps.googleusercontent.com',
+          client_id: '127898517822-hnff3rqt1kqk9u6uvivpec5p01m1f0bj.apps.googleusercontent.com',
           callback: onGoogleSignIn,
         });
         window.google.accounts.id.renderButton(

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { OpenAIIcon } from './icons/OpenAIIcon';
@@ -28,6 +26,14 @@ import { GiftIcon } from './icons/GiftIcon';
 import { LockIcon } from './icons/LockIcon';
 import { YouTubeIcon } from './icons/YouTubeIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
+import { LinkIcon } from './icons/LinkIcon';
+import { MailIcon } from './icons/MailIcon';
+import { NotionIcon } from './icons/NotionIcon';
+import { SlackIcon } from './icons/SlackIcon';
+import { GitHubIcon } from './icons/GitHubIcon';
+import { BookOpenIcon } from './icons/BookOpenIcon';
+import { MapPinIcon } from './icons/MapPinIcon';
+import { LayersIcon } from './icons/LayersIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -80,6 +86,7 @@ const navItems = [
     { category: 'AI & Search', items: [
         { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
         { id: 'search-settings', name: 'Search Settings', Icon: ChipIcon },
+        { id: 'connected-apps', name: 'Connected Apps', Icon: LinkIcon },
         { id: 'speech-language', name: 'Speech & Language', Icon: LanguagesIcon },
     ]},
     { category: 'Account & Data', items: [
@@ -293,6 +300,65 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         <button id="web-search-toggle" role="switch" aria-checked={searchSettings.useWebSearch || searchSettings.model === 's1-mini'} onClick={() => onSearchSettingsChange({ ...searchSettings, useWebSearch: !searchSettings.useWebSearch })} disabled={searchSettings.model === 's1-mini'} className={`${(searchSettings.useWebSearch || searchSettings.model === 's1-mini') ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:cursor-not-allowed`}><span className={`${(searchSettings.useWebSearch || searchSettings.model === 's1-mini') ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
                     </div>
                  </SettingsCard>
+                 <SettingsCard title="Search Modes" description="Activate different modes from the search bar to tailor your experience.">
+                    <ul className="space-y-4">
+                        <li className="flex items-start space-x-3">
+                            <SearchIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
+                            <div>
+                                <h5 className="font-semibold text-gray-800">Standard Mode</h5>
+                                <p className="text-sm text-gray-600">Your default, fast search experience for quick summaries and links.</p>
+                            </div>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                            <BookOpenIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
+                            <div>
+                                <h5 className="font-semibold text-gray-800">Study Mode</h5>
+                                <p className="text-sm text-gray-600">Generates flashcards and quizzes to help you learn and retain information.</p>
+                            </div>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                            <MapPinIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
+                            <div>
+                                <h5 className="font-semibold text-gray-800">Map Mode</h5>
+                                <p className="text-sm text-gray-600">Find and explore places with AI-powered location summaries.</p>
+                            </div>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                            <LayersIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
+                            <div>
+                                <h5 className="font-semibold text-gray-800">Deep Research Mode</h5>
+                                <p className="text-sm text-gray-600">Get comprehensive reports and outlines on any topic. <span className="text-xs font-semibold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full">COMING SOON</span></p>
+                            </div>
+                        </li>
+                    </ul>
+                 </SettingsCard>
+            </div>
+        );
+        case 'connected-apps': return (
+            <div className="space-y-6">
+                <SettingsCard title="Connected Apps" description="Search across your favorite apps. This is a Pro feature, coming soon.">
+                    <div className="space-y-4">
+                        {[
+                            { Icon: MailIcon, name: 'Gmail', description: 'Summarize emails and find attachments without leaving the search bar.' },
+                            { Icon: NotionIcon, name: 'Notion', description: 'Instantly find notes, documents, and database entries.' },
+                            { Icon: SlackIcon, name: 'Slack', description: 'Search through conversations and shared files.' },
+                            { Icon: GitHubIcon, name: 'GitHub', description: 'Find code snippets, issues, and pull requests.' },
+                        ].map(app => (
+                            <div key={app.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-4">
+                                    <app.Icon className="w-8 h-8 text-gray-500" />
+                                    <div>
+                                        <h5 className="font-semibold text-gray-800">{app.name}</h5>
+                                        <p className="text-xs text-gray-500">{app.description}</p>
+                                    </div>
+                                </div>
+                                <button disabled className="px-4 py-1.5 text-sm font-medium text-gray-500 bg-gray-200 rounded-full cursor-not-allowed">
+                                    Connect
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </SettingsCard>
             </div>
         );
         case 'accessibility': return (

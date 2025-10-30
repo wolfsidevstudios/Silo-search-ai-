@@ -365,8 +365,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                 <div className="absolute top-0 right-0 -mr-12 -mt-12">
                    <div className="bg-purple-600 text-white text-xs font-semibold tracking-wider uppercase py-4 px-12 transform rotate-45">Coming Soon</div>
                 </div>
-                <h3 className="text-2xl font-semibold text-gray-900">Ultra</h3>
-                <p className="mt-2 text-gray-500">For teams needing advanced AI and collaboration tools.</p>
+                <h3 className="text-2xl font-semibold text-gray-900">Kyndra Max</h3>
+                <p className="mt-2 text-gray-500">For teams and enterprises needing advanced AI, collaboration tools, and priority support.</p>
                 <div className="mt-6">
                   <span className="text-5xl font-extrabold text-gray-400">TBA</span>
                 </div>
@@ -375,10 +375,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                 </button>
                  <ul className="mt-8 space-y-4 text-sm text-gray-600">
                   <li className="flex space-x-3 font-semibold text-gray-700"><span>Everything in Pro, plus:</span></li>
-                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>AI Agents for Autonomous Research</span></li>
-                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Team Workspaces & Collaboration</span></li>
-                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Priority Support & Onboarding</span></li>
-                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>API Access for Custom Integrations</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Advanced AI Agents & Workflows</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Unlimited Connected Apps</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Team Analytics & Usage Reports</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Dedicated Onboarding & Support</span></li>
+                  <li className="flex space-x-3"><SparklesIcon className="flex-shrink-0 h-5 w-5 text-purple-500" /><span>Early Access to New Features</span></li>
                 </ul>
               </div>
             </div>
