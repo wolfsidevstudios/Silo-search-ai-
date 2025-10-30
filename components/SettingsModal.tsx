@@ -36,6 +36,11 @@ import { MapPinIcon } from './icons/MapPinIcon';
 import { LayersIcon } from './icons/LayersIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
+import { LightbulbIcon } from './icons/LightbulbIcon';
+import { CodeIcon } from './icons/CodeIcon';
+import { PlaneIcon } from './icons/PlaneIcon';
+import { StoreIcon } from './icons/StoreIcon';
+import { NewspaperIcon } from './icons/NewspaperIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -88,6 +93,7 @@ const navItems = [
     { category: 'AI & Search', items: [
         { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
         { id: 'search-settings', name: 'Search Settings', Icon: ChipIcon },
+        { id: 'search-modes', name: 'Search Modes', Icon: LayersIcon },
         { id: 'connected-apps', name: 'Connected Apps', Icon: LinkIcon },
         { id: 'speech-language', name: 'Speech & Language', Icon: LanguagesIcon },
     ]},
@@ -352,6 +358,63 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         </li>
                     </ul>
                  </SettingsCard>
+            </div>
+        );
+        case 'search-modes': return (
+            <div className="space-y-6">
+                <SettingsCard title="Powerful Search Modes" description="Activate specialized modes for more complex tasks.">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-4">
+                                <LayersIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
+                                <div>
+                                    <h5 className="font-semibold text-gray-800">Deep Research Mode</h5>
+                                    <p className="text-sm text-gray-600">Generates comprehensive reports and outlines on any topic.</p>
+                                </div>
+                            </div>
+                            <button className="px-4 py-1.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">
+                                Activate
+                            </button>
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-4">
+                                <BookOpenIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
+                                <div>
+                                    <h5 className="font-semibold text-gray-800">Academic Search</h5>
+                                    <p className="text-sm text-gray-600">Prioritizes scholarly articles, papers, and academic sources.</p>
+                                </div>
+                            </div>
+                            <button className="px-4 py-1.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">
+                                Activate
+                            </button>
+                        </div>
+                    </div>
+                </SettingsCard>
+
+                <SettingsCard title="Upcoming Modes" description="We're always working on new ways to enhance your search experience.">
+                    <div className="space-y-3">
+                        {[
+                            { Icon: LightbulbIcon, name: 'Creative Mode', description: 'For brainstorming, writing assistance, and generating creative ideas.' },
+                            { Icon: CodeIcon, name: 'Code Helper', description: 'Specialized in searching for code snippets and technical documentation.' },
+                            { Icon: PlaneIcon, name: 'Travel Planner', description: 'AI-powered travel planning, itineraries, and booking suggestions.' },
+                            { Icon: StoreIcon, name: 'Shopping Assistant', description: 'Helps find products, compare prices, and read reviews.' },
+                            { Icon: NewspaperIcon, name: 'News Analyst', description: 'Summarizes news from various sources with multiple perspectives.' },
+                        ].map(mode => (
+                            <div key={mode.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg opacity-60">
+                                <div className="flex items-center space-x-4">
+                                    <mode.Icon className="w-8 h-8 text-gray-500 flex-shrink-0" />
+                                    <div>
+                                        <h5 className="font-semibold text-gray-800">{mode.name}</h5>
+                                        <p className="text-xs text-gray-500">{mode.description}</p>
+                                    </div>
+                                </div>
+                                <span className="px-3 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full flex-shrink-0">
+                                    Coming Soon
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </SettingsCard>
             </div>
         );
         case 'connected-apps': return (
