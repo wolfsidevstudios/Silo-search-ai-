@@ -41,6 +41,7 @@ import { CodeIcon } from './icons/CodeIcon';
 import { PlaneIcon } from './icons/PlaneIcon';
 import { StoreIcon } from './icons/StoreIcon';
 import { NewspaperIcon } from './icons/NewspaperIcon';
+import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -354,6 +355,13 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                             <div>
                                 <h5 className="font-semibold text-gray-800">Travel Planner</h5>
                                 <p className="text-sm text-gray-600">Generates a complete travel itinerary with suggestions for flights, hotels, and activities.</p>
+                            </div>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                            <ShoppingCartIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
+                            <div>
+                                <h5 className="font-semibold text-gray-800">Shopping Agent</h5>
+                                <p className="text-sm text-gray-600">Finds and ranks the top 3 products based on your query, with images, summaries, and buy links.</p>
                             </div>
                         </li>
                         <li className="flex items-start space-x-3">

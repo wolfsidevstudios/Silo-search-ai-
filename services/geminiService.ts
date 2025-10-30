@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan } from '../types';
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean): Promise<SearchResult> {
   if (!apiKey) {
@@ -244,5 +244,67 @@ Return the results in JSON format.
   } catch (error) {
     console.error("Error fetching travel plan from Gemini API:", error);
     throw new Error("Failed to get a valid travel plan from the AI model.");
+  }
+}
+
+export async function fetchShoppingResults(query: string, apiKey: string): Promise<ShoppingResult> {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `Act as an expert shopping assistant. The user is looking for: "${query}".
+Your task is to find the top 3 best products that match this query.
+For each product, provide a concise summary, its current price, a direct URL to buy it, and a direct, publicly accessible URL for an image of the product.
+Also provide a brief overall summary of your recommendations. Use Google Search to find real, currently available products and information.
+Return the results in the specified JSON format.`;
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      overallSummary: { 
+        type: Type.STRING,
+        description: "A brief overall summary of the product recommendations."
+      },
+      products: {
+        type: Type.ARRAY,
+        description: "An array of the top 3 recommended products.",
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING, description: "The full name of the product." },
+            summary: { type: Type.STRING, description: "A concise summary of the product's features and why it's recommended." },
+            price: { type: Type.STRING, description: "The current price of the product as a string (e.g., '$199.99')." },
+            buyUrl: { type: Type.STRING, description: "A direct URL to a reputable retailer to purchase the product." },
+            imageUrl: { type: Type.STRING, description: "A direct, publicly accessible URL to a high-quality image of the product." },
+          },
+          required: ['name', 'summary', 'price', 'buyUrl', 'imageUrl']
+        }
+      }
+    },
+    required: ['overallSummary', 'products']
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: { 
+        responseMimeType: "application/json", 
+        responseSchema: schema,
+        tools: [{googleSearch: {}}],
+      },
+    });
+
+    const result: ShoppingResult = JSON.parse(response.text);
+    if (!result.products || result.products.length === 0) {
+        throw new Error("AI did not return any products.");
+    }
+    return result;
+
+  } catch (error) {
+    console.error("Error fetching shopping results from Gemini API:", error);
+    throw new Error("Failed to get a valid shopping response from the AI model.");
   }
 }

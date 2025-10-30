@@ -154,3 +154,16 @@ export interface TravelPlan {
   localTips: string[];
   mapBoundingBox: [number, number, number, number]; // minLon, minLat, maxLon, maxLat
 }
+
+export interface Product {
+  name: string;
+  summary: string;
+  price: string;
+  buyUrl: string;
+  imageUrl: string;
+}
+
+export interface ShoppingResult {
+  overallSummary: string;
+  products: Product[];
+}
