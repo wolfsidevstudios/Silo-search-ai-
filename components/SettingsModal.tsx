@@ -42,6 +42,7 @@ import { PlaneIcon } from './icons/PlaneIcon';
 import { StoreIcon } from './icons/StoreIcon';
 import { NewspaperIcon } from './icons/NewspaperIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
+import { ImageIcon } from './icons/ImageIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -75,6 +76,7 @@ interface SettingsPageProps {
 
 const AI_PROVIDERS = [
     { id: 'youtube', name: 'YouTube Data API', Icon: YouTubeIcon, description: 'Required for the video search feature. Get your key from the Google Cloud Console.', placeholder: 'Enter your YouTube Data v3 API key', getLink: 'https://console.cloud.google.com/apis/library/youtube.googleapis.com' },
+    { id: 'pexels', name: 'Pexels API', Icon: ImageIcon, description: 'Required for the media search feature. Get a free key from the Pexels website.', placeholder: 'Enter your Pexels API key', getLink: 'https://www.pexels.com/api/' },
     { id: 'openai', name: 'OpenAI', Icon: OpenAIIcon, description: 'You can find your OpenAI API key on your OpenAI account page.', placeholder: 'Enter your OpenAI API key (e.g., sk-...)', getLink: 'https://platform.openai.com/api-keys' },
     { id: 'anthropic', name: 'Anthropic', Icon: AnthropicIcon, description: 'Access your Anthropic API key from the Anthropic console settings.', placeholder: 'Enter your Anthropic API key', getLink: 'https://console.anthropic.com/settings/keys' },
 ];
@@ -362,6 +364,13 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                             <div>
                                 <h5 className="font-semibold text-gray-800">Shopping Agent</h5>
                                 <p className="text-sm text-gray-600">Finds and ranks the top 3 products based on your query, with images, summaries, and buy links.</p>
+                            </div>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                            <ImageIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
+                            <div>
+                                <h5 className="font-semibold text-gray-800">Media Search</h5>
+                                <p className="text-sm text-gray-600">Finds royalty-free images and videos for your projects from Pexels.</p>
                             </div>
                         </li>
                         <li className="flex items-start space-x-3">

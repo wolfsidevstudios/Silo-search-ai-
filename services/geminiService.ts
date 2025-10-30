@@ -299,3 +299,45 @@ Do not include any other text, explanations, or markdown formatting like \`\`\`j
     throw new Error("Failed to get a valid shopping response from the AI model.");
   }
 }
+
+export async function processPexelsQuery(query: string, apiKey: string): Promise<{ searchTerm: string, mediaType: 'photo' | 'video' }> {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `Analyze the user's query: "${query}".
+Determine the primary search term for a stock media website (like Pexels) and whether the user wants 'photo' or 'video'.
+If the query contains words like "video", "clip", "footage", or "motion", the mediaType should be 'video'.
+If it contains "image", "photo", "picture", "still", or "snapshot", it should be 'photo'.
+If neither is specified, default to 'photo'.
+Return a JSON object with 'searchTerm' and 'mediaType'.`;
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      searchTerm: { type: Type.STRING, description: 'The core subject of the search query.' },
+      mediaType: { type: Type.STRING, description: "Should be either 'photo' or 'video'." },
+    },
+    required: ['searchTerm', 'mediaType']
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: { responseMimeType: "application/json", responseSchema: schema },
+    });
+
+    const result = JSON.parse(response.text);
+    if (result.mediaType !== 'photo' && result.mediaType !== 'video') {
+        result.mediaType = 'photo'; // Fallback
+    }
+    return result;
+
+  } catch (error) {
+    console.error("Error processing Pexels query with Gemini:", error);
+    throw new Error("AI failed to process the media query.");
+  }
+}

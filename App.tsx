@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -6,9 +5,9 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
-import { fetchSearchResults } from './services/geminiService';
+import { fetchSearchResults, processPexelsQuery } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -27,6 +26,8 @@ import { TravelPlanPage } from './components/TravelPlanPage';
 import { fetchTravelPlan } from './services/geminiService';
 import { ShoppingPage } from './components/ShoppingPage';
 import { fetchShoppingResults } from './services/geminiService';
+import { fetchPexelsMedia } from './services/pexelsService';
+import { PexelsPage } from './components/PexelsPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -79,6 +80,8 @@ const App: React.FC = () => {
   const [travelQuery, setTravelQuery] = useState<string>('');
   const [shoppingResult, setShoppingResult] = useState<ShoppingResult | null>(null);
   const [shoppingQuery, setShoppingQuery] = useState<string>('');
+  const [pexelsResult, setPexelsResult] = useState<PexelsResult | null>(null);
+  const [pexelsQuery, setPexelsQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastSearchOptions, setLastSearchOptions] = useState<any>({});
@@ -171,6 +174,15 @@ const App: React.FC = () => {
         if (storedResult && storedQuery) {
             setShoppingResult(JSON.parse(storedResult));
             setShoppingQuery(storedQuery);
+        } else {
+            navigate('/search', { replace: true });
+        }
+    } else if (path === '/pexels') {
+        const storedResult = sessionStorage.getItem('pexelsResult');
+        const storedQuery = sessionStorage.getItem('pexelsQuery');
+        if (storedResult && storedQuery) {
+            setPexelsResult(JSON.parse(storedResult));
+            setPexelsQuery(storedQuery);
         } else {
             navigate('/search', { replace: true });
         }
@@ -382,10 +394,18 @@ const App: React.FC = () => {
   const [apiKeys, setApiKeys] = useState<{ [key: string]: string }>(() => {
     try {
       const items = window.localStorage.getItem('ai-api-keys');
-      return items ? JSON.parse(items) : { youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU' };
+      const parsed = items ? JSON.parse(items) : {};
+      return {
+        youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
+        pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
+        ...parsed,
+      };
     } catch (error) {
       console.error("Could not parse API keys from localStorage", error);
-      return { youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU' };
+      return {
+        youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
+        pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
+      };
     }
   });
 
@@ -659,12 +679,49 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => {
     if (!query.trim()) return;
     
     setLastSearchOptions(options);
     setSidebarOpen(false);
     setError(null);
+
+    if (options.pexelsSearch) {
+        setIsLoading(true);
+        setPexelsQuery(query);
+        if (!isTemporaryMode) {
+            setRecentSearches(prev => [`media: ${query}`, ...prev.filter(s => s !== `media: ${query}`)].slice(0, MAX_RECENT_SEARCHES));
+        }
+        try {
+            if (!apiKeys.pexels) {
+                throw new Error("Pexels API key is missing. Please add it in settings.");
+            }
+            const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+            const pexelsParams = await processPexelsQuery(query, GEMINI_API_KEY);
+            const { media, mediaType } = await fetchPexelsMedia(pexelsParams.searchTerm, apiKeys.pexels, pexelsParams.mediaType);
+            
+            const summaryResponse = await ai.models.generateContent({
+              model: 'gemini-2.5-flash',
+              contents: `Provide a short, one-sentence creative caption for a collection of ${pexelsParams.mediaType}s about "${pexelsParams.searchTerm}".`,
+            });
+            const summary = summaryResponse.text;
+    
+            const result: PexelsResult = { media, summary, mediaType };
+    
+            setPexelsResult(result);
+            sessionStorage.setItem('pexelsResult', JSON.stringify(result));
+            sessionStorage.setItem('pexelsQuery', query);
+            navigate('/pexels');
+    
+        } catch (err) {
+            console.error(err);
+            setError('Sorry, something went wrong with the media search. Please check your API keys and try again.');
+            setCurrentQuery(query);
+        } finally {
+            setIsLoading(false);
+        }
+        return;
+    }
 
     if (options.shoppingSearch) {
         setIsLoading(true);
@@ -929,6 +986,7 @@ const App: React.FC = () => {
         if (lastSearchOptions.travelSearch) queryToRetry = travelQuery;
         if (lastSearchOptions.shoppingSearch) queryToRetry = shoppingQuery;
         if (lastSearchOptions.mapSearch) queryToRetry = mapQuery;
+        if (lastSearchOptions.pexelsSearch) queryToRetry = pexelsQuery;
         
         if (!queryToRetry) {
             console.error("No query to retry.");
@@ -946,7 +1004,7 @@ const App: React.FC = () => {
       return <ErrorState message={error} onRetry={handleRetry} onHome={handleReturnHome} />;
     }
 
-    if (isLoading) return <LoadingState query={currentQuery || travelQuery || shoppingQuery || mapQuery} />;
+    if (isLoading) return <LoadingState query={currentQuery || travelQuery || shoppingQuery || mapQuery || pexelsQuery} />;
     
     const path = currentPath.split('?')[0];
 
@@ -965,6 +1023,7 @@ const App: React.FC = () => {
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
             case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
+            case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />;
@@ -977,6 +1036,7 @@ const App: React.FC = () => {
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
       case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
+      case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
       case '/search':
       default:
         const desktopSearchPageProps = {

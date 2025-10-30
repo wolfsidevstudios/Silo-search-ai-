@@ -6,7 +6,7 @@ import { SearchInput } from './SearchInput';
 interface ShoppingPageProps {
   initialResult: ShoppingResult;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;

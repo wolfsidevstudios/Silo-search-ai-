@@ -167,3 +167,66 @@ export interface ShoppingResult {
   overallSummary: string;
   products: Product[];
 }
+
+export interface PexelsPhotoSource {
+  original: string;
+  large2x: string;
+  large: string;
+  medium: string;
+  small: string;
+  portrait: string;
+  landscape: string;
+  tiny: string;
+}
+
+export interface PexelsPhoto {
+  id: number;
+  width: number;
+  height: number;
+  url: string;
+  photographer: string;
+  photographer_url: string;
+  photographer_id: number;
+  avg_color: string;
+  src: PexelsPhotoSource;
+  alt: string;
+}
+
+export interface PexelsVideoFile {
+    id: number;
+    quality: 'hd' | 'sd' | 'hls';
+    file_type: string;
+    width: number;
+    height: number;
+    link: string;
+}
+
+export interface PexelsVideoPicture {
+    id: number;
+    picture: string;
+    nr: number;
+}
+
+export interface PexelsVideo {
+    id: number;
+    width: number;
+    height: number;
+    url: string;
+    image: string; // Thumbnail
+    duration: number;
+    user: {
+        id: number;
+        name: string;
+        url: string;
+    };
+    video_files: PexelsVideoFile[];
+    video_pictures: PexelsVideoPicture[];
+}
+
+export type PexelsMedia = (PexelsPhoto & { type: 'Photo' }) | (PexelsVideo & { type: 'Video' });
+
+export interface PexelsResult {
+  media: PexelsMedia[];
+  summary: string;
+  mediaType: 'photo' | 'video';
+}
