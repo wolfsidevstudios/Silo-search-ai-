@@ -21,11 +21,10 @@ import { CloseIcon } from './components/icons/CloseIcon';
 import { supabase } from './utils/supabase';
 import { LoginPage } from './components/LoginPage';
 import { MapPage } from './components/MapPage';
+import { useIsMobile } from './hooks/useIsMobile';
+import { MobileApp } from './components/mobile/MobileApp';
 
-type View = 'search' | 'results' | 'loading' | 'error' | 'map';
-type AuthView = 'landing' | 'login';
 type SpeechLanguage = 'en-US' | 'es-ES';
-type LegalPage = 'none' | 'privacy' | 'terms' | 'about';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
 
 declare global {
@@ -65,19 +64,17 @@ const ComingSoonModal: React.FC<ComingSoonModalProps> = ({ isOpen, onClose }) =>
   );
 };
 
-// FIX: Define MAX_RECENT_SEARCHES constant to limit the number of recent searches stored.
 const MAX_RECENT_SEARCHES = 20;
 
 const App: React.FC = () => {
-  const [view, setView] = useState<View>('search');
-  const [authView, setAuthView] = useState<AuthView>('landing');
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [currentQuery, setCurrentQuery] = useState<string>('');
   const [mapQuery, setMapQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isSettingsPageOpen, setSettingsPageOpen] = useState(false);
   const [initialSettingsSection, setInitialSettingsSection] = useState<string | undefined>();
   const [isTemporaryMode, setTemporaryMode] = useState(false);
   const [isStickerEditMode, setStickerEditMode] = useState(false);
@@ -92,7 +89,6 @@ const App: React.FC = () => {
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [showChromeBanner, setShowChromeBanner] = useState(false);
 
-  const [activeLegalPage, setActiveLegalPage] = useState<LegalPage>('none');
   const [termsAgreement, setTermsAgreement] = useState<TermsAgreement>(() => {
     const stored = window.localStorage.getItem('termsAgreement_v1');
     return (stored === 'agreed' || stored === 'disagreed') ? stored : 'pending';
@@ -111,6 +107,49 @@ const App: React.FC = () => {
     return null;
   });
 
+  const isMobile = useIsMobile();
+  
+  const navigate = useCallback((path: string, options?: { replace?: boolean, section?: string }) => {
+    if (options?.replace) {
+      window.history.replaceState(null, '', path);
+    } else {
+      window.history.pushState(null, '', path);
+    }
+    setCurrentPath(path);
+    if (path.startsWith('/settings') && options?.section) {
+        setInitialSettingsSection(options.section);
+    }
+  }, []);
+  
+  useEffect(() => {
+    const onPopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+  
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/results') {
+        const storedResult = sessionStorage.getItem('searchResult');
+        const storedQuery = sessionStorage.getItem('currentQuery');
+        const storedStudyMode = sessionStorage.getItem('isStudyMode');
+        if (storedResult && storedQuery) {
+            setSearchResult(JSON.parse(storedResult));
+            setCurrentQuery(storedQuery);
+            setIsStudyMode(storedStudyMode ? JSON.parse(storedStudyMode) : false);
+        } else {
+            navigate('/search', { replace: true });
+        }
+    } else if (path === '/map') {
+        const storedMapQuery = sessionStorage.getItem('mapQuery');
+        if (storedMapQuery) {
+            setMapQuery(storedMapQuery);
+        } else {
+            navigate('/search', { replace: true });
+        }
+    }
+  }, [navigate]);
+  
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
@@ -120,15 +159,17 @@ const App: React.FC = () => {
                 picture: session.user.user_metadata.avatar_url || session.user.user_metadata.picture || '',
                 provider: session.user.app_metadata.provider,
             });
+             if (['/', '/login'].includes(currentPath)) {
+                navigate('/search', { replace: true });
+            }
         } else {
-            // Only clear profile if it's not a Google user, to avoid conflicts
             if (userProfile && userProfile.provider !== 'google') {
                 setUserProfile(null);
+                 navigate('/', { replace: true });
             }
         }
     });
 
-    // Also check for initial Supabase session on load if no user is already loaded
     const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
@@ -138,6 +179,9 @@ const App: React.FC = () => {
                 picture: session.user.user_metadata.avatar_url || session.user.user_metadata.picture || '',
                 provider: session.user.app_metadata.provider,
             });
+             if (['/', '/login'].includes(window.location.pathname)) {
+                navigate('/search', { replace: true });
+            }
         }
     };
     if (!userProfile) {
@@ -146,7 +190,7 @@ const App: React.FC = () => {
 
 
     return () => subscription.unsubscribe();
-  }, [userProfile]);
+  }, [userProfile, navigate, currentPath]);
 
   const [stickers, setStickers] = useState<StickerInstance[]>(() => {
     try {
@@ -181,7 +225,7 @@ const App: React.FC = () => {
   const [proCredits, setProCredits] = useState<number>(() => {
     try {
       const item = window.localStorage.getItem('proCredits');
-      return item ? JSON.parse(item) : 50; // Welcome bonus
+      return item ? JSON.parse(item) : 50;
     } catch (error) {
       console.error("Could not parse proCredits from localStorage", error);
       return 50;
@@ -223,14 +267,13 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Daily login bonus
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     if (lastDailyCredit !== today && userProfile) {
       setProCredits(c => c + 5);
       setLastDailyCredit(today);
     }
-  }, [userProfile]); // Run when user logs in
+  }, [userProfile, lastDailyCredit]);
 
   const handleCloseChromeBanner = () => {
     setShowChromeBanner(false);
@@ -411,7 +454,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     window.localStorage.setItem('kyndra-ai-theme', theme);
-    document.body.className = ''; // Clear body class, style will be on the div
+    document.body.className = '';
   }, [theme]);
 
   useEffect(() => {
@@ -560,7 +603,7 @@ const App: React.FC = () => {
     }
   }, [lastDailyCredit]);
   
-  const handleGoogleSignIn = (response: any) => {
+  const handleGoogleSignIn = useCallback((response: any) => {
     try {
         const credential = response.credential;
         const payload = JSON.parse(atob(credential.split('.')[1]));
@@ -571,24 +614,23 @@ const App: React.FC = () => {
             provider: 'google'
         };
         setUserProfile(profile);
+        navigate('/search', { replace: true });
     } catch (error) {
         console.error("Google Sign-In error:", error);
     }
-  };
+  }, [navigate]);
   
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     const provider = userProfile?.provider;
-
     if (provider === 'google' && window.google) {
       window.google.accounts.id.disableAutoSelect();
     } else if (provider) {
-      // For Supabase providers
       const { error } = await supabase.auth.signOut();
       if (error) console.error('Error logging out:', error);
     }
     setUserProfile(null);
-    setAuthView('landing');
-  };
+    navigate('/', { replace: true });
+  }, [userProfile, navigate]);
 
   const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => {
     if (!query.trim()) return;
@@ -598,7 +640,8 @@ const App: React.FC = () => {
 
     if (options.mapSearch) {
         setMapQuery(query);
-        setView('map');
+        sessionStorage.setItem('mapQuery', query);
+        navigate('/map');
         if (!isTemporaryMode) {
           setRecentSearches(prevSearches => {
             const updatedSearches = [`map: ${query}`, ...prevSearches.filter(s => s !== `map: ${query}`)];
@@ -610,7 +653,7 @@ const App: React.FC = () => {
 
     const studyMode = options.studyMode ?? isStudyMode;
 
-    setView('loading');
+    setIsLoading(true);
     setCurrentQuery(query);
     setIsStudyMode(studyMode);
 
@@ -642,7 +685,11 @@ const App: React.FC = () => {
       };
 
       setSearchResult(combinedResult);
-      setView('results');
+      sessionStorage.setItem('searchResult', JSON.stringify(combinedResult));
+      sessionStorage.setItem('currentQuery', query);
+      sessionStorage.setItem('isStudyMode', JSON.stringify(studyMode));
+
+      navigate('/results');
 
       if (!isTemporaryMode) {
         setProCredits(c => c + 1);
@@ -650,36 +697,22 @@ const App: React.FC = () => {
     } catch (err) {
       console.error(err);
       setError('Sorry, something went wrong. Please check your API key(s) and try again.');
-      setView('error');
+      setCurrentQuery(query); // Keep query for retry
+    } finally {
+        setIsLoading(false);
     }
-  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode]);
+  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate]);
 
-  const handleGoHome = () => {
-    setView('search');
-    setSearchResult(null);
-    setCurrentQuery('');
-    setMapQuery('');
-    setError(null);
-    setIsStudyMode(false);
-  };
-  
-  const handleToggleSidebar = () => {
-    setSidebarOpen(prev => !prev);
-  }
+  const handleGoHome = () => navigate('/search');
+  const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
   const handleToggleTemporaryMode = () => setTemporaryMode(prev => !prev);
   const handleClearRecents = () => setRecentSearches([]);
 
   const handleOpenSettingsPage = (section?: string) => {
     setSidebarOpen(false);
-    setInitialSettingsSection(section);
-    setSettingsPageOpen(true);
+    navigate('/settings', { section });
   };
-
-  const handleCloseSettingsPage = () => {
-    setSettingsPageOpen(false);
-    setInitialSettingsSection(undefined);
-  };
-
+  
   const handleEnterChatMode = (query: string, summary: string) => {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     chatRef.current = ai.chats.create({ 
@@ -721,7 +754,7 @@ const App: React.FC = () => {
   };
   
   const handleEnterStickerEditMode = () => {
-    setSettingsPageOpen(false);
+    navigate('/search');
     setStickerEditMode(true);
   }
 
@@ -729,10 +762,9 @@ const App: React.FC = () => {
     const newSticker: StickerInstance = {
       id: `sticker-${Date.now()}`,
       stickerId,
-      // Add sticker near the center so it's easy to find
       x: 50 + (Math.random() - 0.5) * 10,
       y: 40 + (Math.random() - 0.5) * 10,
-      size: 8 + Math.random() * 2, // Random size between 8 and 10 rem
+      size: 8 + Math.random() * 2,
     };
     setStickers(prev => [...prev, newSticker]);
   };
@@ -744,9 +776,7 @@ const App: React.FC = () => {
       imageData,
     };
     setCustomStickers(prev => [...prev, newCustomSticker]);
-    // Automatically add the new sticker to the canvas
     handleAddSticker(newCustomSticker.id);
-    // Enter edit mode immediately
     handleEnterStickerEditMode();
   };
 
@@ -754,14 +784,8 @@ const App: React.FC = () => {
     setStickers(prev => prev.map(s => s.id === updatedSticker.id ? updatedSticker : s));
   };
 
-  const handleClearStickers = () => {
-    setStickers([]);
-  };
-
-  const handleEnterWidgetEditMode = () => {
-    setSettingsPageOpen(false);
-    setWidgetEditMode(true);
-  };
+  const handleClearStickers = () => setStickers([]);
+  const handleEnterWidgetEditMode = () => { navigate('/search'); setWidgetEditMode(true); };
 
   const handleAddWidget = (widgetType: WidgetType) => {
     const newWidget: WidgetInstance = {
@@ -779,17 +803,9 @@ const App: React.FC = () => {
     setWidgets(prev => prev.map(w => w.id === updatedWidget.id ? updatedWidget : w));
   };
 
-  const handleClearWidgets = () => {
-    setWidgets([]);
-  };
-
-  const handleOpenLegalPage = (page: LegalPage) => {
-    setSettingsPageOpen(false);
-    setActiveLegalPage(page);
-  };
-  const handleCloseLegalPage = () => setActiveLegalPage('none');
+  const handleClearWidgets = () => setWidgets([]);
   const handleAgreeToTerms = () => setTermsAgreement('agreed');
-  const handleDisagreeToTerms = () => setTermsAgreement('disagreed');
+  const handleDisagreeToTerms = () => { setTermsAgreement('disagreed'); navigate('/access-denied', { replace: true }); };
 
   const handleDeleteAllData = () => {
     if (window.confirm('Are you sure you want to delete all app data? This action is irreversible and will reset the application to its default state.')) {
@@ -827,8 +843,11 @@ const App: React.FC = () => {
     }
   };
 
+  const renderAppContent = () => {
+    if (isLoading) return <LoadingState query={currentQuery} />;
+    
+    const path = currentPath.split('?')[0];
 
-  const renderMainContent = () => {
     const commonProps = {
       isTemporaryMode,
       onToggleSidebar: handleToggleSidebar,
@@ -838,169 +857,78 @@ const App: React.FC = () => {
       onLogout: handleLogout,
     };
     
-    const searchPageProps = {
-        onSearch: handleSearch, 
-        isClockVisible: isClockVisible, 
-        clockSettings: clockSettings, 
-        stickers: stickers, 
-        onUpdateSticker: handleUpdateSticker, 
-        isStickerEditMode: isStickerEditMode, 
-        onExitStickerEditMode: () => setStickerEditMode(false), 
-        customStickers: customStickers, 
-        temperatureUnit: temperatureUnit,
-        widgets: widgets, 
-        onUpdateWidget: handleUpdateWidget, 
-        isWidgetEditMode: isWidgetEditMode, 
-        onExitWidgetEditMode: () => setWidgetEditMode(false),
-        searchInputSettings: searchInputSettings,
-        speechLanguage: speechLanguage,
-        onOpenLegalPage: handleOpenLegalPage,
-        onOpenComingSoonModal: handleOpenComingSoonModal,
-        isStudyMode,
-        setIsStudyMode,
-        ...commonProps
-    };
-
-    switch(view) {
-      case 'loading':
-        return <LoadingState query={currentQuery} />;
-      case 'error':
-        return <ErrorState message={error} onRetry={() => handleSearch(currentQuery, { studyMode: isStudyMode })} onHome={handleGoHome} />;
-      case 'results':
-        if (searchResult) {
-          return <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={handleOpenLegalPage} {...commonProps} />;
+    if (isMobile) {
+        switch(path) {
+            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={currentQuery}/>;
+            case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+            case '/search':
+            case '/history':
+            default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />;
         }
-        return <SearchPage {...searchPageProps} />;
-      case 'map':
-        return <MapPage 
-            initialQuery={mapQuery}
-            onSearch={(query) => handleSearch(query, { mapSearch: true })}
-            onHome={handleGoHome}
-            geminiApiKey={GEMINI_API_KEY}
-            onOpenLegalPage={handleOpenLegalPage}
-            {...commonProps} 
-        />;
-      case 'search':
+    }
+
+    // Desktop view
+    switch(path) {
+      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={currentQuery} />;
+      case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/search':
       default:
-        return <SearchPage {...searchPageProps} />;
+        const desktopSearchPageProps = {
+// FIX: Correctly pass handleUpdateSticker and handleUpdateWidget props. Shorthand property names 'onUpdateSticker' and 'onUpdateWidget' were used without a value in scope.
+          onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, ...commonProps
+        };
+        return <SearchPage {...desktopSearchPageProps} />;
     }
   };
 
-  const appStyle = {
-    ...(customWallpaper
-        ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
-        : {}),
-    fontSize: `${accessibilitySettings.uiFontSize}%`,
-  };
+  const appStyle = { fontSize: `${accessibilitySettings.uiFontSize}%` };
+  const appClasses = ['min-h-screen font-sans', isMobile ? 'bg-gray-50 text-gray-900' : 'text-gray-900', !isMobile && !customWallpaper ? theme : '', !isMobile && customWallpaper ? 'bg-gray-100' : '', accessibilitySettings.highContrast ? 'high-contrast' : ''].join(' ');
 
-  const appClasses = [
-    'min-h-screen font-sans text-gray-900',
-    !customWallpaper ? theme : 'bg-gray-100',
-    accessibilitySettings.highContrast ? 'high-contrast' : ''
-  ].join(' ');
+  const renderRouter = () => {
+    const path = currentPath.split('?')[0];
 
-  const renderApp = () => {
     if (termsAgreement === 'pending') {
       return <TermsPage isInitialPrompt={true} onAgree={handleAgreeToTerms} onDisagree={handleDisagreeToTerms} />;
     }
-
     if (termsAgreement === 'disagreed') {
-        return <AccessDeniedPage onDownloadData={handleExportData} onRemoveData={handleDeleteAllData} />;
-    }
-
-    switch (activeLegalPage) {
-        case 'privacy':
-            return <PrivacyPage onClose={handleCloseLegalPage} />;
-        case 'terms':
-            return <TermsPage isInitialPrompt={false} onClose={handleCloseLegalPage} />;
-        case 'about':
-            return <AboutPage onClose={handleCloseLegalPage} />;
-        case 'none':
-        default:
-            break;
-    }
-
-    if (!userProfile) {
-      if (authView === 'login') {
-        return <LoginPage 
-          onGoogleSignIn={handleGoogleSignIn} 
-          onOpenLegalPage={handleOpenLegalPage}
-          onBackToLanding={() => setAuthView('landing')} 
-        />;
-      }
-      return <LandingPage 
-        onNavigateToLogin={() => setAuthView('login')} 
-        onOpenLegalPage={handleOpenLegalPage} 
-      />;
-    }
-
-    if (isSettingsPageOpen) {
-      return (
-        <div className={appClasses} style={appStyle}>
-            <SettingsModal
-              onClose={handleCloseSettingsPage}
-              initialSection={initialSettingsSection}
-              onOpenLegalPage={handleOpenLegalPage}
-              apiKeys={apiKeys} onApiKeysChange={setApiKeys}
-              currentTheme={theme} onThemeChange={setTheme}
-              customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper}
-              isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible}
-              clockSettings={clockSettings} onClockSettingsChange={setClockSettings}
-              temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit}
-              speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage}
-              stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode}
-              customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker}
-              widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode}
-              searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings}
-              searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings}
-              accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings}
-              languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings}
-              notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings}
-              developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings}
-              analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings}
-              proCredits={proCredits}
-              unlockedProFeatures={unlockedProFeatures}
-              onUnlockFeature={handleUnlockFeature}
-              userProfile={userProfile}
-              onLogout={handleLogout}
-              onDeleteAllData={handleDeleteAllData}
-              onExportData={handleExportData}
-            />
-        </div>
-      );
+      return <AccessDeniedPage onDownloadData={handleExportData} onRemoveData={handleDeleteAllData} />;
     }
     
-    return (
-      <div className={appClasses} style={appStyle}>
-        {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
-        <Sidebar 
-          isOpen={isSidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          recentSearches={recentSearches}
-          onSearch={(query) => handleSearch(query, {})}
-          onClear={handleClearRecents}
-          onOpenSettings={handleOpenSettingsPage}
-          userProfile={userProfile}
-          onLogout={handleLogout}
-          proCredits={proCredits}
-        />
-        <ChatModal
-          isOpen={isChatModeOpen}
-          onClose={handleCloseChatMode}
-          history={chatHistory}
-          onSendMessage={handleSendChatMessage}
-          isLoading={isChatLoading}
-        />
-        <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
-        <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
-        <div className={`${isSidebarOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
-          {renderMainContent()}
-        </div>
-      </div>
-    );
+    if (!userProfile) {
+        switch (path) {
+            case '/login': return <LoginPage onGoogleSignIn={handleGoogleSignIn} onOpenLegalPage={(p) => navigate(`/${p}`)} onBackToLanding={() => navigate('/')} />;
+            case '/':
+            default: return <LandingPage onNavigateToLogin={() => navigate('/login')} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
+        }
+    }
+    
+    // Logged-in user routes
+    switch (path) {
+        case '/privacy': return <PrivacyPage onClose={() => window.history.back()} />;
+        case '/terms': return <TermsPage isInitialPrompt={false} onClose={() => window.history.back()} />;
+        case '/about': return <AboutPage onClose={() => window.history.back()} />;
+        case '/settings': return (
+            <div className={appClasses} style={appStyle}>
+                 <SettingsModal onClose={() => navigate('/search')} initialSection={initialSettingsSection} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onApiKeysChange={setApiKeys} currentTheme={theme} onThemeChange={setTheme} customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper} isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible} clockSettings={clockSettings} onClockSettingsChange={setClockSettings} temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit} speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage} stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode} customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker} widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode} searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings} searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings} accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings} languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings} notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings} developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings} analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings} proCredits={proCredits} unlockedProFeatures={unlockedProFeatures} onUnlockFeature={handleUnlockFeature} userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData} onExportData={handleExportData} />
+            </div>
+        );
+        default:
+            return (
+                <div className={appClasses} style={{ ...appStyle, ...(customWallpaper && !isMobile ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' } : {}) }}>
+                    {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
+                    {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} />}
+                    <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
+                    <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
+                    <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
+                    <div className={`${isSidebarOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
+                    {renderAppContent()}
+                    </div>
+                </div>
+            );
+    }
   };
 
-  return renderApp();
+  return renderRouter();
 };
 
 const LoadingState: React.FC<{query: string}> = ({ query }) => (
@@ -1027,6 +955,5 @@ const ErrorState: React.FC<{message: string | null; onRetry: () => void; onHome:
       </div>
     </div>
 );
-
 
 export default App;

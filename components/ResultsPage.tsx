@@ -11,6 +11,7 @@ import { Footer } from './Footer';
 import { FlashcardView } from './FlashcardView';
 import { QuizView } from './QuizView';
 import { CloseIcon } from './icons/CloseIcon';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface ResultsPageProps {
   result: SearchResult;
@@ -37,6 +38,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
   const [isStudyMode, setIsStudyMode] = useState(result.isStudyQuery || false);
   const [activeTab, setActiveTab] = useState<ResultTab>('summary');
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const handleOpenVideo = (videoId: string) => {
     setSelectedVideoId(videoId);
@@ -85,7 +87,6 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
   };
 
   useEffect(() => {
-    // When the component unmounts, cancel any ongoing speech
     return () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -222,9 +223,9 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm">
+      <footer className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm">
         <div className="max-w-xl mx-auto">
-          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />
+          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />
           <Footer onOpenLegalPage={onOpenLegalPage} className="p-0 pt-2 text-xs" />
         </div>
       </footer>

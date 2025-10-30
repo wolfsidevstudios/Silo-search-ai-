@@ -34,6 +34,8 @@ import { GitHubIcon } from './icons/GitHubIcon';
 import { BookOpenIcon } from './icons/BookOpenIcon';
 import { MapPinIcon } from './icons/MapPinIcon';
 import { LayersIcon } from './icons/LayersIcon';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -127,6 +129,24 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
   const wallpaperFileInputRef = useRef<HTMLInputElement>(null);
   const importFileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
+  const [mobileView, setMobileView] = useState<'nav' | 'content'>('nav');
+
+  useEffect(() => {
+    if (initialSection) {
+        setActiveSection(initialSection);
+        if (isMobile) {
+            setMobileView('content');
+        }
+    }
+  }, [initialSection, isMobile]);
+
+  const handleNavClick = (sectionId: string) => {
+    setActiveSection(sectionId);
+    if (isMobile) {
+        setMobileView('content');
+    }
+  };
 
   const handleAddStickerAndEdit = (stickerId: string) => { onAddSticker(stickerId); onEnterStickerEditMode(); };
   const handleUploadStickerClick = () => { stickerFileInputRef.current?.click(); };
@@ -419,14 +439,17 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
     }
   }
 
+  const headerTitle = isMobile && mobileView === 'nav' ? 'Settings' : activeSectionDetails?.name || 'Settings';
+  const showBackButton = isMobile && mobileView === 'content';
+
   return (
-    <div className="flex h-screen w-full bg-gray-50 font-sans">
+    <div className="flex h-screen w-full bg-gray-50 font-sans flex-col md:flex-row">
         <input type="file" ref={stickerFileInputRef} onChange={handleStickerFileChange} accept="image/*" className="hidden" />
         <input type="file" ref={wallpaperFileInputRef} onChange={handleWallpaperFileChange} accept="image/*" className="hidden" />
         <input type="file" ref={importFileInputRef} onChange={handleImportFileChange} accept=".json" className="hidden" />
 
-        <nav className="w-80 flex-shrink-0 bg-white border-r flex flex-col">
-            <div className="p-6 border-b">
+        <nav className={`flex-col md:w-80 md:flex-shrink-0 bg-white border-r ${isMobile && mobileView === 'content' ? 'hidden' : 'flex'} ${isMobile ? 'w-full' : ''}`}>
+            <div className="p-6 border-b hidden md:block">
                 <h1 className="text-2xl font-bold">Settings</h1>
             </div>
             <div className="flex-grow p-4 space-y-4 overflow-y-auto">
@@ -435,7 +458,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{category}</p>
                         <div className="mt-2 space-y-1">
                             {items.map(item => (
-                                <button key={item.id} onClick={() => setActiveSection(item.id)} className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left text-sm font-medium transition-colors ${ activeSection === item.id ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100/50' }`}>
+                                <button key={item.id} onClick={() => handleNavClick(item.id)} className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left text-sm font-medium transition-colors ${ activeSection === item.id ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100/50' }`}>
                                     <item.Icon className="w-5 h-5 flex-shrink-0" />
                                     <span>{item.name}</span>
                                 </button>
@@ -460,12 +483,19 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
             )}
         </nav>
 
-        <div className="flex-1 flex flex-col">
+        <div className={`flex-1 flex-col ${isMobile && mobileView === 'nav' ? 'hidden' : 'flex'}`}>
             <header className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b p-4 flex justify-between items-center">
-                <h2 className="text-xl font-semibold">{activeSectionDetails?.name}</h2>
+                <div className="flex items-center">
+                    {showBackButton && (
+                        <button onClick={() => setMobileView('nav')} className="mr-2 p-2 rounded-full hover:bg-gray-100">
+                            <ArrowLeftIcon />
+                        </button>
+                    )}
+                    <h2 className="text-xl font-semibold">{headerTitle}</h2>
+                </div>
                 <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">Done</button>
             </header>
-            <main className="flex-1 overflow-y-auto p-8">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-3xl mx-auto">
                     {renderContent()}
                 </div>
