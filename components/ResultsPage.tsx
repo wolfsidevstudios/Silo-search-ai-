@@ -16,7 +16,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 interface ResultsPageProps {
   result: SearchResult;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean }) => void;
   onHome: () => void;
   onEnterChatMode: (query: string, summary: string) => void;
   isTemporaryMode: boolean;

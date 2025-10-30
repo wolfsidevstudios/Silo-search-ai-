@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult } from '../types';
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean): Promise<SearchResult> {
   if (!apiKey) {
@@ -154,5 +154,95 @@ If the query is just a location (e.g., 'Paris'), list popular landmarks or point
   } catch (error) {
     console.error("Error fetching map results from Gemini API:", error);
     throw new Error("Failed to get a valid map response from the AI model.");
+  }
+}
+
+export async function fetchTravelPlan(query: string, apiKey: string): Promise<TravelPlan> {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `Create a detailed travel itinerary based on the user's request: "${query}".
+The plan should be comprehensive and practical.
+Return the results in JSON format.
+- The 'destination' should be the primary location.
+- The 'duration' should be stated clearly.
+- The 'budget' should be an estimated range.
+- 'flightDetails' should offer general advice for booking flights.
+- 'accommodation' should suggest a 'type' (e.g., 'Hotels', 'Hostels', 'Airbnb') and a few specific 'suggestions'.
+- The 'itinerary' should be an array of daily plans. Each day needs a 'day' number, a 'title' (e.g., 'Arrival and Shinjuku Exploration'), and an array of 'activities'.
+- Each 'activity' must have a 'time' (e.g., 'Morning', '9:00 AM', 'Afternoon') and a 'description'.
+- Include a 'packingList' of essential items.
+- Provide some useful 'localTips'.
+- Finally, provide a 'mapBoundingBox' for the destination as an array of four numbers: [minimum longitude, minimum latitude, maximum longitude, maximum latitude].`;
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      destination: { type: Type.STRING },
+      duration: { type: Type.STRING },
+      budget: { type: Type.STRING },
+      flightDetails: {
+        type: Type.OBJECT,
+        properties: { advice: { type: Type.STRING } },
+        required: ['advice'],
+      },
+      accommodation: {
+        type: Type.OBJECT,
+        properties: {
+          type: { type: Type.STRING },
+          suggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: ['type', 'suggestions'],
+      },
+      itinerary: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            day: { type: Type.INTEGER },
+            title: { type: Type.STRING },
+            activities: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  time: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  location: { type: Type.STRING },
+                },
+                required: ['time', 'description'],
+              },
+            },
+          },
+          required: ['day', 'title', 'activities'],
+        },
+      },
+      packingList: { type: Type.ARRAY, items: { type: Type.STRING } },
+      localTips: { type: Type.ARRAY, items: { type: Type.STRING } },
+      mapBoundingBox: {
+        type: Type.ARRAY,
+        items: { type: Type.NUMBER },
+        description: '[min longitude, min latitude, max longitude, max latitude]',
+      },
+    },
+    required: ['destination', 'duration', 'budget', 'flightDetails', 'accommodation', 'itinerary', 'packingList', 'localTips', 'mapBoundingBox'],
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: { responseMimeType: "application/json", responseSchema: schema },
+    });
+
+    const result: TravelPlan = JSON.parse(response.text);
+    return result;
+
+  } catch (error) {
+    console.error("Error fetching travel plan from Gemini API:", error);
+    throw new Error("Failed to get a valid travel plan from the AI model.");
   }
 }

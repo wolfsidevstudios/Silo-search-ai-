@@ -8,7 +8,7 @@ import { MobileHistoryPage } from './MobileHistoryPage';
 interface MobileAppProps {
     currentPath: string;
     navigate: (path: string) => void;
-    onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => void;
+    onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean }) => void;
     recentSearches: string[];
     onClearRecents: () => void;
     speechLanguage: 'en-US' | 'es-ES';

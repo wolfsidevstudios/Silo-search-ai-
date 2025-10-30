@@ -10,7 +10,7 @@ import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, Use
 import { Footer } from './Footer';
 
 interface SearchPageProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean }) => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;

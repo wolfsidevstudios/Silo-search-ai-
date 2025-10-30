@@ -13,6 +13,7 @@ import { MapPinIcon } from './icons/MapPinIcon';
 import { YouTubeIcon } from './icons/YouTubeIcon';
 import { WikipediaIcon } from './icons/WikipediaIcon';
 import { RedditIcon } from './icons/RedditIcon';
+import { PlaneIcon } from './icons/PlaneIcon';
 
 // FIX: Add type definitions for Web Speech API to resolve TypeScript errors. These types are not part of the standard TypeScript library.
 interface SpeechRecognitionAlternative {
@@ -64,7 +65,7 @@ interface CustomWindow extends Window {
 declare const window: CustomWindow;
 
 interface SearchInputProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
@@ -151,6 +152,15 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     setDropdownOpen(false);
   };
 
+  const handleSelectTravelMode = () => {
+    if (!query.trim()) {
+        alert("Please enter a destination or travel idea to start planning.");
+        return;
+    }
+    onSearch(query, { travelSearch: true });
+    setDropdownOpen(false);
+  };
+
   const handleExternalSearch = (urlTemplate: string) => {
     if (!query.trim()) {
         alert("Please enter a search query first.");
@@ -187,6 +197,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
           </button>
            <button onClick={handleSelectMapMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
             <MapPinIcon className="w-5 h-5 text-gray-500" /><span>Search Maps</span>
+          </button>
+          <button onClick={handleSelectTravelMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <PlaneIcon className="w-5 h-5 text-gray-500" /><span>Travel Planner</span>
           </button>
           <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
             <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />

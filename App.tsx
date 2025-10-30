@@ -8,7 +8,7 @@ import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
 import { fetchSearchResults } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -23,6 +23,8 @@ import { LoginPage } from './components/LoginPage';
 import { MapPage } from './components/MapPage';
 import { useIsMobile } from './hooks/useIsMobile';
 import { MobileApp } from './components/mobile/MobileApp';
+import { TravelPlanPage } from './components/TravelPlanPage';
+import { fetchTravelPlan } from './services/geminiService';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -71,6 +73,8 @@ const App: React.FC = () => {
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [currentQuery, setCurrentQuery] = useState<string>('');
   const [mapQuery, setMapQuery] = useState<string>('');
+  const [travelPlan, setTravelPlan] = useState<TravelPlan | null>(null);
+  const [travelQuery, setTravelQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -144,6 +148,15 @@ const App: React.FC = () => {
         const storedMapQuery = sessionStorage.getItem('mapQuery');
         if (storedMapQuery) {
             setMapQuery(storedMapQuery);
+        } else {
+            navigate('/search', { replace: true });
+        }
+    } else if (path === '/travel-plan') {
+        const storedPlan = sessionStorage.getItem('travelPlan');
+        const storedQuery = sessionStorage.getItem('travelQuery');
+        if (storedPlan && storedQuery) {
+            setTravelPlan(JSON.parse(storedPlan));
+            setTravelQuery(storedQuery);
         } else {
             navigate('/search', { replace: true });
         }
@@ -632,11 +645,36 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean }) => {
     if (!query.trim()) return;
 
     setSidebarOpen(false);
     setError(null);
+
+    if (options.travelSearch) {
+        setIsLoading(true);
+        setTravelQuery(query);
+        if (!isTemporaryMode) {
+          setRecentSearches(prevSearches => {
+            const updatedSearches = [`travel: ${query}`, ...prevSearches.filter(s => s !== `travel: ${query}`)];
+            return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
+          });
+        }
+        try {
+            const result = await fetchTravelPlan(query, GEMINI_API_KEY);
+            setTravelPlan(result);
+            sessionStorage.setItem('travelPlan', JSON.stringify(result));
+            sessionStorage.setItem('travelQuery', query);
+            navigate('/travel-plan');
+        } catch (err) {
+            console.error(err);
+            setError('Sorry, something went wrong planning your trip. Please check your API key and try again.');
+            setCurrentQuery(query);
+        } finally {
+            setIsLoading(false);
+        }
+        return;
+    }
 
     if (options.mapSearch) {
         setMapQuery(query);
@@ -844,7 +882,7 @@ const App: React.FC = () => {
   };
 
   const renderAppContent = () => {
-    if (isLoading) return <LoadingState query={currentQuery} />;
+    if (isLoading) return <LoadingState query={currentQuery || travelQuery} />;
     
     const path = currentPath.split('?')[0];
 
@@ -861,6 +899,7 @@ const App: React.FC = () => {
         switch(path) {
             case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={currentQuery}/>;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+            case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />;
@@ -871,6 +910,7 @@ const App: React.FC = () => {
     switch(path) {
       case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={currentQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
       case '/search':
       default:
         const desktopSearchPageProps = {

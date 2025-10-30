@@ -125,3 +125,32 @@ export interface MapSearchResult {
   locationName: string;
   boundingBox: [number, number, number, number]; // minLon, minLat, maxLon, maxLat
 }
+
+export interface Activity {
+  time: string;
+  description: string;
+  location?: string;
+}
+
+export interface DayPlan {
+  day: number;
+  title: string;
+  activities: Activity[];
+}
+
+export interface TravelPlan {
+  destination: string;
+  duration: string;
+  budget: string;
+  flightDetails: {
+    advice: string;
+  };
+  accommodation: {
+    type: string;
+    suggestions: string[];
+  };
+  itinerary: DayPlan[];
+  packingList: string[];
+  localTips: string[];
+  mapBoundingBox: [number, number, number, number]; // minLon, minLat, maxLon, maxLat
+}

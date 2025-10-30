@@ -349,6 +349,13 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                                 <p className="text-sm text-gray-600">Find and explore places with AI-powered location summaries.</p>
                             </div>
                         </li>
+                         <li className="flex items-start space-x-3">
+                            <PlaneIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
+                            <div>
+                                <h5 className="font-semibold text-gray-800">Travel Planner</h5>
+                                <p className="text-sm text-gray-600">Generates a complete travel itinerary with suggestions for flights, hotels, and activities.</p>
+                            </div>
+                        </li>
                         <li className="flex items-start space-x-3">
                             <LayersIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
                             <div>
