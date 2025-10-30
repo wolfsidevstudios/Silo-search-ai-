@@ -180,7 +180,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
       )}
 
       {isDropdownOpen && (
-        <div ref={dropdownRef} className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
+        <div ref={dropdownRef} className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
           <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Modes</p>
           <button onClick={handleSelectStudyMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
             <BookOpenIcon className="w-5 h-5 text-gray-500" /><span>Study Mode</span>
