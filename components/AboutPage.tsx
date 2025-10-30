@@ -14,7 +14,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose }) => {
         <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100" aria-label="Go back">
           <ArrowLeftIcon />
         </button>
-        <h1 className="text-xl font-bold text-gray-800 ml-4">About Silo Search</h1>
+        <h1 className="text-xl font-bold text-gray-800 ml-4">About Kyndra AI</h1>
       </header>
       <main className="flex-grow p-6 md:p-8">
         <div className="max-w-3xl mx-auto text-center">
@@ -23,7 +23,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose }) => {
         </div>
         <div className="max-w-3xl mx-auto mt-8 prose prose-sm text-gray-700">
              <h4>Our Mission</h4>
-             <p>Silo Search is an intelligent search application designed to provide quick, concise, and accurate summaries for your queries, powered by leading AI models. Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p>
+             <p>Kyndra AI is an intelligent search application designed to provide quick, concise, and accurate summaries for your queries, powered by leading AI models. Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p>
              
              <h4>Our Philosophy</h4>
              <p>We believe in creating a personal, customizable, and private search experience. The "bring-your-own-key" model is central to this philosophy, as it gives you, the user, complete control over your data and API usage. We handle the interface, you handle the power.</p>

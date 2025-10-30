@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { OpenAIIcon } from './icons/OpenAIIcon';
@@ -87,7 +88,7 @@ const navItems = [
         { id: 'accessibility', name: 'Accessibility', Icon: UniversalAccessIcon },
     ]},
     { category: 'About', items: [
-        { id: 'about-silo', name: 'About Silo', Icon: InfoIcon },
+        { id: 'about-kyndra-ai', name: 'About Kyndra AI', Icon: InfoIcon },
         { id: 'legal', name: 'Terms & Privacy', Icon: FileTextIcon },
     ]}
 ];
@@ -163,7 +164,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
         try {
             const data = JSON.parse(e.target?.result as string);
             if (data['ai-api-keys']) onApiKeysChange(data['ai-api-keys']);
-            if (data['silo-theme']) onThemeChange(data['silo-theme']);
+            if (data['kyndra-ai-theme']) onThemeChange(data['kyndra-ai-theme']);
             onCustomWallpaperChange(data['customWallpaper'] || null);
             if (typeof data['isClockVisible'] === 'boolean') onIsClockVisibleChange(data['isClockVisible']);
             if (data['clockSettings']) onClockSettingsChange(data['clockSettings']);
@@ -319,7 +320,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         <button onClick={handleImportClick} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Import Data</button>
                     </div>
                 </SettingsCard>
-                <SettingsCard title="Usage Analytics" description="Help us improve Silo Search by sharing anonymous usage data.">
+                <SettingsCard title="Usage Analytics" description="Help us improve Kyndra AI by sharing anonymous usage data.">
                     <div className="flex items-center justify-between">
                         <label htmlFor="analytics-toggle" className="font-medium text-gray-700">Enable Anonymous Analytics</label>
                         <button id="analytics-toggle" role="switch" aria-checked={analyticsSettings.enabled} onClick={() => onAnalyticsSettingsChange({ ...analyticsSettings, enabled: !analyticsSettings.enabled })} className={`${analyticsSettings.enabled ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors`}><span className={`${analyticsSettings.enabled ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
@@ -338,12 +339,12 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                 <button onClick={() => onOpenLegalPage('privacy')} className="w-full text-left p-4 bg-white border rounded-lg hover:bg-gray-50">Privacy Policy</button>
             </div>
         );
-        case 'about-silo': return (
+        case 'about-kyndra-ai': return (
             <div className="text-center p-6">
-                <h3 className="text-2xl font-bold text-gray-800">About Silo Search</h3>
+                <h3 className="text-2xl font-bold text-gray-800">About Kyndra AI</h3>
                 <p className="mt-2 text-gray-600">Your intelligent gateway to the web.</p>
                 <div className="mt-6 text-left prose prose-sm max-w-none text-gray-700">
-                    <p>Silo Search is designed to give you quick, summarized answers to your questions, backed by reliable sources from the web. Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p>
+                    <p>Kyndra AI is designed to give you quick, summarized answers to your questions, backed by reliable sources from the web. Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p>
                     <p>For questions or support, please contact us at <a href="mailto:wolfsidevstudios@gmail.com">wolfsidevstudios@gmail.com</a>.</p>
                 </div>
             </div>

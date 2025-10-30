@@ -1,4 +1,4 @@
-const CACHE_NAME = 'silo-search-cache-v1';
+const CACHE_NAME = 'kyndra-ai-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',

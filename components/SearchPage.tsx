@@ -66,7 +66,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
-  const customStickerMap = new Map(customStickers.map(cs => [cs.id, cs]));
+  // FIX: Explicitly type the Map to aid TypeScript's type inference, which may fail in some environments.
+  const customStickerMap = new Map<string, CustomSticker>(customStickers.map(cs => [cs.id, cs]));
 
   const renderWidget = (widget: WidgetInstance) => {
     switch(widget.widgetType) {
@@ -141,7 +142,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             </div>
           )}
           <h1 className="text-5xl md:text-7xl font-bold text-gray-800 mb-8">
-            Silo Search
+            Kyndra AI
           </h1>
           <div className="w-full max-w-2xl">
             <SearchInput 

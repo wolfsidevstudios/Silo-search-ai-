@@ -108,7 +108,7 @@ export const AppPreviewAnimation: React.FC = () => {
         <div className={`preview-scene scene-search ${currentSceneId === 'search' ? 'active' : ''}`}>
             <div className="flex flex-col items-center space-y-2">
                 <LogoIcon className="w-8 h-8 animated-element brand-logo" />
-                <span className="text-xl font-semibold text-gray-800 animated-element brand-title">Silo Search</span>
+                <span className="text-xl font-semibold text-gray-800 animated-element brand-title">Kyndra AI</span>
             </div>
             <div className="mt-4 flex items-center w-full max-w-sm p-1.5 pl-4 rounded-full shadow-lg bg-white border border-gray-200 animated-element search-bar">
                 <SearchIcon className="text-gray-400 w-5 h-5" />
@@ -280,7 +280,7 @@ export const AppPreviewAnimation: React.FC = () => {
         {/* Scene 12: Final CTA */}
         <div className={`preview-scene scene-final-cta ${currentSceneId === 'final-cta' ? 'active' : ''}`}>
           <div className="flex flex-col items-center text-center">
-            <h3 className="text-2xl font-bold text-gray-800 animated-element final-title">Try Silo for free now</h3>
+            <h3 className="text-2xl font-bold text-gray-800 animated-element final-title">Try Kyndra AI for free now</h3>
             <div className="mt-4 w-full max-w-xs bg-white rounded-lg p-2 border shadow-lg animated-element final-url-bar">
                 <p className="text-sm text-gray-600 font-mono">silosearchai.netlify.app</p>
             </div>

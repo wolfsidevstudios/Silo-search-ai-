@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
         <div className="flex items-center space-x-2">
           <LogoIcon />
           <div className="flex items-center">
-            <span className="text-xl font-semibold">Silo Search</span>
+            <span className="text-xl font-semibold">Kyndra AI</span>
             <span className="ml-2 px-2 py-0.5 bg-gray-200 text-gray-600 text-xs font-semibold rounded-full">
               Beta
             </span>

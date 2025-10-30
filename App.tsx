@@ -253,7 +253,7 @@ const App: React.FC = () => {
   });
 
   const [theme, setTheme] = useState<string>(() => {
-    return window.localStorage.getItem('silo-theme') || 'bg-white';
+    return window.localStorage.getItem('kyndra-ai-theme') || 'bg-white';
   });
   
   const [customWallpaper, setCustomWallpaper] = useState<string | null>(() => {
@@ -410,7 +410,7 @@ const App: React.FC = () => {
   }, [recentSearches]);
 
   useEffect(() => {
-    window.localStorage.setItem('silo-theme', theme);
+    window.localStorage.setItem('kyndra-ai-theme', theme);
     document.body.className = ''; // Clear body class, style will be on the div
   }, [theme]);
 
@@ -800,7 +800,7 @@ const App: React.FC = () => {
 
   const handleExportData = () => {
     const exportableData = {
-        'ai-api-keys': apiKeys, 'silo-theme': theme, 'customWallpaper': customWallpaper, 'isClockVisible': isClockVisible,
+        'ai-api-keys': apiKeys, 'kyndra-ai-theme': theme, 'customWallpaper': customWallpaper, 'isClockVisible': isClockVisible,
         'clockSettings': clockSettings, 'temperatureUnit': temperatureUnit, 'speechLanguage': speechLanguage,
         'searchInputSettings': searchInputSettings, 'searchSettings': searchSettings, 'accessibilitySettings': accessibilitySettings,
         'stickers': stickers, 'widgets': widgets, 'customStickers': customStickers, 'languageSettings': languageSettings,
@@ -811,7 +811,7 @@ const App: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `silo-search-settings-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `kyndra-ai-settings-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

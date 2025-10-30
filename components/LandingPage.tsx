@@ -116,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         <div className="max-w-7xl mx-auto flex justify-between items-center">
             <div className="flex items-center space-x-2">
                 <LogoIcon className="w-8 h-8" />
-                <span className="text-xl font-bold">Silo Search</span>
+                <span className="text-xl font-bold">Kyndra AI</span>
             </div>
             <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-600">
                 <a href="#features" className="hover:text-purple-600">Features</a>
@@ -208,7 +208,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center scroll-animate">
                     <h2 className="text-3xl font-extrabold text-gray-900">A smarter way to find information</h2>
-                    <p className="mt-4 text-lg text-gray-500">Silo Search reimagines the search experience from the ground up.</p>
+                    <p className="mt-4 text-lg text-gray-500">Kyndra AI reimagines the search experience from the ground up.</p>
                 </div>
                 <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate">
@@ -290,7 +290,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                 <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center scroll-animate">
                     <div>
                         <h2 className="text-3xl font-extrabold text-gray-900">Your Search, Your Data. Period.</h2>
-                        <p className="mt-4 text-lg text-gray-500">We believe your information belongs to you. That's why Silo Search is built with privacy at its core.</p>
+                        <p className="mt-4 text-lg text-gray-500">We believe your information belongs to you. That's why Kyndra AI is built with privacy at its core.</p>
                         <dl className="mt-8 space-y-6">
                             <div className="flex">
                                 <CheckCircleIcon className="flex-shrink-0 w-6 h-6 text-green-500" aria-hidden="true" />
@@ -408,7 +408,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                             <StarIcon className="w-5 h-5 text-yellow-400" />
                             <StarIcon className="w-5 h-5 text-yellow-400" />
                         </div>
-                        <p className="mt-4 text-gray-600 text-sm">"Silo Search has completely changed how I research. The AI summaries are a huge time-saver and the interface is beautiful and intuitive."</p>
+                        <p className="mt-4 text-gray-600 text-sm">"Kyndra AI has completely changed how I research. The AI summaries are a huge time-saver and the interface is beautiful and intuitive."</p>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate" style={{ transitionDelay: '200ms' }}>
                         <div className="flex items-center">
@@ -425,7 +425,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                             <StarIcon className="w-5 h-5 text-yellow-400" />
                             <StarIcon className="w-5 h-5 text-yellow-400" />
                         </div>
-                        <p className="mt-4 text-gray-600 text-sm">"As a student, getting to the point quickly is crucial. Silo helps me understand complex topics fast. The study mode is a lifesaver for exam prep!"</p>
+                        <p className="mt-4 text-gray-600 text-sm">"As a student, getting to the point quickly is crucial. Kyndra AI helps me understand complex topics fast. The study mode is a lifesaver for exam prep!"</p>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate" style={{ transitionDelay: '400ms' }}>
                         <div className="flex items-center">
@@ -478,7 +478,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                   <div className="col-span-2 md:col-span-1">
                       <div className="flex items-center space-x-2">
                           <LogoIcon className="w-8 h-8" />
-                          <span className="text-xl font-bold">Silo Search</span>
+                          <span className="text-xl font-bold">Kyndra AI</span>
                       </div>
                       <p className="mt-4 text-gray-500 text-sm">Search, Summarized. Instantly.</p>
                       <div className="mt-6 flex space-x-6">
@@ -509,7 +509,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                   </div>
               </div>
               <div className="mt-8 border-t border-gray-200 pt-8">
-                  <p className="text-base text-gray-400 text-center">&copy; {new Date().getFullYear()} Silo Search. All rights reserved.</p>
+                  <p className="text-base text-gray-400 text-center">&copy; {new Date().getFullYear()} Kyndra AI. All rights reserved.</p>
               </div>
           </div>
       </footer>

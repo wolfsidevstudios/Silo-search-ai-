@@ -16,7 +16,7 @@ export const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({ onDownloadDa
         <LogoIcon className="w-16 h-16 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-gray-800">Access Denied</h1>
         <p className="mt-2 text-gray-600">
-          You must agree to the Terms of Service to use Silo Search.
+          You must agree to the Terms of Service to use Kyndra AI.
           You can download your existing data or remove it completely.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mt-8">
