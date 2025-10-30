@@ -255,9 +255,10 @@ export async function fetchShoppingResults(query: string, apiKey: string): Promi
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `Act as an expert shopping assistant. The user is looking for: "${query}".
-Your task is to find the top 3 best products that match this query.
-For each product, provide a concise summary, its current price, a direct URL to buy it, and a direct, publicly accessible URL for an image of the product.
-Also provide a brief overall summary of your recommendations. Use Google Search to find real, currently available products and information.
+Your task is to find the top 3 best products that match this query using the Google Search tool. You must find real, currently available products.
+For each product, provide a concise summary, its current price, a direct URL to buy it from a reputable retailer, and a high-quality image URL.
+To find the image, use your web search capabilities as if you were searching Google Images for the exact product. The URL must be direct, publicly accessible, and lead to the image file itself (e.g., a .jpg or .png link).
+Also provide a brief overall summary of your recommendations.
 Return ONLY a valid JSON object following this structure:
 {
   "overallSummary": "A brief overall summary of the product recommendations.",
