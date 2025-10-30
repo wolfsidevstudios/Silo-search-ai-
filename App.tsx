@@ -81,6 +81,7 @@ const App: React.FC = () => {
   const [shoppingQuery, setShoppingQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastSearchOptions, setLastSearchOptions] = useState<any>({});
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [initialSettingsSection, setInitialSettingsSection] = useState<string | undefined>();
@@ -660,7 +661,8 @@ const App: React.FC = () => {
 
   const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; }) => {
     if (!query.trim()) return;
-
+    
+    setLastSearchOptions(options);
     setSidebarOpen(false);
     setError(null);
 
@@ -920,7 +922,31 @@ const App: React.FC = () => {
   };
 
   const renderAppContent = () => {
-    if (isLoading) return <LoadingState query={currentQuery || travelQuery || shoppingQuery} />;
+    if (error) {
+      const handleRetry = () => {
+        setError(null);
+        let queryToRetry = currentQuery;
+        if (lastSearchOptions.travelSearch) queryToRetry = travelQuery;
+        if (lastSearchOptions.shoppingSearch) queryToRetry = shoppingQuery;
+        if (lastSearchOptions.mapSearch) queryToRetry = mapQuery;
+        
+        if (!queryToRetry) {
+            console.error("No query to retry.");
+            handleGoHome();
+            return;
+        }
+        handleSearch(queryToRetry, lastSearchOptions);
+      };
+
+      const handleReturnHome = () => {
+        setError(null);
+        handleGoHome();
+      };
+      
+      return <ErrorState message={error} onRetry={handleRetry} onHome={handleReturnHome} />;
+    }
+
+    if (isLoading) return <LoadingState query={currentQuery || travelQuery || shoppingQuery || mapQuery} />;
     
     const path = currentPath.split('?')[0];
 
@@ -954,7 +980,6 @@ const App: React.FC = () => {
       case '/search':
       default:
         const desktopSearchPageProps = {
-// FIX: Correctly pass handleUpdateSticker and handleUpdateWidget props. Shorthand property names 'onUpdateSticker' and 'onUpdateWidget' were used without a value in scope.
           onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, ...commonProps
         };
         return <SearchPage {...desktopSearchPageProps} />;

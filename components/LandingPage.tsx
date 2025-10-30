@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { XIcon } from './icons/XIcon';
@@ -16,6 +17,8 @@ import { PrivacyIcon } from './icons/PrivacyIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { StarIcon } from './icons/StarIcon';
+import { PlaneIcon } from './icons/PlaneIcon';
+import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 
 
 interface LandingPageProps {
@@ -177,11 +180,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                 </p>
                 <div className="mt-8 flex justify-center items-center flex-wrap gap-x-12 gap-y-8">
                     <LogoIcon className="h-10 text-gray-500 transition-opacity hover:opacity-100 opacity-60" title="Google Gemini" />
-                    {/* FIX: The 'title' prop is not a valid attribute on SVG components in React. Wrapped in a span to provide a tooltip. */}
                     <span title="OpenAI">
                         <OpenAIIcon className="h-10 text-gray-500 transition-opacity hover:opacity-100 opacity-60" />
                     </span>
-                    {/* FIX: The 'title' prop is not a valid attribute on SVG components in React. Wrapped in a span to provide a tooltip. */}
                     <span title="Anthropic">
                         <AnthropicIcon className="h-10 text-gray-500 transition-opacity hover:opacity-100 opacity-60" />
                     </span>
@@ -232,21 +233,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                         <h3 className="mt-6 font-semibold text-lg">Deep Dive with Chat</h3>
                         <p className="mt-2 text-gray-600 text-sm">Ask follow-up questions and have a natural conversation to explore topics further.</p>
                     </div>
-                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '300ms' }}>
+                    <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '300ms' }}>
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <PlaneIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">Travel Planner</h3>
+                        <p className="mt-2 text-gray-600 text-sm">Plan your next trip with AI. Get detailed itineraries, accommodation suggestions, and local tips in seconds.</p>
+                    </div>
+                    <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '400ms' }}>
+                        <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
+                            <ShoppingCartIcon className="w-7 h-7" />
+                        </div>
+                        <h3 className="mt-6 font-semibold text-lg">Shopping Agent</h3>
+                        <p className="mt-2 text-gray-600 text-sm">Find the best products for your needs. Get top 3 recommendations with summaries, prices, and buy links.</p>
+                    </div>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '500ms' }}>
                         <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
                             <BrushIcon className="w-7 h-7" />
                         </div>
                         <h3 className="mt-6 font-semibold text-lg">Your Personal Dashboard</h3>
                         <p className="mt-2 text-gray-600 text-sm">Make it your own. Personalize your search page with wallpapers, widgets, and custom themes.</p>
                     </div>
-                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '400ms' }}>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '600ms' }}>
                         <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
                             <LockIcon className="w-7 h-7" />
                         </div>
                         <h3 className="mt-6 font-semibold text-lg">Private by Design</h3>
                         <p className="mt-2 text-gray-600 text-sm">Your API keys and settings are stored locally on your device, never on our servers.</p>
                     </div>
-                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '500ms' }}>
+                     <div className="feature-card p-8 bg-gray-50 rounded-2xl text-center scroll-animate" style={{ transitionDelay: '700ms' }}>
                         <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto">
                             <KeyIcon className="w-7 h-7" />
                         </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -16,7 +17,6 @@ import { RedditIcon } from './icons/RedditIcon';
 import { PlaneIcon } from './icons/PlaneIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 
-// FIX: Add type definitions for Web Speech API to resolve TypeScript errors. These types are not part of the standard TypeScript library.
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
   readonly confidence: number;
@@ -84,6 +84,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
+  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop'>('default');
+
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
@@ -129,7 +131,38 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isListening) recognitionRef.current?.stop();
-    onSearch(query, { studyMode: isStudyMode });
+    
+    const options = {
+        studyMode: isStudyMode,
+        mapSearch: activeMode === 'map',
+        travelSearch: activeMode === 'travel',
+        shoppingSearch: activeMode === 'shop',
+    };
+
+    if (['map', 'travel', 'shop'].includes(activeMode) && !query.trim()) {
+        let modeName = activeMode.charAt(0).toUpperCase() + activeMode.slice(1);
+        if (activeMode === 'map') modeName = 'Map Search';
+        if (activeMode === 'travel') modeName = 'Travel Planner';
+        if (activeMode === 'shop') modeName = 'Shopping Agent';
+        alert(`Please enter a query to use ${modeName}.`);
+        return;
+    }
+
+    onSearch(query, options);
+  };
+  
+  const handleModeToggle = (mode: 'map' | 'travel' | 'shop') => {
+    if (isStudyMode) {
+      setIsStudyMode(false);
+    }
+    setActiveMode(prev => prev === mode ? 'default' : mode);
+  };
+
+  const handleStudyToggle = () => {
+    if (activeMode !== 'default') {
+      setActiveMode('default');
+    }
+    setIsStudyMode(!isStudyMode);
   };
 
   const hasRecognitionSupport = !!recognitionRef.current;
@@ -138,38 +171,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const buttonClasses = isLarge ? 'w-12 h-12' : 'w-9 h-9';
   const micButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1', buttonClasses, isListening ? (isGlossy ? 'bg-red-500/50 text-white animate-pulse' : 'bg-red-100 text-red-500 animate-pulse') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')].join(' ');
   const submitButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors', buttonClasses, isGlossy ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-black text-white hover:bg-gray-800'].join(' ');
-
-  const handleSelectStudyMode = () => {
-    setIsStudyMode(true);
-    setDropdownOpen(false);
-  };
-  
-  const handleSelectMapMode = () => {
-    if (!query.trim()) {
-        alert("Please enter a location or place to search for on the map.");
-        return;
-    }
-    onSearch(query, { mapSearch: true });
-    setDropdownOpen(false);
-  };
-
-  const handleSelectTravelMode = () => {
-    if (!query.trim()) {
-        alert("Please enter a destination or travel idea to start planning.");
-        return;
-    }
-    onSearch(query, { travelSearch: true });
-    setDropdownOpen(false);
-  };
-
-  const handleSelectShoppingMode = () => {
-    if (!query.trim()) {
-        alert("Please enter a product or category to search for.");
-        return;
-    }
-    onSearch(query, { shoppingSearch: true });
-    setDropdownOpen(false);
-  };
 
   const handleExternalSearch = (urlTemplate: string) => {
     if (!query.trim()) {
@@ -181,68 +182,68 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   };
 
   return (
-    <form onSubmit={handleSubmit} className={containerClasses}>
-      <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
-      {isStudyMode && (
-          <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-green-100 text-green-800">
-              <BookOpenIcon className="w-4 h-4" />
-              <span className="font-medium">Study Mode</span>
-              <button type="button" onClick={() => setIsStudyMode(false)} className="p-0.5 rounded-full hover:bg-green-200"><CloseIcon className="w-3 h-3" /></button>
-          </div>
-      )}
-      <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
-      {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
-      
-      {!isStudyMode && (
+    <>
+      <form onSubmit={handleSubmit} className={containerClasses}>
+        <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
+        {isStudyMode && (
+            <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-green-100 text-green-800">
+                <BookOpenIcon className="w-4 h-4" />
+                <span className="font-medium">Study Mode</span>
+                <button type="button" onClick={() => setIsStudyMode(false)} className="p-0.5 rounded-full hover:bg-green-200"><CloseIcon className="w-3 h-3" /></button>
+            </div>
+        )}
+        <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
+        {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
+        
         <button ref={moreButtonRef} type="button" onClick={() => setDropdownOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600'}`} aria-label="More search options" aria-haspopup="true" aria-expanded={isDropdownOpen}>
           <MoreVerticalIcon className={isGlossy ? 'text-white/80' : 'text-gray-600'} />
         </button>
-      )}
 
-      {isDropdownOpen && (
-        <div ref={dropdownRef} className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
-          <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Modes</p>
-          <button onClick={handleSelectStudyMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            <BookOpenIcon className="w-5 h-5 text-gray-500" /><span>Study Mode</span>
-          </button>
-           <button onClick={handleSelectMapMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            <MapPinIcon className="w-5 h-5 text-gray-500" /><span>Search Maps</span>
-          </button>
-          <button onClick={handleSelectTravelMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            <PlaneIcon className="w-5 h-5 text-gray-500" /><span>Travel Planner</span>
-          </button>
-          <button onClick={handleSelectShoppingMode} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            <ShoppingCartIcon className="w-5 h-5 text-gray-500" /><span>Shopping Agent</span>
-          </button>
-          <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
-            <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
-          </button>
-          
-          <div className="my-2 border-t border-gray-100"></div>
-          <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
-          <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
-            <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
-          </button>
-          <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
-            <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
-          </button>
+        {isDropdownOpen && (
+          <div ref={dropdownRef} className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
+            <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Advanced Modes</p>
+            <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+              <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+            </button>
+            
+            <div className="my-2 border-t border-gray-100"></div>
+            <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
+            <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+              <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+            </button>
+            <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+              <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+            </button>
 
-          <div className="my-2 border-t border-gray-100"></div>
-          <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Elsewhere</p>
-          <button onClick={() => handleExternalSearch('https://www.youtube.com/results?search_query={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            <YouTubeIcon className="w-5 h-5 text-gray-500" /><span>Search on YouTube</span>
-          </button>
-          <button onClick={() => handleExternalSearch('https://en.wikipedia.org/w/index.php?search={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            <WikipediaIcon className="w-5 h-5 text-gray-500" /><span>Search on Wikipedia</span>
-          </button>
-          <button onClick={() => handleExternalSearch('https://www.reddit.com/search/?q={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            <RedditIcon className="w-5 h-5 text-gray-500" /><span>Search on Reddit</span>
-          </button>
+            <div className="my-2 border-t border-gray-100"></div>
+            <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Elsewhere</p>
+            <button onClick={() => handleExternalSearch('https://www.youtube.com/results?search_query={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <YouTubeIcon className="w-5 h-5 text-gray-500" /><span>Search on YouTube</span>
+            </button>
+            <button onClick={() => handleExternalSearch('https://en.wikipedia.org/w/index.php?search={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <WikipediaIcon className="w-5 h-5 text-gray-500" /><span>Search on Wikipedia</span>
+            </button>
+            <button onClick={() => handleExternalSearch('https://www.reddit.com/search/?q={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <RedditIcon className="w-5 h-5 text-gray-500" /><span>Search on Reddit</span>
+            </button>
+          </div>
+        )}
 
-        </div>
-      )}
-
-      <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
-    </form>
+        <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
+      </form>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
+          {[
+              { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
+              { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
+              { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
+              { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
+          ].map(({ id, label, Icon, action, isActive }) => (
+              <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+              </button>
+          ))}
+      </div>
+    </>
   );
 };
