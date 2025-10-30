@@ -258,46 +258,36 @@ export async function fetchShoppingResults(query: string, apiKey: string): Promi
 Your task is to find the top 3 best products that match this query.
 For each product, provide a concise summary, its current price, a direct URL to buy it, and a direct, publicly accessible URL for an image of the product.
 Also provide a brief overall summary of your recommendations. Use Google Search to find real, currently available products and information.
-Return the results in the specified JSON format.`;
-
-  const schema = {
-    type: Type.OBJECT,
-    properties: {
-      overallSummary: { 
-        type: Type.STRING,
-        description: "A brief overall summary of the product recommendations."
-      },
-      products: {
-        type: Type.ARRAY,
-        description: "An array of the top 3 recommended products.",
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING, description: "The full name of the product." },
-            summary: { type: Type.STRING, description: "A concise summary of the product's features and why it's recommended." },
-            price: { type: Type.STRING, description: "The current price of the product as a string (e.g., '$199.99')." },
-            buyUrl: { type: Type.STRING, description: "A direct URL to a reputable retailer to purchase the product." },
-            imageUrl: { type: Type.STRING, description: "A direct, publicly accessible URL to a high-quality image of the product." },
-          },
-          required: ['name', 'summary', 'price', 'buyUrl', 'imageUrl']
-        }
-      }
-    },
-    required: ['overallSummary', 'products']
-  };
+Return ONLY a valid JSON object following this structure:
+{
+  "overallSummary": "A brief overall summary of the product recommendations.",
+  "products": [
+    {
+      "name": "The full name of the product.",
+      "summary": "A concise summary of the product's features and why it's recommended.",
+      "price": "The current price of the product as a string (e.g., '$199.99').",
+      "buyUrl": "A direct URL to a reputable retailer to purchase the product.",
+      "imageUrl": "A direct, publicly accessible URL to a high-quality image of the product."
+    }
+  ]
+}
+Do not include any other text, explanations, or markdown formatting like \`\`\`json. The entire response must be a single JSON object.`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: { 
-        responseMimeType: "application/json", 
-        responseSchema: schema,
         tools: [{googleSearch: {}}],
       },
     });
+    
+    let jsonText = response.text.trim();
+    if (jsonText.startsWith('```json') && jsonText.endsWith('```')) {
+        jsonText = jsonText.substring(7, jsonText.length - 3).trim();
+    }
 
-    const result: ShoppingResult = JSON.parse(response.text);
+    const result: ShoppingResult = JSON.parse(jsonText);
     if (!result.products || result.products.length === 0) {
         throw new Error("AI did not return any products.");
     }
