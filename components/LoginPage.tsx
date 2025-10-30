@@ -69,14 +69,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onGoogleSignIn, onOpenLega
   return (
     <div className="min-h-screen flex font-sans">
       {/* Left Pane */}
-      <div className="hidden lg:flex w-1/2 login-left-pane flex-col items-center justify-center p-12 text-white relative">
+      <div className="hidden lg:flex w-1/2 login-left-pane flex-col items-center justify-center p-12 text-white relative rounded-r-[3rem]">
         <button onClick={onBackToLanding} className="absolute top-8 left-8 flex items-center space-x-2 text-white/80 hover:text-white transition-colors">
             <ArrowLeftIcon />
             <span>Back to Home</span>
         </button>
         <div className="text-center">
-            <LogoIcon className="w-20 h-20 mx-auto bg-white/20 p-2"/>
-            <h1 className="text-4xl font-bold mt-6">Silo Search</h1>
+            <LogoIcon className="w-20 h-20 mx-auto bg-white/20 p-2 rounded-full"/>
+            <h1 className="text-4xl font-bold mt-6">Kyndra AI</h1>
             <p className="mt-4 text-xl text-white/80">Search, Summarized. Instantly.</p>
         </div>
       </div>

@@ -23,10 +23,10 @@ export const TermsPage: React.FC<TermsPageProps> = ({ isInitialPrompt, onClose, 
       <main className="flex-grow p-6 md:p-8">
         <div className="max-w-3xl mx-auto prose prose-sm text-gray-700">
             <p className="text-sm text-gray-500">Last updated: August 5, 2024</p>
-            <p>Welcome to Silo Search ("the Service"), provided by Wolfsi Development Studios. By accessing or using our application, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service.</p>
+            <p>Welcome to Kyndra AI ("the Service"), provided by Wolfsi Development Studios. By accessing or using our application, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service.</p>
             
             <h4>1. License to Use</h4>
-            <p>We grant you a limited, non-exclusive, non-transferable, revocable license to use Silo Search for your personal, non-commercial purposes, subject to these Terms.</p>
+            <p>We grant you a limited, non-exclusive, non-transferable, revocable license to use Kyndra AI for your personal, non-commercial purposes, subject to these Terms.</p>
             
             <h4>2. User Responsibilities</h4>
             <ul>

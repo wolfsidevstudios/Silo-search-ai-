@@ -34,7 +34,7 @@ export const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <h2 id="intro-modal-title" className="text-3xl font-bold text-white mt-6">
-          Welcome to Silo Search
+          Welcome to Kyndra AI
         </h2>
         <button
             onClick={onClose}
