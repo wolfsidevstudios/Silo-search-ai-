@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -26,13 +27,9 @@ import type { SummarizationSource } from '../types';
 import { CodeIcon } from './icons/CodeIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
 
-// Fix: Removed custom SpeechRecognition interfaces to prevent conflicts with native browser types.
-// The component will now rely on the default TypeScript DOM library definitions for SpeechRecognition.
-interface CustomWindow extends Window {
-  SpeechRecognition: any;
-  webkitSpeechRecognition: any;
-}
-declare const window: CustomWindow;
+// Fix: The custom `CustomWindow` interface was removed as it was causing type conflicts
+// with native browser definitions for SpeechRecognition, leading to errors.
+// By removing it, we can rely on default DOM library definitions or type assertions.
 
 type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
 
@@ -71,7 +68,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   }, [summarizationSource, setIsStudyMode]);
 
   useEffect(() => {
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // Fix: Using `(window as any)` to access non-standard properties `SpeechRecognition` and
+    // `webkitSpeechRecognition` after removing the conflicting CustomWindow interface. This resolves
+    // the type error on `onerror`.
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
       console.warn("Speech recognition not supported in this browser.");
       return;
@@ -198,7 +198,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                         <SearchIcon className="w-5 h-5" />
                     </button>
                     {variant !== 'create' && (
-                        // Fix: Wrapped handler in an arrow function to prevent passing event arguments. Also fixed comment syntax.
+                        // Fix: Wrapped handler in an arrow function to prevent passing event arguments.
                         <button type="button" title="Summarize from source" onClick={() => onOpenSummarizeSourceSelector()} className={`p-2 rounded-lg text-gray-500 ${summarizationSource ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
                             <FileTextIcon className="w-5 h-5" />
                         </button>

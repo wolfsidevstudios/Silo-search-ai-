@@ -47,6 +47,24 @@ You MUST respond ONLY with a valid JSON object that adheres to this schema. Do n
 - For \`searchTerm\`, be specific and use simple keywords for best results (e.g., 'happy robot', 'abstract background pattern').
 - When a user asks for a modification, you will receive their new request. Generate a COMPLETELY NEW JSON object that incorporates the requested changes. Do not just describe the changes.`;
 
+const extractJson = (text: string): string => {
+    // Find JSON within ```json ... ``` markdown block
+    const markdownMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    if (markdownMatch && markdownMatch[1]) {
+        return markdownMatch[1];
+    }
+
+    // Fallback to finding the first '{' and last '}'
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+        return text.substring(firstBrace, lastBrace + 1);
+    }
+    
+    // If all else fails, return the raw text
+    return text;
+};
+
 const DesignCanvas: React.FC<{ spec: DesignSpec | null }> = ({ spec }) => {
     if (!spec) return null;
 
@@ -100,7 +118,8 @@ export const DesignEnginePage: React.FC<DesignEnginePageProps> = ({ session, api
             const response = await chatRef.current.sendMessage({ message: prompt });
             let spec: DesignSpec;
             try {
-                spec = JSON.parse(response.text);
+                const jsonString = extractJson(response.text);
+                spec = JSON.parse(jsonString);
             } catch (e) {
                 console.error("Failed to parse JSON from AI response:", response.text);
                 throw new Error("The AI returned an invalid design format. Please try rephrasing your request.");
