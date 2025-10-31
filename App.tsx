@@ -784,6 +784,11 @@ const App: React.FC = () => {
     }
 
     if (options.shoppingSearch) {
+        if (!apiKeys.exa) {
+            alert('To use the Shopping Agent, please add your Exa API key in the settings.');
+            handleOpenSettingsPage('api-keys');
+            return;
+        }
         setIsLoading(true);
         setShoppingQuery(query);
         if (!isTemporaryMode) {
@@ -793,7 +798,7 @@ const App: React.FC = () => {
           });
         }
         try {
-            const result = await fetchShoppingResults(query, GEMINI_API_KEY, apiKeys.rapidapi);
+            const result = await fetchShoppingResults(query, GEMINI_API_KEY, apiKeys.exa);
             setShoppingResult(result);
             sessionStorage.setItem('shoppingResult', JSON.stringify(result));
             sessionStorage.setItem('shoppingQuery', query);

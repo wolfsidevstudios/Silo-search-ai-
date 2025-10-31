@@ -43,6 +43,7 @@ import { StoreIcon } from './icons/StoreIcon';
 import { NewspaperIcon } from './icons/NewspaperIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { ImageIcon } from './icons/ImageIcon';
+import { ExaIcon } from './icons/ExaIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -77,7 +78,7 @@ interface SettingsPageProps {
 const AI_PROVIDERS = [
     { id: 'youtube', name: 'YouTube Data API', Icon: YouTubeIcon, description: 'Required for the video search feature. Get your key from the Google Cloud Console.', placeholder: 'Enter your YouTube Data v3 API key', getLink: 'https://console.cloud.google.com/apis/library/youtube.googleapis.com' },
     { id: 'pexels', name: 'Pexels API', Icon: ImageIcon, description: 'Required for the media search feature. Get a free key from the Pexels website.', placeholder: 'Enter your Pexels API key', getLink: 'https://www.pexels.com/api/' },
-    { id: 'rapidapi', name: 'Real-Time Product Search', Icon: ShoppingCartIcon, description: 'Required for the Shopping Agent to access real-time product data. Get a free key from RapidAPI.', placeholder: 'Enter your RapidAPI key', getLink: 'https://rapidapi.com/letscrape-6BYf6k8Y3b5/api/real-time-product-search' },
+    { id: 'exa', name: 'Exa API', Icon: ExaIcon, description: 'Required for the Shopping Agent feature. Get your key from the Exa dashboard.', placeholder: 'Enter your Exa API key', getLink: 'https://dashboard.exa.ai/login' },
     { id: 'openai', name: 'OpenAI', Icon: OpenAIIcon, description: 'You can find your OpenAI API key on your OpenAI account page.', placeholder: 'Enter your OpenAI API key (e.g., sk-...)', getLink: 'https://platform.openai.com/api-keys' },
     { id: 'anthropic', name: 'Anthropic', Icon: AnthropicIcon, description: 'Access your Anthropic API key from the Anthropic console settings.', placeholder: 'Enter your Anthropic API key', getLink: 'https://console.anthropic.com/settings/keys' },
 ];

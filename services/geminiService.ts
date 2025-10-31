@@ -247,64 +247,93 @@ Return the results in JSON format.
   }
 }
 
-export async function fetchShoppingResults(query: string, geminiApiKey: string, rapidApiKey: string): Promise<ShoppingResult> {
-    if (!geminiApiKey) {
-        throw new Error("Gemini API key is missing.");
-    }
-    if (!rapidApiKey) {
-        throw new Error("Real-Time Product Search API key is missing. Please add it in settings.");
-    }
+export async function fetchShoppingResults(query: string, geminiApiKey: string, exaApiKey: string): Promise<ShoppingResult> {
+    if (!geminiApiKey) throw new Error("Gemini API key is missing.");
+    if (!exaApiKey) throw new Error("Exa API key is missing.");
 
-    const url = `https://real-time-product-search.p.rapidapi.com/search-v2?q=${encodeURIComponent(query)}&country=us&language=en&limit=10`;
-
+    // Step 1: Search with Exa API to get relevant page IDs
+    let exaResultsText = '';
     try {
-        const response = await fetch(url, {
-            headers: {
-                'x-rapidapi-host': 'real-time-product-search.p.rapidapi.com',
-                'x-rapidapi-key': rapidApiKey,
-            }
+        const exaSearchResponse = await fetch('https://api.exa.ai/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': exaApiKey },
+            body: JSON.stringify({
+                query: `Top 3 product recommendations for "${query}" with purchase links.`,
+                numResults: 5,
+                useAutoprompt: true,
+            }),
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('RapidAPI error:', errorData);
-            throw new Error(`Failed to fetch shopping results: ${errorData.message || 'API Error'}`);
-        }
+        if (!exaSearchResponse.ok) throw new Error(`Exa search failed: ${await exaSearchResponse.text()}`);
+        const exaSearchData = await exaSearchResponse.json();
+        const resultIds = exaSearchData.results.map((r: any) => r.id);
 
-        const result = await response.json();
-        
-        if (result.status !== 'OK' || !result.data || result.data.products.length === 0) {
-            throw new Error("No products found for your query.");
-        }
+        if (resultIds.length === 0) throw new Error("No web results found for the shopping query.");
 
-        const products: Product[] = result.data.products.slice(0, 3).map((item: any) => ({
-            name: item.product_title,
-            summary: item.product_description || `A ${item.product_title} available for purchase.`,
-            price: item.offer?.price || 'N/A',
-            buyUrl: item.product_url,
-            imageUrl: item.product_photo
-        }));
-
-        if (products.length === 0) {
-            throw new Error("No valid products could be processed from the search results.");
-        }
-
-        const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-        const summaryPrompt = `Based on these product findings for the query "${query}", write a brief overall summary of your recommendations. Products: ${JSON.stringify(products.map(p => ({name: p.name, price: p.price})))}`;
-        
-        const summaryResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: summaryPrompt,
+        // Step 2: Fetch content for the retrieved page IDs
+        const contentResponse = await fetch('https://api.exa.ai/contents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': exaApiKey },
+            body: JSON.stringify({ ids: resultIds, text: { includeHtmlTags: false, maxCharacters: 2000 } }),
         });
-        const overallSummary = summaryResponse.text;
 
-        return { products, overallSummary };
+        if (!contentResponse.ok) throw new Error(`Exa content fetch failed: ${await contentResponse.text()}`);
+        const contentData = await contentResponse.json();
+        
+        exaResultsText = contentData.results.map((result: any) => `URL: ${result.url}\nTitle: ${result.title}\nContent: ${result.text}\n---`).join('\n');
+
+        if (!exaResultsText.trim()) throw new Error("No content received from Exa search results.");
 
     } catch (error) {
-        console.error("Error fetching shopping results:", error);
-        throw new Error("Failed to get a valid response from the shopping agent. This could be due to an invalid API key or network issues.");
+        console.error("Error fetching from Exa API:", error);
+        throw new Error("Failed to get a valid response from the web search agent. Please check your Exa API key.");
+    }
+
+    // Step 3: Use Gemini to extract structured data from the web content
+    const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+    const prompt = `Based on the following web search results for "${query}", generate an "overallSummary" of your recommendations and extract up to 3 product listings. For each product, provide the 'name', a brief 'summary', the 'price', the 'buyUrl', and an 'imageUrl'. If any information is missing, omit that field. Ensure URLs are complete and valid.\n\nWeb Search Results:\n${exaResultsText}`;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            overallSummary: { type: Type.STRING, description: "A brief summary of the product recommendations." },
+            products: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        name: { type: Type.STRING },
+                        summary: { type: Type.STRING },
+                        price: { type: Type.STRING },
+                        buyUrl: { type: Type.STRING },
+                        imageUrl: { type: Type.STRING }
+                    },
+                    required: ["name", "summary", "price", "buyUrl", "imageUrl"]
+                }
+            }
+        },
+        required: ["overallSummary", "products"]
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { responseMimeType: "application/json", responseSchema: schema },
+        });
+
+        const result: ShoppingResult = JSON.parse(response.text);
+        if (!result.products || result.products.length === 0) {
+            throw new Error("The AI could not identify any products from the search results.");
+        }
+        return result;
+
+    } catch (error) {
+        console.error("Error processing shopping results with Gemini:", error);
+        throw new Error("The AI failed to process the shopping search results. The web content may have been unsuitable.");
     }
 }
+
 
 export async function processPexelsQuery(query: string, apiKey: string): Promise<{ searchTerm: string, mediaType: 'photo' | 'video' }> {
   if (!apiKey) {
