@@ -84,6 +84,7 @@ const App: React.FC = () => {
   const [pexelsQuery, setPexelsQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingQuery, setLoadingQuery] = useState('');
   const [lastSearchOptions, setLastSearchOptions] = useState<any>({});
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -398,6 +399,7 @@ const App: React.FC = () => {
       return {
         youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
+        scrapingbee: 'U2VZPKN61R29JYJVP4M7CWC9OU54TG6QL9J7FXLK766SRD5SLY0MY1Z24NB5CTDQ28YMTXZVE06VDVQL',
         ...parsed,
       };
     } catch (error) {
@@ -405,6 +407,7 @@ const App: React.FC = () => {
       return {
         youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
+        scrapingbee: 'U2VZPKN61R29JYJVP4M7CWC9OU54TG6QL9J7FXLK766SRD5SLY0MY1Z24NB5CTDQ28YMTXZVE06VDVQL',
       };
     }
   });
@@ -682,6 +685,7 @@ const App: React.FC = () => {
   const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => {
     if (!query.trim()) return;
     
+    setLoadingQuery(query);
     setLastSearchOptions(options);
     setSidebarOpen(false);
     setError(null);
@@ -716,7 +720,6 @@ const App: React.FC = () => {
         } catch (err) {
             console.error(err);
             setError('Sorry, something went wrong with the media search. Please check your API keys and try again.');
-            setCurrentQuery(query);
         } finally {
             setIsLoading(false);
         }
@@ -733,7 +736,7 @@ const App: React.FC = () => {
           });
         }
         try {
-            const result = await fetchShoppingResults(query, GEMINI_API_KEY);
+            const result = await fetchShoppingResults(query, GEMINI_API_KEY, apiKeys.scrapingbee);
             setShoppingResult(result);
             sessionStorage.setItem('shoppingResult', JSON.stringify(result));
             sessionStorage.setItem('shoppingQuery', query);
@@ -741,7 +744,6 @@ const App: React.FC = () => {
         } catch (err) {
             console.error(err);
             setError('Sorry, something went wrong with the shopping agent. Please try again.');
-            setCurrentQuery(query);
         } finally {
             setIsLoading(false);
         }
@@ -766,7 +768,6 @@ const App: React.FC = () => {
         } catch (err) {
             console.error(err);
             setError('Sorry, something went wrong planning your trip. Please check your API key and try again.');
-            setCurrentQuery(query);
         } finally {
             setIsLoading(false);
         }
@@ -982,11 +983,19 @@ const App: React.FC = () => {
     if (error) {
       const handleRetry = () => {
         setError(null);
-        let queryToRetry = currentQuery;
-        if (lastSearchOptions.travelSearch) queryToRetry = travelQuery;
-        if (lastSearchOptions.shoppingSearch) queryToRetry = shoppingQuery;
-        if (lastSearchOptions.mapSearch) queryToRetry = mapQuery;
-        if (lastSearchOptions.pexelsSearch) queryToRetry = pexelsQuery;
+        let queryToRetry: string;
+        
+        if (lastSearchOptions.travelSearch) {
+          queryToRetry = travelQuery;
+        } else if (lastSearchOptions.shoppingSearch) {
+          queryToRetry = shoppingQuery;
+        } else if (lastSearchOptions.mapSearch) {
+          queryToRetry = mapQuery;
+        } else if (lastSearchOptions.pexelsSearch) {
+          queryToRetry = pexelsQuery;
+        } else {
+          queryToRetry = currentQuery;
+        }
         
         if (!queryToRetry) {
             console.error("No query to retry.");
@@ -1004,7 +1013,7 @@ const App: React.FC = () => {
       return <ErrorState message={error} onRetry={handleRetry} onHome={handleReturnHome} />;
     }
 
-    if (isLoading) return <LoadingState query={currentQuery || travelQuery || shoppingQuery || mapQuery || pexelsQuery} />;
+    if (isLoading) return <LoadingState query={loadingQuery} />;
     
     const path = currentPath.split('?')[0];
 

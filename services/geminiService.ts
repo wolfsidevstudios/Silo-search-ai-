@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult } from '../types';
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean): Promise<SearchResult> {
   if (!apiKey) {
@@ -247,57 +247,119 @@ Return the results in JSON format.
   }
 }
 
-export async function fetchShoppingResults(query: string, apiKey: string): Promise<ShoppingResult> {
-  if (!apiKey) {
-    throw new Error("Gemini API key is missing.");
-  }
-  
-  const ai = new GoogleGenAI({ apiKey });
+async function scrapeUrlWithScrapingBee(url: string, apiKey: string): Promise<string> {
+    const endpoint = `https://app.scrapingbee.com/api/v1/?api_key=${apiKey}&url=${encodeURIComponent(url)}&render_js=true`;
+    try {
+        const response = await fetch(`https://proxy.cors.sh/${endpoint}`, {
+            headers: {
+                'x-cors-api-key': 'temp_1a2c3b4d5e6f7g8h9i0j',
+            }
+        });
 
-  const prompt = `Act as an expert shopping assistant. The user is looking for: "${query}".
-Your task is to find the top 3 best products that match this query using the Google Search tool. You must find real, currently available products.
-For each product, provide a concise summary, its current price, a direct URL to buy it from a reputable retailer, and a high-quality image URL.
-To find the image, use your web search capabilities as if you were searching Google Images for the exact product. The URL must be direct, publicly accessible, and lead to the image file itself (e.g., a .jpg or .png link).
-Also provide a brief overall summary of your recommendations.
-Return ONLY a valid JSON object following this structure:
-{
-  "overallSummary": "A brief overall summary of the product recommendations.",
-  "products": [
-    {
-      "name": "The full name of the product.",
-      "summary": "A concise summary of the product's features and why it's recommended.",
-      "price": "The current price of the product as a string (e.g., '$199.99').",
-      "buyUrl": "A direct URL to a reputable retailer to purchase the product.",
-      "imageUrl": "A direct, publicly accessible URL to a high-quality image of the product."
+        if (!response.ok) {
+            throw new Error(`ScrapingBee API error: ${response.statusText}`);
+        }
+        return await response.text();
+    } catch (error) {
+        console.error(`Failed to scrape URL ${url}:`, error);
+        // Fallback for direct fetch if proxy fails
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error(`ScrapingBee API error (direct): ${response.statusText}`);
+            return await response.text();
+        } catch (directError) {
+             console.error(`Direct fetch for URL ${url} also failed:`, directError);
+             throw directError;
+        }
     }
-  ]
 }
-Do not include any other text, explanations, or markdown formatting like \`\`\`json. The entire response must be a single JSON object.`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: { 
-        tools: [{googleSearch: {}}],
-      },
+export async function fetchShoppingResults(query: string, geminiApiKey: string, scrapingBeeApiKey: string): Promise<ShoppingResult> {
+    if (!geminiApiKey) {
+        throw new Error("Gemini API key is missing.");
+    }
+    if (!scrapingBeeApiKey) {
+        throw new Error("ScrapingBee API key is missing. Please add it in settings.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+
+    // Step 1: Find product URLs
+    const findUrlsPrompt = `Based on the user's shopping query "${query}", find the top 3 most relevant product page URLs from major e-commerce sites using Google Search. Return a JSON object with a single key "urls" which is an array of strings.`;
+    const urlSchema = {
+        type: Type.OBJECT,
+        properties: {
+            urls: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: ['urls']
+    };
+
+    const urlResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: findUrlsPrompt,
+        config: {
+            tools: [{ googleSearch: {} }],
+            responseMimeType: "application/json",
+            responseSchema: urlSchema
+        },
     });
     
-    let jsonText = response.text.trim();
-    if (jsonText.startsWith('```json') && jsonText.endsWith('```')) {
-        jsonText = jsonText.substring(7, jsonText.length - 3).trim();
+    const { urls } = JSON.parse(urlResponse.text);
+    if (!urls || urls.length === 0) {
+        throw new Error("Could not find any relevant product pages.");
     }
 
-    const result: ShoppingResult = JSON.parse(jsonText);
-    if (!result.products || result.products.length === 0) {
-        throw new Error("AI did not return any products.");
-    }
-    return result;
+    // Step 2 & 3: Scrape pages and extract data
+    const products: Product[] = [];
+    
+    const productSchema = {
+        type: Type.OBJECT,
+        properties: {
+            name: { type: Type.STRING, description: "The full name of the product." },
+            summary: { type: Type.STRING, description: "A concise summary of the product's features and why it's recommended." },
+            price: { type: Type.STRING, description: "The current price of the product as a string (e.g., '$199.99'). If not found, use 'Price not available'." },
+            imageUrl: { type: Type.STRING, description: "A direct, publicly accessible URL to a high-quality image of the product. Find the best one from the page content." }
+        },
+        required: ['name', 'summary', 'price', 'imageUrl']
+    };
 
-  } catch (error) {
-    console.error("Error fetching shopping results from Gemini API:", error);
-    throw new Error("Failed to get a valid shopping response from the AI model.");
-  }
+    for (const url of urls.slice(0, 3)) {
+        try {
+            const htmlContent = await scrapeUrlWithScrapingBee(url, scrapingBeeApiKey);
+            const manageableHtml = htmlContent.substring(0, 100000); 
+
+            const extractDataPrompt = `From the following HTML content of a product page, extract the product details. Focus on the main content and ignore irrelevant parts like headers, footers, and ads. HTML: """${manageableHtml}"""`;
+
+            const productDataResponse = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: extractDataPrompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: productSchema
+                },
+            });
+
+            const productData = JSON.parse(productDataResponse.text);
+            products.push({ ...productData, buyUrl: url });
+        } catch (error) {
+            console.error(`Failed to process URL ${url}:`, error);
+        }
+    }
+
+    if (products.length === 0) {
+        throw new Error("Failed to extract product information from any of the found pages. This could be due to anti-scraping measures or an invalid ScrapingBee API key.");
+    }
+
+    // Step 4: Generate overall summary
+    const summaryPrompt = `Based on these product findings for the query "${query}", write a brief overall summary of your recommendations. Products: ${JSON.stringify(products)}`;
+    
+    const summaryResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: summaryPrompt,
+    });
+    const overallSummary = summaryResponse.text;
+
+    return { products, overallSummary };
 }
 
 export async function processPexelsQuery(query: string, apiKey: string): Promise<{ searchTerm: string, mediaType: 'photo' | 'video' }> {
