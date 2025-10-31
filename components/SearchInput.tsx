@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -28,7 +29,7 @@ import type { SummarizationSource } from '../types';
 import { CodeIcon } from './icons/CodeIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
 
-// @FIX: Removed custom SpeechRecognition interfaces to prevent conflicts with native browser types.
+// Fix: Removed custom SpeechRecognition interfaces to prevent conflicts with native browser types.
 // The component will now rely on the default TypeScript DOM library definitions for SpeechRecognition.
 interface CustomWindow extends Window {
   SpeechRecognition: any;
@@ -182,7 +183,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                 <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
                     <FileTextIcon className="w-4 h-4" />
                     <span className="truncate max-w-xs">Summarizing: {summarizationSource.name}</span>
-                    {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+                    {/* Fix: Wrapped handler in an arrow function to prevent passing event arguments. */}
                     <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
                 </div>
             )}
@@ -200,7 +201,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                         <SearchIcon className="w-5 h-5" />
                     </button>
                     {variant !== 'create' && (
-                        // @FIX: Wrapped handler in an arrow function to prevent passing event arguments.
+                        // Fix: Wrapped handler in an arrow function to prevent passing event arguments. Also fixed comment syntax.
                         <button type="button" title="Summarize from source" onClick={() => onOpenSummarizeSourceSelector()} className={`p-2 rounded-lg text-gray-500 ${summarizationSource ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
                             <FileTextIcon className="w-5 h-5" />
                         </button>
@@ -288,7 +289,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-blue-100 text-blue-800">
                 <FileTextIcon className="w-4 h-4" />
                 <span className="font-medium truncate max-w-[100px]">{summarizationSource.name}</span>
-                {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+                {/* Fix: Wrapped handler in an arrow function to prevent passing event arguments. */}
                 <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
             </div>
         )}
@@ -300,7 +301,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             </div>
         )}
         <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
-        {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+        {/* Fix: Wrapped handler in an arrow function to prevent passing event arguments. */}
         <button type="button" onClick={() => onOpenSummarizeSourceSelector()} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
             <FileTextIcon className={isGlossy && !summarizationSource ? 'text-white/80' : ''} />
         </button>
@@ -319,11 +320,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             
             <div className="my-2 border-t border-gray-100"></div>
             <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
-            {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+            {/* Fix: Wrapped handler in an arrow function to prevent passing event arguments. */}
             <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
               <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
             </button>
-            {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+            {/* Fix: Wrapped handler in an arrow function to prevent passing event arguments. */}
             <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
               <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
             </button>
