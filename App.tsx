@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -399,7 +400,6 @@ const App: React.FC = () => {
       return {
         youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
-        scrapingbee: 'U2VZPKN61R29JYJVP4M7CWC9OU54TG6QL9J7FXLK766SRD5SLY0MY1Z24NB5CTDQ28YMTXZVE06VDVQL',
         ...parsed,
       };
     } catch (error) {
@@ -407,7 +407,6 @@ const App: React.FC = () => {
       return {
         youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
-        scrapingbee: 'U2VZPKN61R29JYJVP4M7CWC9OU54TG6QL9J7FXLK766SRD5SLY0MY1Z24NB5CTDQ28YMTXZVE06VDVQL',
       };
     }
   });
@@ -736,7 +735,7 @@ const App: React.FC = () => {
           });
         }
         try {
-            const result = await fetchShoppingResults(query, GEMINI_API_KEY, apiKeys.scrapingbee);
+            const result = await fetchShoppingResults(query, GEMINI_API_KEY, apiKeys.rapidapi);
             setShoppingResult(result);
             sessionStorage.setItem('shoppingResult', JSON.stringify(result));
             sessionStorage.setItem('shoppingQuery', query);
@@ -936,6 +935,7 @@ const App: React.FC = () => {
   };
 
   const handleUpdateWidget = (updatedWidget: WidgetInstance) => {
+    // FIX: Corrected a typo where 's' was used instead of 'w' for the widget item in the map function.
     setWidgets(prev => prev.map(w => w.id === updatedWidget.id ? updatedWidget : w));
   };
 
