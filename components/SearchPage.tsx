@@ -147,8 +147,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           <div className="w-full max-w-2xl">
             <SearchInput 
               onSearch={onSearch} 
-              isLarge={searchInputSettings.isLarge} 
-              isGlossy={searchInputSettings.isGlossy} 
+              variant="home"
               speechLanguage={speechLanguage} 
               onOpenComingSoonModal={onOpenComingSoonModal} 
               isStudyMode={isStudyMode}

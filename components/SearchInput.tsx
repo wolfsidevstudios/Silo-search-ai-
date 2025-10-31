@@ -20,6 +20,7 @@ import { BrowserIcon } from './icons/BrowserIcon';
 import { LightbulbIcon } from './icons/LightbulbIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
 import { InstagramIcon } from './icons/InstagramIcon';
+import { FileTextIcon } from './icons/FileTextIcon';
 
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
@@ -80,9 +81,10 @@ interface SearchInputProps {
   onOpenComingSoonModal: () => void;
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
+  variant?: 'home';
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode, variant }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -180,11 +182,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   };
 
   const hasRecognitionSupport = !!recognitionRef.current;
-  const containerClasses = ['flex items-center w-full transition-shadow duration-300 focus-within:shadow-xl relative', isLarge ? 'p-2 pl-6 rounded-full shadow-lg' : 'p-1 pl-4 rounded-full', isGlossy ? 'bg-white/20 backdrop-blur-md border border-white/30' : 'bg-white border border-gray-200'].join(' ');
-  const inputClasses = ['w-full h-full px-4 bg-transparent outline-none border-none', isLarge ? 'text-lg' : 'text-base', isGlossy ? 'text-white placeholder-white/70' : ''].join(' ');
-  const buttonClasses = isLarge ? 'w-12 h-12' : 'w-9 h-9';
-  const micButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1', buttonClasses, isListening ? (isGlossy ? 'bg-red-500/50 text-white animate-pulse' : 'bg-red-100 text-red-500 animate-pulse') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')].join(' ');
-  const submitButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors', buttonClasses, isGlossy ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-black text-white hover:bg-gray-800'].join(' ');
 
   const handleExternalSearch = (urlTemplate: string) => {
     if (!query.trim()) {
@@ -194,7 +191,85 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     window.open(urlTemplate.replace('{query}', encodeURIComponent(query)), '_blank');
     setDropdownOpen(false);
   };
+  
+  if (variant === 'home') {
+    return (
+      <>
+        <form onSubmit={handleSubmit} className="relative w-full p-4 rounded-3xl shadow-xl bg-white border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
+            <div className="flex items-center space-x-1 border-b pb-2 mb-2 flex-shrink-0">
+                <button type="button" className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 text-black ring-1 ring-gray-300">
+                    <SearchIcon className="w-4 h-4" />
+                    <span>Search</span>
+                </button>
+                <button type="button" onClick={onOpenComingSoonModal} className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-gray-100 text-gray-500">
+                    <FileTextIcon className="w-4 h-4" />
+                    <span>File Search</span>
+                </button>
+                <button type="button" onClick={onOpenComingSoonModal} className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-gray-100 text-gray-500">
+                    <LayersIcon className="w-4 h-4" />
+                    <span>Deep Research</span>
+                </button>
+            </div>
+            
+            <textarea
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Ask anything..."
+                className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg pt-2"
+            />
 
+            <div className="absolute bottom-4 right-4 flex items-center space-x-2">
+                  {hasRecognitionSupport && (
+                    <button type="button" onClick={handleMicClick} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors w-12 h-12 ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'hover:bg-gray-100 text-gray-600'}`} aria-label={isListening ? 'Stop listening' : 'Start voice search'}>
+                        <MicrophoneIcon className={isListening ? 'text-red-500' : 'text-gray-600'} />
+                    </button>
+                )}
+                <button type="submit" className="w-12 h-12 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition-transform hover:scale-105" aria-label="Submit search">
+                    <ArrowRightIcon />
+                </button>
+            </div>
+        </form>
+         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
+          {[
+              { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
+              { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
+              { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
+              { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
+              { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
+              { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
+              { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
+          ].map(({ id, label, Icon, action, isActive }) => (
+              <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+              </button>
+          ))}
+      </div>
+      {activeMode === 'creator' && (
+        <div className="mt-4 flex items-center justify-center gap-2" role="group" aria-label="Select a platform">
+            <span className="text-sm font-medium text-gray-600 mr-2">For:</span>
+            {[
+                { id: 'youtube', label: 'YouTube', Icon: YouTubeIcon },
+                { id: 'tiktok', label: 'TikTok', Icon: TikTokIcon },
+                { id: 'instagram', label: 'Instagram', Icon: InstagramIcon },
+            ].map(({ id, label, Icon }) => (
+                <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                    <Icon className="w-4 h-4" />
+                    <span>{label}</span>
+                </button>
+            ))}
+        </div>
+      )}
+      </>
+    );
+  }
+
+  const containerClasses = ['flex items-center w-full transition-shadow duration-300 focus-within:shadow-xl relative', isLarge ? 'p-2 pl-6 rounded-full shadow-lg' : 'p-1 pl-4 rounded-full', isGlossy ? 'bg-white/20 backdrop-blur-md border border-white/30' : 'bg-white border border-gray-200'].join(' ');
+  const inputClasses = ['w-full h-full px-4 bg-transparent outline-none border-none', isLarge ? 'text-lg' : 'text-base', isGlossy ? 'text-white placeholder-white/70' : ''].join(' ');
+  const buttonClasses = isLarge ? 'w-12 h-12' : 'w-9 h-9';
+  const micButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1', buttonClasses, isListening ? (isGlossy ? 'bg-red-500/50 text-white animate-pulse' : 'bg-red-100 text-red-500 animate-pulse') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')].join(' ');
+  const submitButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors', buttonClasses, isGlossy ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-black text-white hover:bg-gray-800'].join(' ');
+  
   return (
     <>
       <form onSubmit={handleSubmit} className={containerClasses}>

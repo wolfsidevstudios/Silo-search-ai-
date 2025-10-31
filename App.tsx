@@ -900,6 +900,9 @@ const App: React.FC = () => {
   const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
   const handleToggleTemporaryMode = () => setTemporaryMode(prev => !prev);
   const handleClearRecents = () => setRecentSearches([]);
+  const handleDeleteRecentSearch = (searchToDelete: string) => {
+    setRecentSearches(prevSearches => prevSearches.filter(s => s !== searchToDelete));
+  };
 
   const handleOpenSettingsPage = (section?: string) => {
     setSidebarOpen(false);
@@ -1154,7 +1157,7 @@ const App: React.FC = () => {
             return (
                 <div className={appClasses} style={{ ...appStyle, ...(customWallpaper && !isMobile ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' } : {}) }}>
                     {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
-                    {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} />}
+                    {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} onDeleteRecentSearch={handleDeleteRecentSearch} />}
                     <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
                     <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
                     <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
