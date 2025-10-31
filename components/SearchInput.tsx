@@ -73,7 +73,7 @@ declare const window: CustomWindow;
 type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
 
 interface SearchInputProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
@@ -95,7 +95,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator'>('default');
+  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator' | 'research'>('default');
   const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
 
   useEffect(() => {
@@ -160,9 +160,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         agentSearch: activeMode === 'agent',
         creatorSearch: activeMode === 'creator',
         creatorPlatform: activeMode === 'creator' ? creatorPlatform : undefined,
+        researchSearch: activeMode === 'research',
     };
 
-    if (['map', 'travel', 'shop', 'pexels', 'agent', 'creator'].includes(activeMode) && !query.trim()) {
+    if (['map', 'travel', 'shop', 'pexels', 'agent', 'creator', 'research'].includes(activeMode) && !query.trim()) {
         let modeName = activeMode.charAt(0).toUpperCase() + activeMode.slice(1);
         if (activeMode === 'map') modeName = 'Map Search';
         if (activeMode === 'travel') modeName = 'Travel Planner';
@@ -170,6 +171,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         if (activeMode === 'pexels') modeName = 'Media Search';
         if (activeMode === 'agent') modeName = 'Web Agent';
         if (activeMode === 'creator') modeName = 'Creator Mode';
+        if (activeMode === 'research') modeName = 'Deep Research';
         alert(`Please enter a query to use ${modeName}.`);
         return;
     }
@@ -177,7 +179,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     onSearch(query, options);
   };
   
-  const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator') => {
+  const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator' | 'research') => {
     if (selectedFile) {
         alert("File Search is active. Clear the file to use other modes.");
         return;
@@ -212,7 +214,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   
   if (variant === 'home') {
     return (
-      <>
+      <div>
         <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
             {selectedFile && (
                 <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
@@ -237,9 +239,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                     <button type="button" title="File Search" onClick={onFileSelect} className={`p-2 rounded-lg text-gray-500 ${selectedFile ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
                         <FileTextIcon className="w-5 h-5" />
                     </button>
-                    <button type="button" title="Deep Research" onClick={onOpenComingSoonModal} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
-                        <LayersIcon className="w-5 h-5" />
-                    </button>
                 </div>
 
                 {/* Right side buttons */}
@@ -258,6 +257,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
           {[
               { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
+              { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
               { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
               { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
               { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
@@ -286,7 +286,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             ))}
         </div>
       )}
-      </>
+      </div>
     );
   }
 
@@ -297,7 +297,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const submitButtonClasses = ['flex-shrink-0 flex items-center justify-center rounded-full transition-colors', buttonClasses, isGlossy ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-black text-white hover:bg-gray-800'].join(' ');
   
   return (
-    <>
+    <div>
       <form onSubmit={handleSubmit} className={containerClasses}>
         <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
         {selectedFile && (
@@ -327,8 +327,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         {isDropdownOpen && (
           <div ref={dropdownRef} className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
             <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Advanced Modes</p>
-            <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
-              <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+            <button onClick={() => { handleModeToggle('research'); setDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span>
             </button>
             
             <div className="my-2 border-t border-gray-100"></div>
@@ -359,6 +359,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
           {[
               { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
+              { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
               { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
               { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
               { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
@@ -387,6 +388,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             ))}
         </div>
       )}
-    </>
+    </div>
   );
 };
