@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import type { UserProfile, FileRecord, NoteRecord, Space } from '../types';
@@ -9,6 +9,8 @@ import { UploadCloudIcon } from './icons/UploadCloudIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 import { LayersIcon } from './icons/LayersIcon';
+import { AiHomePage } from './AiHomePage';
+import { HomeIcon } from './icons/HomeIcon';
 
 interface CreatePageProps {
   files: FileRecord[];
@@ -20,6 +22,7 @@ interface CreatePageProps {
   onDeleteNote: (id: number) => void;
   onOpenSpaceEditor: (space: Partial<Space> | null) => void;
   navigate: (path: string) => void;
+  onSearch: (query: string, options: any) => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
@@ -29,7 +32,7 @@ interface CreatePageProps {
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
 }
 
-type ActiveView = 'files' | 'notes' | 'pdfs' | 'spaces';
+type ActiveView = 'ai-home' | 'files' | 'notes' | 'pdfs' | 'spaces';
 
 const formatBytes = (bytes: number, decimals = 2) => {
   if (bytes === 0) return '0 Bytes';
@@ -65,8 +68,8 @@ const NoteEditor: React.FC<{ note: NoteRecord | null; onSave: (note: Partial<Not
 };
 
 
-export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, spaces, onFileUpload, onDeleteFile, onSaveNote, onDeleteNote, onOpenSpaceEditor, navigate, ...headerProps }) => {
-    const [activeView, setActiveView] = useState<ActiveView>('files');
+export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, spaces, onFileUpload, onDeleteFile, onSaveNote, onDeleteNote, onOpenSpaceEditor, navigate, onSearch, ...headerProps }) => {
+    const [activeView, setActiveView] = useState<ActiveView>('ai-home');
     const [selectedNote, setSelectedNote] = useState<NoteRecord | null>(null);
     const [isEditingNote, setIsEditingNote] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +96,8 @@ export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, spaces, on
         }
         
         switch (activeView) {
+            case 'ai-home':
+                return <AiHomePage onSearch={onSearch} />;
             case 'files':
                 return (
                     <div className="p-6">
@@ -190,6 +195,7 @@ export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, spaces, on
             <Header {...headerProps} activeTab="create" onNavigate={navigate} />
             <main className="flex-grow flex min-h-0">
                 <aside className="w-20 bg-white border-r flex-shrink-0 p-2 space-y-2">
+                    <SidebarButton view="ai-home" icon={<HomeIcon />} label="AI Home" />
                     <SidebarButton view="files" icon={<FileIcon className="w-6 h-6" />} label="My Files" />
                     <SidebarButton view="notes" icon={<FileTextIcon className="w-6 h-6" />} label="Notes" />
                     <SidebarButton view="spaces" icon={<LayersIcon className="w-6 h-6" />} label="Spaces" />

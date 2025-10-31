@@ -22,82 +22,44 @@ import { TikTokIcon } from './icons/TikTokIcon';
 import { InstagramIcon } from './icons/InstagramIcon';
 import { FileTextIcon } from './icons/FileTextIcon';
 import type { SummarizationSource } from '../types';
+import { CodeIcon } from './icons/CodeIcon';
+import { DesignToolIcon } from './icons/DesignToolIcon';
 
-interface SpeechRecognitionAlternative {
-  readonly transcript: string;
-  readonly confidence: number;
-}
-
-interface SpeechRecognitionResult {
-  readonly isFinal: boolean;
-  readonly length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionResultList {
-  readonly length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionEvent extends Event {
-  readonly results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionErrorEvent extends Event {
-  readonly error: string;
-}
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  onstart: () => void;
-  onend: () => void;
-  onresult: (event: SpeechRecognitionEvent) => void;
-  onerror: (event: SpeechRecognitionErrorEvent) => void;
-}
-
-interface SpeechRecognitionStatic {
-  new(): SpeechRecognition;
-}
-
+// @FIX: Removed custom SpeechRecognition interfaces to prevent conflicts with native browser types.
+// The component will now rely on the default TypeScript DOM library definitions for SpeechRecognition.
 interface CustomWindow extends Window {
-  SpeechRecognition: SpeechRecognitionStatic;
-  webkitSpeechRecognition: SpeechRecognitionStatic;
+  SpeechRecognition: any;
+  webkitSpeechRecognition: any;
 }
 declare const window: CustomWindow;
 
 type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
 
 interface SearchInputProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
   speechLanguage: 'en-US' | 'es-ES';
   onOpenComingSoonModal: () => void;
-  isStudyMode: boolean;
-  setIsStudyMode: (isStudyMode: boolean) => void;
-  variant?: 'home';
+  isStudyMode?: boolean;
+  setIsStudyMode?: (isStudyMode: boolean) => void;
+  variant?: 'home' | 'create';
   summarizationSource: SummarizationSource | null;
   onOpenSummarizeSourceSelector: () => void;
   onClearSummarizationSource: () => void;
   showModes?: boolean;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode, variant, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, showModes = true }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode = false, setIsStudyMode = () => {}, variant, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, showModes = true }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator' | 'research'>('default');
+  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator' | 'research' | 'design' | 'docs' | 'code'>('default');
   const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
 
   useEffect(() => {
@@ -121,12 +83,12 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error', event.error);
       setIsListening(false);
     };
-    recognition.onresult = (event) => {
-      const transcript = Array.from(event.results).map(result => result[0]).map(result => result.transcript).join('');
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results).map((result: any) => result[0]).map((result: any) => result.transcript).join('');
       setQuery(transcript);
     };
     recognitionRef.current = recognition;
@@ -163,25 +125,20 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         creatorSearch: activeMode === 'creator',
         creatorPlatform: activeMode === 'creator' ? creatorPlatform : undefined,
         researchSearch: activeMode === 'research',
+        designSearch: activeMode === 'design',
+        docSearch: activeMode === 'docs',
+        codeSearch: activeMode === 'code',
     };
 
-    if (['map', 'travel', 'shop', 'pexels', 'agent', 'creator', 'research'].includes(activeMode) && !query.trim()) {
-        let modeName = activeMode.charAt(0).toUpperCase() + activeMode.slice(1);
-        if (activeMode === 'map') modeName = 'Map Search';
-        if (activeMode === 'travel') modeName = 'Travel Planner';
-        if (activeMode === 'shop') modeName = 'Shopping Agent';
-        if (activeMode === 'pexels') modeName = 'Media Search';
-        if (activeMode === 'agent') modeName = 'Web Agent';
-        if (activeMode === 'creator') modeName = 'Creator Mode';
-        if (activeMode === 'research') modeName = 'Deep Research';
-        alert(`Please enter a query to use ${modeName}.`);
+    if ([...Object.keys(options)].some(key => options[key as keyof typeof options]) && !query.trim()) {
+        alert(`Please enter a query to use this mode.`);
         return;
     }
 
     onSearch(query, options);
   };
   
-  const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator' | 'research') => {
+  const handleModeToggle = (mode: typeof activeMode) => {
     if (summarizationSource) {
         alert("A file is selected for summarization. Clear the file to use other modes.");
         return;
@@ -214,22 +171,23 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     setDropdownOpen(false);
   };
   
-  if (variant === 'home') {
+  if (variant === 'home' || variant === 'create') {
     return (
       <div>
-        <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
+        <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white/80 backdrop-blur-md border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
             {summarizationSource && (
                 <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
                     <FileTextIcon className="w-4 h-4" />
                     <span className="truncate max-w-xs">Summarizing: {summarizationSource.name}</span>
-                    <button type="button" onClick={onClearSummarizationSource} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+                    {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+                    <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
                 </div>
             )}
             <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask anything or summarize a file..."
-                className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg"
+                placeholder={variant === 'create' ? "Generate a design, document, or code..." : "Ask anything or summarize a file..."}
+                className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg placeholder:text-gray-500"
             />
 
             <div className="flex items-center justify-between mt-auto pt-4">
@@ -238,9 +196,12 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                     <button type="button" title="Search" className="p-2 rounded-lg bg-gray-100 text-black ring-1 ring-gray-300">
                         <SearchIcon className="w-5 h-5" />
                     </button>
-                    <button type="button" title="Summarize from source" onClick={onOpenSummarizeSourceSelector} className={`p-2 rounded-lg text-gray-500 ${summarizationSource ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
-                        <FileTextIcon className="w-5 h-5" />
-                    </button>
+                    {variant !== 'create' && (
+                        // @FIX: Wrapped handler in an arrow function to prevent passing event arguments.
+                        <button type="button" title="Summarize from source" onClick={() => onOpenSummarizeSourceSelector()} className={`p-2 rounded-lg text-gray-500 ${summarizationSource ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
+                            <FileTextIcon className="w-5 h-5" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Right side buttons */}
@@ -256,7 +217,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                 </div>
             </div>
         </form>
-         {showModes && (
+         {showModes && variant === 'home' && (
             <>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
                 {[
@@ -292,6 +253,20 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             )}
             </>
          )}
+          {showModes && variant === 'create' && (
+             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
+                {[
+                    { id: 'design', label: 'Design Tool', Icon: DesignToolIcon, action: () => handleModeToggle('design'), isActive: activeMode === 'design' },
+                    { id: 'docs', label: 'Docs Tool', Icon: FileTextIcon, action: () => handleModeToggle('docs'), isActive: activeMode === 'docs' },
+                    { id: 'code', label: 'Code Tool', Icon: CodeIcon, action: () => handleModeToggle('code'), isActive: activeMode === 'code' },
+                ].map(({ id, label, Icon, action, isActive }) => (
+                    <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                        <Icon className="w-4 h-4" />
+                        <span>{label}</span>
+                    </button>
+                ))}
+             </div>
+          )}
       </div>
     );
   }
@@ -310,7 +285,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-blue-100 text-blue-800">
                 <FileTextIcon className="w-4 h-4" />
                 <span className="font-medium truncate max-w-[100px]">{summarizationSource.name}</span>
-                <button type="button" onClick={onClearSummarizationSource} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+                {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+                <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
             </div>
         )}
         {isStudyMode && !summarizationSource && (
@@ -321,7 +297,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             </div>
         )}
         <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
-        <button type="button" onClick={onOpenSummarizeSourceSelector} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
+        {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+        <button type="button" onClick={() => onOpenSummarizeSourceSelector()} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
             <FileTextIcon className={isGlossy && !summarizationSource ? 'text-white/80' : ''} />
         </button>
         {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
@@ -339,10 +316,12 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             
             <div className="my-2 border-t border-gray-100"></div>
             <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
-            <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+            {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+            <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
               <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
             </button>
-            <button onClick={onOpenComingSoonModal} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+            {/* @FIX: Wrapped handler in an arrow function to prevent passing event arguments. */}
+            <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
               <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
             </button>
 
@@ -362,7 +341,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
         <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
       </form>
-      {showModes && (
+      {showModes && variant === 'home' && (
         <>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
           {[

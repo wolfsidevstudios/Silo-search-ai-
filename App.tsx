@@ -7,7 +7,7 @@ import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
 import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, Space } from './types';
+import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, Space } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -38,6 +38,7 @@ import * as db from './utils/db';
 import { FileSelectorModal } from './components/FileSelectorModal';
 import { SpaceEditorModal } from './components/SpaceEditorModal';
 import { SpacePage } from './components/SpacePage';
+import { AiResultPage } from './components/AiResultPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -160,6 +161,7 @@ const App: React.FC = () => {
   const [summarizationSource, setSummarizationSource] = useState<SummarizationSource | null>(null);
   const [isSpaceEditorOpen, setIsSpaceEditorOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<Partial<Space> | null>(null);
+  const [creativeSession, setCreativeSession] = useState<{ tool: AiCreativeTool, query: string } | null>(null);
 
   useEffect(() => {
       const initData = async () => {
@@ -318,6 +320,13 @@ const App: React.FC = () => {
             setAgentQuery(storedAgentQuery);
         } else {
             navigate('/search', { replace: true });
+        }
+    } else if (path === '/create/result') {
+        const storedSession = sessionStorage.getItem('creativeSession');
+        if (storedSession) {
+            setCreativeSession(JSON.parse(storedSession));
+        } else {
+            navigate('/create', { replace: true });
         }
     }
   }, [navigate]);
@@ -810,7 +819,7 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => {
     if (!query.trim()) return;
     if (!apiKeys.gemini) {
       alert('Please set your Gemini API key in settings or complete the onboarding process.');
@@ -822,6 +831,15 @@ const App: React.FC = () => {
     setLastSearchOptions(options);
     setSidebarOpen(false);
     setError(null);
+
+    const creativeTool = options.designSearch ? 'design' : options.docSearch ? 'docs' : options.codeSearch ? 'code' : null;
+    if (creativeTool) {
+        const session = { tool: creativeTool, query };
+        setCreativeSession(session);
+        sessionStorage.setItem('creativeSession', JSON.stringify(session));
+        navigate('/create/result');
+        return;
+    }
 
     if (summarizationSource) {
         if (!isTemporaryMode) {
@@ -1303,7 +1321,8 @@ const App: React.FC = () => {
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
-      case '/create': return <CreatePage files={files} notes={notes} spaces={spaces} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} onOpenSpaceEditor={handleOpenSpaceEditor} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/create': return <CreatePage onSearch={handleSearch} files={files} notes={notes} spaces={spaces} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} onOpenSpaceEditor={handleOpenSpaceEditor} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/create/result': return creativeSession ? <AiResultPage session={creativeSession} geminiApiKey={apiKeys.gemini} onExit={() => { setCreativeSession(null); navigate('/create'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
       default:
         if (path.startsWith('/space/')) {
             const spaceId = parseInt(path.split('/')[2], 10);

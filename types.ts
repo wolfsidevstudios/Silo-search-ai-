@@ -343,3 +343,5 @@ export interface Space {
   websites: string[];
   createdAt: Date;
 }
+
+export type AiCreativeTool = 'design' | 'docs' | 'code';
