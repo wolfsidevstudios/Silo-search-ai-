@@ -31,6 +31,7 @@ import { PexelsPage } from './components/PexelsPage';
 import { WebAgentPage } from './components/WebAgentPage';
 import { CreatorIdeasPage } from './components/CreatorIdeasPage';
 import { DiscoverPage } from './components/DiscoverPage';
+import { VideoPlayerModal } from './components/VideoPlayerModal';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -140,6 +141,8 @@ const App: React.FC = () => {
       return { gemini: { tokens: 0 } };
     }
   });
+
+  const [videoPlayerState, setVideoPlayerState] = useState<{ isOpen: boolean; videoId: string | null; playlist: YouTubeVideo[]; }>({ isOpen: false, videoId: null, playlist: [] });
 
   const isMobile = useIsMobile();
   
@@ -1115,6 +1118,13 @@ const App: React.FC = () => {
     setIsOnboarding(false);
   };
 
+  const handleOpenVideoPlayer = (videoId: string, playlist: YouTubeVideo[]) => {
+    setVideoPlayerState({ isOpen: true, videoId, playlist });
+  };
+  const handleCloseVideoPlayer = () => {
+    setVideoPlayerState({ isOpen: false, videoId: null, playlist: [] });
+  };
+
   const renderAppContent = () => {
     if (error) {
       const handleRetry = () => {
@@ -1166,7 +1176,7 @@ const App: React.FC = () => {
     
     if (isMobile) {
         switch(path) {
-            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} {...commonProps} /> : <LoadingState query={currentQuery}/>;
+            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery}/>;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
             case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
@@ -1181,14 +1191,14 @@ const App: React.FC = () => {
 
     // Desktop view
     switch(path) {
-      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} {...commonProps} /> : <LoadingState query={currentQuery} />;
+      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
       case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
       case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
-      case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} {...commonProps} />;
+      case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
       case '/search':
       default:
         const desktopSearchPageProps = {
@@ -1240,7 +1250,15 @@ const App: React.FC = () => {
                     {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} onDeleteRecentSearch={handleDeleteRecentSearch} />}
                     <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
                     <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
-                    <div className={`${isSidebarOpen || isChatModeOpen || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
+                    {videoPlayerState.isOpen && videoPlayerState.videoId && (
+                      <VideoPlayerModal
+                        initialVideoId={videoPlayerState.videoId}
+                        playlist={videoPlayerState.playlist}
+                        onClose={handleCloseVideoPlayer}
+                        apiKey={apiKeys.youtube}
+                      />
+                    )}
+                    <div className={`${isSidebarOpen || isChatModeOpen || isComingSoonModalOpen || videoPlayerState.isOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
                     {renderAppContent()}
                     </div>
                 </div>

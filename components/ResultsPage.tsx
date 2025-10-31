@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { SearchResult, UserProfile, SearchInputSettings } from '../types';
+import type { SearchResult, UserProfile, SearchInputSettings, YouTubeVideo } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { RedoIcon } from './icons/RedoIcon';
@@ -10,7 +10,6 @@ import { VolumeXIcon } from './icons/VolumeXIcon';
 import { Footer } from './Footer';
 import { FlashcardView } from './FlashcardView';
 import { QuizView } from './QuizView';
-import { CloseIcon } from './icons/CloseIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 interface ResultsPageProps {
@@ -32,24 +31,16 @@ interface ResultsPageProps {
   selectedFile: { name: string } | null;
   onFileSelect: () => void;
   onClearFile: () => void;
+  onOpenVideoPlayer: (videoId: string, playlist: YouTubeVideo[]) => void;
 }
 
 type ResultTab = 'summary' | 'videos' | 'flashcards' | 'quiz';
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage, selectedFile, onFileSelect, onClearFile }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage, selectedFile, onFileSelect, onClearFile, onOpenVideoPlayer }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isStudyMode, setIsStudyMode] = useState(result.isStudyQuery || false);
   const [activeTab, setActiveTab] = useState<ResultTab>('summary');
-  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const isMobile = useIsMobile();
-
-  const handleOpenVideo = (videoId: string) => {
-    setSelectedVideoId(videoId);
-  };
-
-  const handleCloseVideo = () => {
-    setSelectedVideoId(null);
-  };
   
   const handleCopy = () => {
     navigator.clipboard.writeText(result.summary);
@@ -133,7 +124,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
           <h2 className="text-2xl font-bold text-center mb-6">Top Video Results</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {result.videos.map(video => (
-              <button key={video.id} onClick={() => handleOpenVideo(video.id)} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow group text-left w-full">
+              <button key={video.id} onClick={() => onOpenVideoPlayer(video.id, result.videos || [])} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow group text-left w-full">
                 <div className="relative">
                   <img src={video.thumbnailUrl} alt={video.title} className="w-full h-40 object-cover" />
                   <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -177,33 +168,6 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         userProfile={userProfile}
         onLogout={onLogout}
       />
-      
-      {selectedVideoId && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4" 
-          onClick={handleCloseVideo}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="relative w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              <iframe
-                  className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1&rel=0`}
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-              ></iframe>
-              <button
-                  onClick={handleCloseVideo}
-                  className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
-                  aria-label="Close video player"
-              >
-                  <CloseIcon className="w-5 h-5" />
-              </button>
-          </div>
-        </div>
-      )}
 
       <main className="flex-grow flex flex-col items-center justify-center px-4 pb-32">
         <div className="w-full max-w-4xl">

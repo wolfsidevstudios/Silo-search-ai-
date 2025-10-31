@@ -74,3 +74,41 @@ export async function fetchTrendingYouTubeVideos(apiKey: string): Promise<YouTub
     return [];
   }
 }
+
+export async function fetchYouTubeVideoDetails(videoId: string, apiKey: string): Promise<YouTubeVideo | null> {
+  if (!apiKey) {
+    console.warn("YouTube API key is missing.");
+    return null;
+  }
+
+  const endpoint = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
+
+  try {
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`YouTube API error fetching details: ${errorData.error.message}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.items || data.items.length === 0) {
+      return null;
+    }
+
+    const item = data.items[0];
+    const video: YouTubeVideo = {
+      id: item.id,
+      title: item.snippet.title,
+      thumbnailUrl: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
+      channelTitle: item.snippet.channelTitle,
+      description: item.snippet.description,
+      videoUrl: `https://www.youtube.com/watch?v=${item.id}`,
+    };
+
+    return video;
+  } catch (error) {
+    console.error("Error fetching YouTube video details:", error);
+    return null;
+  }
+}

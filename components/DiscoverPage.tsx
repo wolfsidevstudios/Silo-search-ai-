@@ -22,6 +22,7 @@ interface DiscoverPageProps {
   onLogout: () => void;
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
   apiKeys: { [key: string]: string };
+  onOpenVideoPlayer: (videoId: string, playlist: YouTubeVideo[]) => void;
 }
 
 const StockCard: React.FC<{ stock: StockQuote }> = ({ stock }) => {
@@ -74,8 +75,8 @@ const ProductHuntCard: React.FC<{ product: ProductHuntPost }> = ({ product }) =>
     </a>
 );
 
-const YouTubeVideoCard: React.FC<{ video: YouTubeVideo }> = ({ video }) => (
-    <a href={video.videoUrl} target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl border border-gray-200 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow">
+const YouTubeVideoCard: React.FC<{ video: YouTubeVideo; onClick: () => void; }> = ({ video, onClick }) => (
+    <button onClick={onClick} className="bg-white rounded-xl border border-gray-200 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow text-left">
         <div className="relative">
             <img src={video.thumbnailUrl} alt={video.title} className="aspect-video w-full object-cover" />
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -86,7 +87,7 @@ const YouTubeVideoCard: React.FC<{ video: YouTubeVideo }> = ({ video }) => (
             <h3 className="font-bold text-gray-800 group-hover:text-black text-sm line-clamp-2">{video.title}</h3>
             <p className="text-xs text-gray-500 mt-auto pt-2">{video.channelTitle}</p>
         </div>
-    </a>
+    </button>
 );
 
 const TikTokVideoCard: React.FC<{ video: TikTokVideo }> = ({ video }) => (
@@ -104,7 +105,7 @@ const TikTokVideoCard: React.FC<{ video: TikTokVideo }> = ({ video }) => (
     </a>
 );
 
-export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLegalPage, apiKeys, ...headerProps }) => {
+export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLegalPage, apiKeys, onOpenVideoPlayer, ...headerProps }) => {
     const [activeTab, setActiveTab] = useState<'news' | 'finance' | 'videos'>('news');
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [stocks, setStocks] = useState<StockQuote[]>([]);
@@ -240,7 +241,7 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                              <div className="flex items-center justify-center py-10"><LogoIcon className="w-12 h-12 animate-spin" /></div>
                         ) : (
                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {displayedVideos.map((video) => <YouTubeVideoCard key={video.id} video={video} />)}
+                                {displayedVideos.map((video) => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, displayedVideos)} />)}
                              </div>
                         )}
 

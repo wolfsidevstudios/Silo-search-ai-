@@ -9,6 +9,7 @@ export interface YouTubeVideo {
   thumbnailUrl: string;
   channelTitle: string;
   videoUrl: string;
+  description?: string;
 }
 
 export interface Flashcard {
