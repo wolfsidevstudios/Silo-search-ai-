@@ -345,3 +345,41 @@ export interface Space {
 }
 
 export type AiCreativeTool = 'design' | 'docs' | 'code';
+
+// --- Design Engine Types ---
+
+export type DesignElementType = 'text' | 'illustration';
+
+export interface DesignElementPosition { x: number; y: number; }
+export interface DesignElementSize { width: number; height?: number; }
+
+export interface TextElement {
+  type: 'text';
+  id: number;
+  content: string;
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: number;
+  color: string;
+  position: DesignElementPosition;
+  size: DesignElementSize;
+  textAlign: 'left' | 'center' | 'right';
+}
+
+export interface IllustrationElement {
+  type: 'illustration';
+  id: number;
+  searchTerm: string;
+  imageUrl?: string; // This will be populated after calling Streamline API
+  position: DesignElementPosition;
+  size: DesignElementSize;
+}
+
+export type DesignElement = TextElement | IllustrationElement;
+
+export interface DesignSpec {
+  designType: 'youtube-thumbnail' | 'poster' | 'presentation-slide';
+  aspectRatio: '16/9' | '1/1' | '4/5' | '4/3';
+  backgroundColor: string; // Key for the background class
+  elements: DesignElement[];
+}

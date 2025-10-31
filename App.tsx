@@ -41,6 +41,7 @@ import { SpacePage } from './components/SpacePage';
 import { AiResultPage } from './components/AiResultPage';
 import { AiLabsPage } from './components/AiLabsPage';
 import { SpacesListPage } from './components/SpacesListPage';
+import { DesignEnginePage } from './components/DesignEnginePage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -323,7 +324,7 @@ const App: React.FC = () => {
         } else {
             navigate('/search', { replace: true });
         }
-    } else if (path === '/create/result') {
+    } else if (path === '/create/result' || path === '/create/design-result') {
         const storedSession = sessionStorage.getItem('creativeSession');
         if (storedSession) {
             setCreativeSession(JSON.parse(storedSession));
@@ -530,6 +531,7 @@ const App: React.FC = () => {
         youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
         apify: '',
+        streamline: 'ScPULhBXlEmGJGXa.da9b9d9c4a3309b8dff9d29751949e46',
         ...parsed,
       };
     } catch (error) {
@@ -538,6 +540,7 @@ const App: React.FC = () => {
         youtube: 'AIzaSyBBf9TIeqt8izcMBTf0Emr_sbum4cPXjlU',
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
         apify: '',
+        streamline: 'ScPULhBXlEmGJGXa.da9b9d9c4a3309b8dff9d29751949e46',
       };
     }
   });
@@ -839,7 +842,11 @@ const App: React.FC = () => {
         const session = { tool: creativeTool, query };
         setCreativeSession(session);
         sessionStorage.setItem('creativeSession', JSON.stringify(session));
-        navigate('/create/result');
+        if (creativeTool === 'design') {
+          navigate('/create/design-result');
+        } else {
+          navigate('/create/result');
+        }
         return;
     }
 
@@ -1326,7 +1333,8 @@ const App: React.FC = () => {
       case '/ai-labs': return <AiLabsPage onSearch={handleSearch} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/spaces': return <SpacesListPage spaces={spaces} onOpenSpaceEditor={handleOpenSpaceEditor} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/create': return <CreatePage files={files} notes={notes} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-      case '/create/result': return creativeSession ? <AiResultPage session={creativeSession} geminiApiKey={apiKeys.gemini} onExit={() => { setCreativeSession(null); navigate('/create'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
+      case '/create/result': return creativeSession && (creativeSession.tool === 'docs' || creativeSession.tool === 'code') ? <AiResultPage session={creativeSession} geminiApiKey={apiKeys.gemini} onExit={() => { setCreativeSession(null); navigate('/ai-labs'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
+      case '/create/design-result': return creativeSession && creativeSession.tool === 'design' ? <DesignEnginePage session={creativeSession} apiKeys={apiKeys} onExit={() => { setCreativeSession(null); navigate('/ai-labs'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
       default:
         if (path.startsWith('/space/')) {
             const spaceId = parseInt(path.split('/')[2], 10);

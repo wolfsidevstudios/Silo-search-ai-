@@ -19,16 +19,16 @@ interface AiResultPageProps {
 
 const getSystemInstruction = (tool: AiCreativeTool): string => {
     switch (tool) {
-        case 'design':
-            return "You are an expert web designer. Your task is to generate HTML code with inline Tailwind CSS based on the user's description. Respond ONLY with the raw HTML code. Do not include any explanations, markdown formatting, or any text outside of the HTML code itself. For each new request, regenerate the complete HTML with the requested changes.";
         case 'docs':
             return "You are a professional technical writer. Your task is to create a well-structured and beautifully formatted document in Markdown based on the user's request. Use headings, lists, bold text, and other markdown features to make the document clear and readable. Respond only with the Markdown content.";
         case 'code':
             return "You are an expert web developer. Your task is to create a complete, single-file HTML application based on the user's description. The response must be a single block of HTML code. Include all necessary HTML, CSS (in a <style> tag), and JavaScript (in a <script> tag) in one file. Respond ONLY with the raw HTML code. Do not include any explanations, markdown formatting, or any text outside of the HTML code block.";
+        default:
+            return "You are a helpful assistant.";
     }
 };
 
-const DesignPreview: React.FC<{ html: string }> = ({ html }) => {
+const CodePreview: React.FC<{ html: string }> = ({ html }) => {
     const [showCode, setShowCode] = useState(false);
     
     const handleDownload = () => {
@@ -36,7 +36,7 @@ const DesignPreview: React.FC<{ html: string }> = ({ html }) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'design.html';
+        a.download = 'code.html';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -53,7 +53,7 @@ const DesignPreview: React.FC<{ html: string }> = ({ html }) => {
                 {showCode ? (
                     <pre className="w-full h-full overflow-auto p-4 text-sm bg-gray-800 text-white"><code>{html}</code></pre>
                 ) : (
-                    <iframe srcDoc={html} title="Design Preview" className="w-full h-full border-none" sandbox="allow-scripts" />
+                    <iframe srcDoc={html} title="Code Preview" className="w-full h-full border-none" sandbox="allow-scripts allow-forms" />
                 )}
             </div>
         </div>
@@ -159,9 +159,8 @@ export const AiResultPage: React.FC<AiResultPageProps> = ({ session, geminiApiKe
             )
         }
         switch(session.tool) {
-            case 'design': return <DesignPreview html={generatedContent} />;
             case 'docs': return <DocPreview markdown={generatedContent} />;
-            case 'code': return <DesignPreview html={generatedContent} />;
+            case 'code': return <CodePreview html={generatedContent} />;
             default: return null;
         }
     };

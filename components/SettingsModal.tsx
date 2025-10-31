@@ -47,6 +47,7 @@ import { ExaIcon } from './icons/ExaIcon';
 import { GoogleIcon } from './icons/GoogleIcon';
 import { BarChartIcon } from './icons/BarChartIcon';
 import { ApifyIcon } from './icons/ApifyIcon';
+import { DesignToolIcon } from './icons/DesignToolIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -86,6 +87,7 @@ const AI_PROVIDERS = [
     { id: 'pexels', name: 'Pexels API', Icon: ImageIcon, description: 'Required for the media search feature. Get a free key from the Pexels website.', placeholder: 'Enter your Pexels API key', getLink: 'https://www.pexels.com/api/' },
     { id: 'exa', name: 'Exa API', Icon: ExaIcon, description: 'Required for the Shopping Agent feature. Get your key from the Exa dashboard.', placeholder: 'Enter your Exa API key', getLink: 'https://dashboard.exa.ai/login' },
     { id: 'apify', name: 'Apify', Icon: ApifyIcon, description: 'Required for TikTok video integration. Get your token from your Apify account settings.', placeholder: 'Enter your Apify API token', getLink: 'https://console.apify.com/account/integrations' },
+    { id: 'streamline', name: 'StreamlineHQ', Icon: DesignToolIcon, description: 'Required for illustrations in the Design Engine. Get your key from the Streamline dashboard.', placeholder: 'Enter your Streamline API key', getLink: 'https://app.streamlinehq.com/account/api' },
     { id: 'openai', name: 'OpenAI', Icon: OpenAIIcon, description: 'You can find your OpenAI API key on your OpenAI account page.', placeholder: 'Enter your OpenAI API key (e.g., sk-...)', getLink: 'https://platform.openai.com/api-keys' },
     { id: 'anthropic', name: 'Anthropic', Icon: AnthropicIcon, description: 'Access your Anthropic API key from the Anthropic console settings.', placeholder: 'Enter your Anthropic API key', getLink: 'https://console.anthropic.com/settings/keys' },
 ];
