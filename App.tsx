@@ -7,7 +7,7 @@ import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
 import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, Space } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -36,6 +36,8 @@ import { DeepResearchPage } from './components/DeepResearchPage';
 import { CreatePage } from './components/CreatePage';
 import * as db from './utils/db';
 import { FileSelectorModal } from './components/FileSelectorModal';
+import { SpaceEditorModal } from './components/SpaceEditorModal';
+import { SpacePage } from './components/SpacePage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -151,18 +153,21 @@ const App: React.FC = () => {
 
   const isMobile = useIsMobile();
   
-  // New state for Create Hub and Summarization
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [notes, setNotes] = useState<NoteRecord[]>([]);
+  const [spaces, setSpaces] = useState<Space[]>([]);
   const [isFileSelectorOpen, setFileSelectorOpen] = useState(false);
   const [summarizationSource, setSummarizationSource] = useState<SummarizationSource | null>(null);
+  const [isSpaceEditorOpen, setIsSpaceEditorOpen] = useState(false);
+  const [editingSpace, setEditingSpace] = useState<Partial<Space> | null>(null);
 
   useEffect(() => {
       const initData = async () => {
           await db.initDB();
-          const [dbFiles, dbNotes] = await Promise.all([db.getFiles(), db.getNotes()]);
+          const [dbFiles, dbNotes, dbSpaces] = await Promise.all([db.getFiles(), db.getNotes(), db.getSpaces()]);
           setFiles(dbFiles);
           setNotes(dbNotes);
+          setSpaces(dbSpaces);
       };
       initData();
   }, []);
@@ -196,6 +201,31 @@ const App: React.FC = () => {
         setIsStudyMode(false);
       }
   };
+
+  const handleOpenSpaceEditor = (space: Partial<Space> | null) => {
+    setEditingSpace(space);
+    setIsSpaceEditorOpen(true);
+  };
+  const handleCloseSpaceEditor = () => {
+    setEditingSpace(null);
+    setIsSpaceEditorOpen(false);
+  };
+  const handleSaveSpace = async (space: Partial<Space>) => {
+    await db.saveSpace(space);
+    const dbSpaces = await db.getSpaces();
+    setSpaces(dbSpaces);
+    handleCloseSpaceEditor();
+  };
+  const handleDeleteSpace = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this space? This action is irreversible.')) {
+        await db.deleteSpace(id);
+        setSpaces(spaces.filter(s => s.id !== id));
+        if (currentPath.startsWith(`/space/${id}`)) {
+            navigate('/create');
+        }
+    }
+  };
+
 
   const navigate = useCallback((path: string, options?: { replace?: boolean, section?: string }) => {
     if (options?.replace) {
@@ -1273,9 +1303,13 @@ const App: React.FC = () => {
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
-      case '/create': return <CreatePage files={files} notes={notes} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-      case '/search':
+      case '/create': return <CreatePage files={files} notes={notes} spaces={spaces} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} onOpenSpaceEditor={handleOpenSpaceEditor} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       default:
+        if (path.startsWith('/space/')) {
+            const spaceId = parseInt(path.split('/')[2], 10);
+            return <SpacePage spaceId={spaceId} geminiApiKey={apiKeys.gemini} onOpenSpaceEditor={handleOpenSpaceEditor} onDeleteSpace={handleDeleteSpace} navigate={navigate} {...commonProps} />;
+        }
+        
         const desktopSearchPageProps = {
           onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onOpenSummarizeSourceSelector: () => setFileSelectorOpen(true), onClearSummarizationSource: () => setSummarizationSource(null), navigate, ...commonProps
         };
@@ -1326,6 +1360,7 @@ const App: React.FC = () => {
                     <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
                     <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
                     <FileSelectorModal isOpen={isFileSelectorOpen} onClose={() => setFileSelectorOpen(false)} files={files} notes={notes} onSelect={handleSelectSummarizationSource} />
+                    <SpaceEditorModal isOpen={isSpaceEditorOpen} onClose={handleCloseSpaceEditor} onSave={handleSaveSpace} spaceToEdit={editingSpace} allFiles={files} allNotes={notes} />
                     {videoPlayerState.isOpen && videoPlayerState.videoId && (
                       <VideoPlayerModal
                         initialVideoId={videoPlayerState.videoId}

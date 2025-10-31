@@ -334,3 +334,12 @@ export interface SummarizationSource {
   name: string;
   type: 'file' | 'note';
 }
+
+export interface Space {
+  id: number;
+  name: string;
+  systemInstruction: string;
+  dataSources: { type: 'file' | 'note'; id: number; name: string }[];
+  websites: string[];
+  createdAt: Date;
+}

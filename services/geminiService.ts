@@ -1,5 +1,6 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail, DeepResearchResult } from '../types';
+// FIX: Import Space type
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail, DeepResearchResult, Space } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean, fileContent?: string): Promise<SearchResult & { estimatedTokens: number }> {
   if (!apiKey) {
@@ -114,6 +115,56 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   } catch (error) {
     console.error("Error fetching from Gemini API:", error);
     throw new Error("Failed to get a valid response from the AI model. This could be due to an invalid API key or network issues.");
+  }
+}
+
+// FIX: Add missing fetchSpaceSearchResult function
+export async function fetchSpaceSearchResult(query: string, apiKey: string, space: Space, contextData: string): Promise<SearchResult> {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  let prompt = `Answer the following query: "${query}"`;
+  if (contextData) {
+    prompt += `\n\nYou have been provided with the following context from files and notes. Use it to inform your answer:\n\n---\n${contextData}\n---`;
+  }
+  
+  const config: GenerateContentConfig = {};
+
+  if(space.systemInstruction) {
+    config.systemInstruction = space.systemInstruction;
+  }
+
+  if (space.websites && space.websites.length > 0) {
+    config.tools = [{googleSearch: {}}];
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: config,
+    });
+
+    const summary = response.text;
+    if (!summary) {
+        throw new Error("Received an empty summary from the API.");
+    }
+    
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const quickLinks: QuickLink[] = groundingChunks
+        .map((chunk: any) => chunk.web)
+        .filter((web: any): web is QuickLink => !!(web && web.title && web.uri));
+    
+    const result: SearchResult = { summary, quickLinks };
+    
+    return result;
+
+  } catch (error) {
+    console.error("Error fetching from Gemini API for Space Search:", error);
+    throw new Error("Failed to get a valid response from the AI model for your space. This could be due to an invalid API key or network issues.");
   }
 }
 
