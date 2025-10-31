@@ -274,3 +274,16 @@ export interface StockQuote {
     '09. change': string;
     '10. change percent': string;
 }
+
+export interface ProductHuntThumbnail {
+    url: string;
+}
+
+export interface ProductHuntPost {
+    id: string;
+    name: string;
+    tagline: string;
+    url: string;
+    votesCount: number;
+    thumbnail: ProductHuntThumbnail;
+}

@@ -4,8 +4,10 @@ import { Footer } from './Footer';
 import { NavigationTabs } from './NavigationTabs';
 import { fetchTopHeadlines } from '../services/newsService';
 import { fetchStockQuotes } from '../services/stockService';
-import type { NewsArticle, StockQuote, UserProfile } from '../types';
+import { fetchTrendingProducts } from '../services/productHuntService';
+import type { NewsArticle, StockQuote, UserProfile, ProductHuntPost } from '../types';
 import { LogoIcon } from './icons/LogoIcon';
+import { ProductHuntIcon } from './icons/ProductHuntIcon';
 
 interface DiscoverPageProps {
   navigate: (path: string) => void;
@@ -57,21 +59,35 @@ const NewsCard: React.FC<{ article: NewsArticle }> = ({ article }) => (
     </a>
 );
 
+const ProductHuntCard: React.FC<{ product: ProductHuntPost }> = ({ product }) => (
+    <a href={product.url} target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-xl border border-gray-200 group flex items-start space-x-4 hover:shadow-md transition-shadow">
+        <img src={product.thumbnail.url} alt={product.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+        <div className="flex-grow min-w-0">
+            <h4 className="font-bold text-gray-800 truncate group-hover:text-black">{product.name}</h4>
+            <p className="text-sm text-gray-600 truncate mt-1">{product.tagline}</p>
+            <p className="text-xs font-semibold text-gray-500 mt-2">▲ {product.votesCount}</p>
+        </div>
+    </a>
+);
+
 
 export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLegalPage, ...headerProps }) => {
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [stocks, setStocks] = useState<StockQuote[]>([]);
+    const [trendingProducts, setTrendingProducts] = useState<ProductHuntPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
-            const [newsData, stockData] = await Promise.all([
+            const [newsData, stockData, productsData] = await Promise.all([
                 fetchTopHeadlines(),
-                fetchStockQuotes()
+                fetchStockQuotes(),
+                fetchTrendingProducts()
             ]);
             setNews(newsData.filter(a => a.urlToImage)); // Only show articles with images
             setStocks(stockData);
+            setTrendingProducts(productsData);
             setIsLoading(false);
         };
         loadData();
@@ -93,6 +109,15 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                             <h2 className="text-2xl font-bold text-gray-800 mb-4">Market Snapshot</h2>
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                                 {stocks.map(stock => <StockCard key={stock['01. symbol']} stock={stock} />)}
+                            </div>
+                        </section>
+                        <section className="mb-12">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+                                <ProductHuntIcon className="w-6 h-6" />
+                                <span>Trending on Product Hunt</span>
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {trendingProducts.map(product => <ProductHuntCard key={product.id} product={product} />)}
                             </div>
                         </section>
                         <section>
