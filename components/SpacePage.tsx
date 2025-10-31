@@ -7,7 +7,8 @@ import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 import { EditIcon } from './icons/EditIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { SearchInput } from './SearchInput';
-import { ResultsPage } from './ResultsPage'; // Reusing for display
+import { Header } from './Header';
+import { Footer } from './Footer';
 
 interface SpacePageProps {
   spaceId: number;
@@ -15,11 +16,15 @@ interface SpacePageProps {
   onOpenSpaceEditor: (space: Space | null) => void;
   onDeleteSpace: (id: number) => void;
   navigate: (path: string) => void;
+  isTemporaryMode: boolean;
+  onToggleSidebar: () => void;
+  onToggleTemporaryMode: () => void;
+  onOpenSettings: (section?: string) => void;
   userProfile: UserProfile | null;
   onLogout: () => void;
 }
 
-export const SpacePage: React.FC<SpacePageProps> = ({ spaceId, geminiApiKey, onOpenSpaceEditor, onDeleteSpace, navigate, userProfile, onLogout }) => {
+export const SpacePage: React.FC<SpacePageProps> = ({ spaceId, geminiApiKey, onOpenSpaceEditor, onDeleteSpace, navigate, ...headerProps }) => {
   const [space, setSpace] = useState<Space | null>(null);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,10 +51,10 @@ export const SpacePage: React.FC<SpacePageProps> = ({ spaceId, geminiApiKey, onO
 
     setIsSearching(true);
     setCurrentQuery(query);
+    setSearchResult(null);
     setError(null);
 
     try {
-      // 1. Fetch content for all data sources
       let contextData = '';
       for (const source of space.dataSources) {
         if (source.type === 'file') {
@@ -66,96 +71,105 @@ export const SpacePage: React.FC<SpacePageProps> = ({ spaceId, geminiApiKey, onO
         }
       }
 
-      // 2. Call Gemini service
       const result = await fetchSpaceSearchResult(query, geminiApiKey, space, contextData);
       setSearchResult(result);
 
     } catch (err) {
       console.error(err);
       setError("An error occurred during the search. Please try again.");
-    } finally {
       setIsSearching(false);
     }
+  };
+
+  const resetSearch = () => {
+    setSearchResult(null);
+    setCurrentQuery('');
+    setIsSearching(false);
   };
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen"><LogoIcon className="w-16 h-16 animate-spin" /></div>;
   }
-  if (error) {
-    return <div className="flex items-center justify-center h-screen text-red-600">{error}</div>;
+  if (error && !space) {
+    return (
+        <div className="flex flex-col items-center justify-center h-screen text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button onClick={() => navigate('/create')} className="px-4 py-2 bg-black text-white rounded-full">Back to Create Hub</button>
+        </div>
+    );
   }
   if (!space) {
-    return <div className="flex items-center justify-center h-screen">Space could not be loaded.</div>;
-  }
-  
-  if (searchResult) {
-      return <ResultsPage 
-                result={searchResult}
-                originalQuery={currentQuery}
-                onSearch={handleSearch}
-                onHome={() => navigate('/search')}
-                onEnterChatMode={() => {}} // Chat mode not implemented for spaces yet
-                isTemporaryMode={false}
-                onToggleSidebar={() => {}}
-                onToggleTemporaryMode={() => {}}
-                onOpenSettings={() => navigate('/settings')}
-                userProfile={userProfile}
-                onLogout={onLogout}
-                searchInputSettings={{ isLarge: false, isGlossy: false }}
-                speechLanguage="en-US"
-                onOpenComingSoonModal={() => {}}
-                onOpenLegalPage={(page) => navigate(`/${page}`)}
-                summarizationSource={null}
-                onOpenSummarizeSourceSelector={() => {}}
-                onClearSummarizationSource={() => {}}
-                onOpenVideoPlayer={() => {}}
-             />;
+    return null;
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-        <header className="p-4 flex justify-between items-center border-b bg-white">
-            <div className="flex items-center space-x-3">
-                <button onClick={() => navigate('/create')} className="p-2 rounded-full hover:bg-gray-100"><ArrowLeftIcon /></button>
-                <h1 className="text-xl font-bold">{space.name}</h1>
-            </div>
-            <div className="flex items-center space-x-2">
-                <button onClick={() => onOpenSpaceEditor(space)} className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-gray-300">
-                    <EditIcon className="w-4 h-4" />
-                    <span>Edit</span>
-                </button>
-                 <button onClick={() => onDeleteSpace(space.id)} className="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 rounded-full">
-                    <TrashIcon className="w-5 h-5" />
-                </button>
-            </div>
-        </header>
-        <main className="flex-grow flex flex-col items-center justify-center px-4 pb-12 text-center">
-            <div className="max-w-3xl w-full">
-                {isSearching ? (
-                    <div className="flex flex-col items-center">
-                        <LogoIcon className="w-12 h-12 animate-spin" />
-                        <p className="mt-4 text-gray-600">Searching in "{space.name}"...</p>
-                    </div>
+        <Header 
+            {...headerProps}
+            onHome={() => searchResult ? resetSearch() : navigate('/create')}
+            showHomeButton={true}
+        />
+
+        <main className="flex-grow flex flex-col items-center justify-center p-4">
+            {isSearching ? (
+                <div className="flex flex-col items-center">
+                    <LogoIcon className="w-12 h-12 animate-spin" />
+                    <p className="mt-4 text-gray-600">Searching within "{space.name}"...</p>
+                </div>
+            ) : searchResult ? (
+                 <div className="max-w-4xl w-full">
+                    {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+                    <h1 className="text-3xl font-bold text-center mb-2">{currentQuery}</h1>
+                    <p className="text-center text-gray-500 text-sm mb-6">Results from your Space: "{space.name}"</p>
+                    <p className="text-lg leading-relaxed text-gray-800 text-center bg-white p-6 rounded-lg border">{searchResult.summary}</p>
+                    {searchResult.quickLinks && searchResult.quickLinks.length > 0 && (
+                        <div className="mt-8">
+                            <h3 className="text-center font-semibold mb-4">Sources</h3>
+                            <div className="flex flex-wrap justify-center gap-3">
+                                {searchResult.quickLinks.map((link, index) => (
+                                    <a key={index} href={link.uri} target="_blank" rel="noopener noreferrer" className="bg-gray-100 text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-gray-200 transition-colors">{link.title}</a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                 </div>
+            ) : (
+                <div className="w-full max-w-2xl text-center">
+                    <h2 className="text-4xl font-bold text-gray-800 mb-2">{space.name}</h2>
+                    <p className="text-gray-600 mb-8 max-w-xl mx-auto">{space.systemInstruction || 'This space is ready for your questions.'}</p>
+                    <SearchInput 
+                        onSearch={(query) => handleSearch(query)}
+                        variant="home"
+                        speechLanguage="en-US"
+                        onOpenComingSoonModal={() => {}}
+                        isStudyMode={false}
+                        setIsStudyMode={() => {}}
+                        summarizationSource={null}
+                        onOpenSummarizeSourceSelector={() => {}}
+                        onClearSummarizationSource={() => {}}
+                        showModes={false}
+                    />
+                </div>
+            )}
+        </main>
+        
+        <footer className="sticky bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm z-20">
+            <div className="max-w-xl mx-auto flex justify-between items-center">
+                {searchResult ? (
+                    <SearchInput onSearch={handleSearch} isLarge={false} speechLanguage="en-US" onOpenComingSoonModal={() => {}} isStudyMode={false} setIsStudyMode={() => {}} summarizationSource={null} onOpenSummarizeSourceSelector={()=>{}} onClearSummarizationSource={()=>{}} showModes={false} />
                 ) : (
-                    <>
-                        <h2 className="text-4xl font-bold text-gray-800 mb-2">{space.name}</h2>
-                        <p className="text-gray-600 mb-8 max-w-xl mx-auto">{space.systemInstruction || 'This space is ready for your questions.'}</p>
-                        <SearchInput 
-                            onSearch={(query) => handleSearch(query)}
-                            variant="home"
-                            speechLanguage="en-US"
-                            onOpenComingSoonModal={() => {}}
-                            isStudyMode={false}
-                            setIsStudyMode={() => {}}
-                            summarizationSource={null}
-                            onOpenSummarizeSourceSelector={() => {}}
-                            onClearSummarizationSource={() => {}}
-                            showModes={false}
-                        />
-                    </>
+                    <div className="flex items-center space-x-2">
+                        <button onClick={() => onOpenSpaceEditor(space)} className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-gray-300">
+                            <EditIcon className="w-4 h-4" />
+                            <span>Edit</span>
+                        </button>
+                        <button onClick={() => onDeleteSpace(space.id)} className="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 rounded-full">
+                            <TrashIcon className="w-5 h-5" />
+                        </button>
+                    </div>
                 )}
             </div>
-        </main>
+        </footer>
     </div>
   );
 };

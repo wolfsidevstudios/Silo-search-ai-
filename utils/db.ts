@@ -27,7 +27,7 @@ export const initDB = (): Promise<IDBDatabase> => {
       if (!dbInstance.objectStoreNames.contains(NOTE_STORE)) {
         dbInstance.createObjectStore(NOTE_STORE, { keyPath: 'id', autoIncrement: true });
       }
-      if (!dbInstance.objectStoreNames.contains(SPACE_STORE)) {
+      if (event.oldVersion < 2 && !dbInstance.objectStoreNames.contains(SPACE_STORE)) {
         dbInstance.createObjectStore(SPACE_STORE, { keyPath: 'id', autoIncrement: true });
       }
     };
@@ -197,7 +197,7 @@ export const getSpaces = (): Promise<Space[]> => {
         const transaction = db.transaction(SPACE_STORE, 'readonly');
         const store = transaction.objectStore(SPACE_STORE);
         const request = store.getAll();
-        request.onsuccess = () => resolve(request.result.sort((a, b) => b.createdAt - a.createdAt));
+        request.onsuccess = () => resolve(request.result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
         request.onerror = () => reject('Error fetching spaces.');
     });
 };

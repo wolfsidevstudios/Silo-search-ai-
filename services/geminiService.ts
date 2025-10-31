@@ -1,5 +1,4 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-// FIX: Import Space type
 import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail, DeepResearchResult, Space } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean, fileContent?: string): Promise<SearchResult & { estimatedTokens: number }> {
@@ -118,7 +117,6 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   }
 }
 
-// FIX: Add missing fetchSpaceSearchResult function
 export async function fetchSpaceSearchResult(query: string, apiKey: string, space: Space, contextData: string): Promise<SearchResult> {
   if (!apiKey) {
     throw new Error("Gemini API key is missing.");

@@ -127,7 +127,6 @@ export const Clock: React.FC<ClockProps> = ({ settings, temperatureUnit }) => {
   
   const digitStyle: React.CSSProperties = {
     WebkitTextStroke: `${settings.thickness}px ${settings.theme === 'liquid-glass' ? 'rgba(255, 255, 255, 0.2)' : 'white'}`,
-    // FIX: The 'textStroke' property is not a standard CSS property and causes a TypeScript error.
     // @ts-ignore
     textStroke: `${settings.thickness}px ${settings.theme === 'liquid-glass' ? 'rgba(255, 255, 255, 0.2)' : 'white'}`,
     ...(settings.theme === 'liquid-glass' && { textShadow: '0 2px 10px rgba(0,0,0,0.2)' })

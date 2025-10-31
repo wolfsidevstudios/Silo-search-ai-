@@ -74,8 +74,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
-  // FIX: Explicitly type the Map to aid TypeScript's type inference, which may fail in some environments.
-  const customStickerMap = new Map<string, CustomSticker>(customStickers.map(cs => [cs.id, cs]));
+  const customStickerMap: Map<string, CustomSticker> = new Map(customStickers.map(cs => [cs.id, cs]));
 
   const renderWidget = (widget: WidgetInstance) => {
     switch(widget.widgetType) {
