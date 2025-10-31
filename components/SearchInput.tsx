@@ -195,38 +195,39 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   if (variant === 'home') {
     return (
       <>
-        <form onSubmit={handleSubmit} className="relative w-full p-4 rounded-3xl shadow-xl bg-white border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
-            <div className="flex items-center space-x-1 border-b pb-2 mb-2 flex-shrink-0">
-                <button type="button" className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 text-black ring-1 ring-gray-300">
-                    <SearchIcon className="w-4 h-4" />
-                    <span>Search</span>
-                </button>
-                <button type="button" onClick={onOpenComingSoonModal} className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-gray-100 text-gray-500">
-                    <FileTextIcon className="w-4 h-4" />
-                    <span>File Search</span>
-                </button>
-                <button type="button" onClick={onOpenComingSoonModal} className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-gray-100 text-gray-500">
-                    <LayersIcon className="w-4 h-4" />
-                    <span>Deep Research</span>
-                </button>
-            </div>
-            
+        <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
             <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Ask anything..."
-                className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg pt-2"
+                className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg"
             />
 
-            <div className="absolute bottom-4 right-4 flex items-center space-x-2">
-                  {hasRecognitionSupport && (
-                    <button type="button" onClick={handleMicClick} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors w-12 h-12 ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'hover:bg-gray-100 text-gray-600'}`} aria-label={isListening ? 'Stop listening' : 'Start voice search'}>
-                        <MicrophoneIcon className={isListening ? 'text-red-500' : 'text-gray-600'} />
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                {/* Left side toolbar */}
+                <div className="flex items-center space-x-1">
+                    <button type="button" title="Search" className="p-2 rounded-lg bg-gray-100 text-black ring-1 ring-gray-300">
+                        <SearchIcon className="w-5 h-5" />
                     </button>
-                )}
-                <button type="submit" className="w-12 h-12 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition-transform hover:scale-105" aria-label="Submit search">
-                    <ArrowRightIcon />
-                </button>
+                    <button type="button" title="File Search" onClick={onOpenComingSoonModal} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
+                        <FileTextIcon className="w-5 h-5" />
+                    </button>
+                    <button type="button" title="Deep Research" onClick={onOpenComingSoonModal} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
+                        <LayersIcon className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Right side buttons */}
+                <div className="flex items-center space-x-2">
+                    {hasRecognitionSupport && (
+                        <button type="button" onClick={handleMicClick} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors w-12 h-12 ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'hover:bg-gray-100 text-gray-600'}`} aria-label={isListening ? 'Stop listening' : 'Start voice search'}>
+                            <MicrophoneIcon className={isListening ? 'text-red-500' : 'text-gray-600'} />
+                        </button>
+                    )}
+                    <button type="submit" className="w-12 h-12 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition-transform hover:scale-105" aria-label="Submit search">
+                        <ArrowRightIcon />
+                    </button>
+                </div>
             </div>
         </form>
          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
