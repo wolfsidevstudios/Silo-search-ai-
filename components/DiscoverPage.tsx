@@ -5,7 +5,8 @@ import { fetchTopHeadlines } from '../services/newsService';
 import { fetchStockQuotes } from '../services/stockService';
 import { fetchTrendingProducts } from '../services/productHuntService';
 import { fetchYouTubeVideos, fetchTrendingYouTubeVideos } from '../services/youtubeService';
-import type { NewsArticle, StockQuote, UserProfile, ProductHuntPost, YouTubeVideo } from '../types';
+import { fetchTrendingTikTokVideos } from '../services/tiktokService';
+import type { NewsArticle, StockQuote, UserProfile, ProductHuntPost, YouTubeVideo, TikTokVideo } from '../types';
 import { LogoIcon } from './icons/LogoIcon';
 import { ProductHuntIcon } from './icons/ProductHuntIcon';
 import { SearchIcon } from './icons/SearchIcon';
@@ -88,6 +89,20 @@ const YouTubeVideoCard: React.FC<{ video: YouTubeVideo }> = ({ video }) => (
     </a>
 );
 
+const TikTokVideoCard: React.FC<{ video: TikTokVideo }> = ({ video }) => (
+    <a href={video.webVideoUrl} target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl border border-gray-200 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow">
+        <div className="relative">
+            <img src={video.coverUrl} alt={video.text} className="aspect-[9/16] w-full object-cover" />
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path></svg>
+            </div>
+        </div>
+        <div className="p-4 flex flex-col flex-grow">
+            <p className="text-xs text-gray-600 line-clamp-2">{video.text}</p>
+            <p className="text-xs font-semibold text-gray-800 mt-auto pt-2">@{video.authorNickname}</p>
+        </div>
+    </a>
+);
 
 export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLegalPage, apiKeys, ...headerProps }) => {
     const [activeTab, setActiveTab] = useState<'news' | 'finance' | 'videos'>('news');
@@ -98,6 +113,9 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
     const [youtubeSearchQuery, setYoutubeSearchQuery] = useState('');
     const [displayedVideos, setDisplayedVideos] = useState<YouTubeVideo[]>([]);
     const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
+    const [tikTokVideos, setTikTokVideos] = useState<TikTokVideo[]>([]);
+    const [isTikTokLoading, setIsTikTokLoading] = useState(false);
+    const [tikTokError, setTikTokError] = useState<string | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -116,8 +134,27 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
             setDisplayedVideos(trendingVideosData);
             setIsLoading(false);
         };
+        const loadTikTokData = async () => {
+            if (!apiKeys.apify) {
+                setTikTokError("Please add your Apify API key in settings to see TikTok videos.");
+                return;
+            }
+            setIsTikTokLoading(true);
+            setTikTokError(null);
+            try {
+                const videos = await fetchTrendingTikTokVideos(apiKeys.apify);
+                setTikTokVideos(videos);
+            } catch (error) {
+                console.error(error);
+                setTikTokError("Could not load TikTok videos. The Apify actor may take a moment. Please refresh or try again later.");
+            } finally {
+                setIsTikTokLoading(false);
+            }
+        };
+
         loadInitialData();
-    }, [apiKeys.youtube]);
+        loadTikTokData();
+    }, [apiKeys.youtube, apiKeys.apify]);
 
     const handleYoutubeSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -204,13 +241,26 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                         ) : (
                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {displayedVideos.map((video) => <YouTubeVideoCard key={video.id} video={video} />)}
-                                <div className="bg-gray-800 text-white p-6 rounded-xl border border-gray-700 flex flex-col items-center justify-center text-center aspect-video md:aspect-auto">
-                                    <TikTokIcon className="w-10 h-10 mb-4" />
-                                    <h3 className="font-bold">TikTok Trends</h3>
-                                    <p className="text-sm text-gray-400 mt-1">Coming soon! Discover trending videos and sounds from TikTok.</p>
-                                </div>
                              </div>
                         )}
+
+                        <div className="mt-12">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+                                <TikTokIcon className="w-6 h-6" />
+                                <span>Trending on TikTok</span>
+                            </h2>
+                            {isTikTokLoading ? (
+                                <div className="flex items-center justify-center py-10"><LogoIcon className="w-12 h-12 animate-spin" /></div>
+                            ) : tikTokError ? (
+                                <div className="text-center py-10 px-4 bg-gray-100 rounded-lg">
+                                    <p className="text-gray-600">{tikTokError}</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {tikTokVideos.map((video) => <TikTokVideoCard key={video.id} video={video} />)}
+                                </div>
+                            )}
+                        </div>
                      </section>
                  );
         }

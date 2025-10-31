@@ -287,3 +287,12 @@ export interface ProductHuntPost {
     votesCount: number;
     thumbnail: ProductHuntThumbnail;
 }
+
+export interface TikTokVideo {
+    id: string;
+    webVideoUrl: string;
+    authorNickname: string;
+    text: string;
+    coverUrl: string;
+    musicName: string;
+}
