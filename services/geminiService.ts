@@ -1,7 +1,7 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
 import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail } from '../types';
 
-export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean, fileContent?: string): Promise<SearchResult> {
+export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean, fileContent?: string): Promise<SearchResult & { estimatedTokens: number }> {
   if (!apiKey) {
     throw new Error("Gemini API key is missing.");
   }
@@ -22,6 +22,8 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   }
 
   try {
+    let promptTokens = summaryPrompt.length / 4;
+    
     const summaryResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: summaryPrompt,
@@ -32,6 +34,8 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
     if (!summary) {
         throw new Error("Received an empty summary from the API.");
     }
+
+    let completionTokens = summary.length / 4;
     
     // QuickLinks are only for web search
     const groundingChunks = summaryResponse.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
@@ -44,6 +48,8 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
     if (isStudyMode && !fileContent) {
       const flashcardPrompt = `Based on the user's query "${query}", generate 5 flashcards for studying. Each flashcard should have a 'question' and an 'answer'.`;
       const quizPrompt = `Based on the user's query "${query}", generate a 3-question multiple-choice quiz. Each question should have a 'question', an array of 4 'options', and the 'correctAnswer' (which must be one of the options).`;
+      
+      promptTokens += (flashcardPrompt.length / 4) + (quizPrompt.length / 4);
 
       const flashcardSchema = {
         type: Type.ARRAY,
@@ -87,6 +93,7 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
       if (flashcardResult.status === 'fulfilled') {
         try {
           const flashcards: Flashcard[] = JSON.parse(flashcardResult.value.text);
+          completionTokens += flashcardResult.value.text.length / 4;
           baseResult.flashcards = flashcards;
         } catch (e) { console.error("Failed to parse flashcards JSON", e); }
       }
@@ -94,12 +101,15 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
       if (quizResult.status === 'fulfilled') {
         try {
           const quiz: QuizItem[] = JSON.parse(quizResult.value.text);
+          completionTokens += quizResult.value.text.length / 4;
           baseResult.quiz = quiz;
         } catch (e) { console.error("Failed to parse quiz JSON", e); }
       }
     }
     
-    return baseResult;
+    const estimatedTokens = Math.ceil(promptTokens + completionTokens);
+    
+    return { ...baseResult, estimatedTokens };
 
   } catch (error) {
     console.error("Error fetching from Gemini API:", error);

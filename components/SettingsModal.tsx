@@ -45,6 +45,7 @@ import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { ImageIcon } from './icons/ImageIcon';
 import { ExaIcon } from './icons/ExaIcon';
 import { GoogleIcon } from './icons/GoogleIcon';
+import { BarChartIcon } from './icons/BarChartIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -74,6 +75,8 @@ interface SettingsPageProps {
   onLogout: () => void;
   onDeleteAllData: () => void;
   onExportData: () => void;
+  tokenUsage: { [key: string]: { tokens: number } };
+  onTokenUsageChange: (usage: { [key: string]: { tokens: number } }) => void;
 }
 
 const AI_PROVIDERS = [
@@ -99,6 +102,7 @@ const navItems = [
     ]},
     { category: 'AI & Search', items: [
         { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
+        { id: 'api-usage', name: 'API Usage', Icon: BarChartIcon },
         { id: 'search-settings', name: 'Search Settings', Icon: ChipIcon },
         { id: 'search-modes', name: 'Search Modes', Icon: LayersIcon },
         { id: 'connected-apps', name: 'Connected Apps', Icon: LinkIcon },
@@ -136,7 +140,7 @@ const SettingsCard: React.FC<{title: string, description: string, children: Reac
 );
 
 
-export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData }) => {
+export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData, tokenUsage, onTokenUsageChange }) => {
   const [activeSection, setActiveSection] = useState(initialSection || 'appearance');
   const [stickerSearch, setStickerSearch] = useState('');
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
@@ -319,6 +323,56 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                 </SettingsCard>
             </div>
         );
+        case 'api-usage':
+            const geminiTokens = tokenUsage.gemini?.tokens || 0;
+            const geminiCost = (geminiTokens / 1_000_000) * 0.30;
+            const tokensTowardMillion = geminiTokens % 1_000_000;
+            const progressPercent = (tokensTowardMillion / 1_000_000) * 100;
+
+            return (
+                <SettingsCard title="API Usage" description="Track your estimated token usage for connected AI providers. This is a local estimate and may differ from your actual bill.">
+                    <div className="space-y-6">
+                        <div>
+                            <div className="flex items-center space-x-3 mb-2">
+                                <GoogleIcon className="w-6 h-6" />
+                                <h4 className="font-bold text-gray-800">Google Gemini</h4>
+                            </div>
+                            <div className="bg-gray-100 p-4 rounded-lg space-y-3">
+                                <div>
+                                    <div className="flex justify-between text-sm font-medium text-gray-600">
+                                        <span>Tokens Used</span>
+                                        <span>{geminiTokens.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm font-medium text-gray-600">
+                                        <span>Estimated Cost</span>
+                                        <span>${geminiCost.toFixed(4)}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                        <span>Progress to next 1M tokens</span>
+                                        <span>{progressPercent.toFixed(1)}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${progressPercent}%` }}></div>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500">Based on a rate of $0.30 per 1 million tokens.</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to reset your local usage stats? This cannot be undone.')) {
+                                        onTokenUsageChange({ ...tokenUsage, gemini: { tokens: 0 } });
+                                    }
+                                }}
+                                className="mt-4 text-xs text-red-600 hover:underline"
+                            >
+                                Reset Usage Stats
+                            </button>
+                        </div>
+                    </div>
+                </SettingsCard>
+            );
         case 'search-settings': return (
             <div className="space-y-6">
                 <SettingsCard title="Primary AI Model" description={searchSettings.model === 's1-mini' ? "The S1 Mini model is optimized for fast, web-grounded summaries. It always uses Google Search to provide concise answers based on current information." : "Select the model used for search summaries and chat."}>

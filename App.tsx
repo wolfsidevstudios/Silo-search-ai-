@@ -30,6 +30,7 @@ import { fetchPexelsMedia } from './services/pexelsService';
 import { PexelsPage } from './components/PexelsPage';
 import { WebAgentPage } from './components/WebAgentPage';
 import { CreatorIdeasPage } from './components/CreatorIdeasPage';
+import { DiscoverPage } from './components/DiscoverPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -128,6 +129,16 @@ const App: React.FC = () => {
       }
     } catch(e) { /* ignore */ }
     return null;
+  });
+
+  const [tokenUsage, setTokenUsage] = useState<{ [key: string]: { tokens: number } }>(() => {
+    try {
+      const item = window.localStorage.getItem('tokenUsage');
+      return item ? JSON.parse(item) : { gemini: { tokens: 0 } };
+    } catch (error) {
+      console.error("Could not parse tokenUsage from localStorage", error);
+      return { gemini: { tokens: 0 } };
+    }
   });
 
   const isMobile = useIsMobile();
@@ -668,6 +679,11 @@ const App: React.FC = () => {
     }
   }, [lastDailyCredit]);
   
+  useEffect(() => {
+    try { window.localStorage.setItem('tokenUsage', JSON.stringify(tokenUsage)); }
+    catch (e) { console.error(e); }
+  }, [tokenUsage]);
+  
   const handleGoogleSignIn = useCallback((response: any) => {
     try {
         const credential = response.credential;
@@ -910,7 +926,7 @@ const App: React.FC = () => {
         throw geminiSettledResult.reason;
       }
       
-      const geminiValue = geminiSettledResult.value;
+      const { estimatedTokens, ...geminiValue } = geminiSettledResult.value;
       const youtubeValue = youtubeSettledResult.status === 'fulfilled' ? youtubeSettledResult.value : undefined;
 
       const combinedResult: SearchResult = {
@@ -927,6 +943,12 @@ const App: React.FC = () => {
 
       if (!isTemporaryMode) {
         setProCredits(c => c + 1);
+        if (estimatedTokens) {
+            setTokenUsage(prev => ({
+                ...prev,
+                gemini: { tokens: (prev.gemini?.tokens || 0) + estimatedTokens }
+            }));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -935,7 +957,7 @@ const App: React.FC = () => {
     } finally {
         setIsLoading(false);
     }
-  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, selectedFile]);
+  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, selectedFile, setTokenUsage]);
 
   const handleGoHome = () => navigate('/search');
   const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
@@ -1062,7 +1084,7 @@ const App: React.FC = () => {
         'searchInputSettings': searchInputSettings, 'searchSettings': searchSettings, 'accessibilitySettings': accessibilitySettings,
         'stickers': stickers, 'widgets': widgets, 'customStickers': customStickers, 'languageSettings': languageSettings,
         'notificationSettings': notificationSettings, 'developerSettings': developerSettings, 'analyticsSettings': analyticsSettings,
-        'proCredits': proCredits, 'unlockedProFeatures': unlockedProFeatures
+        'proCredits': proCredits, 'unlockedProFeatures': unlockedProFeatures, 'tokenUsage': tokenUsage
     };
     const blob = new Blob([JSON.stringify(exportableData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1164,10 +1186,11 @@ const App: React.FC = () => {
       case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
+      case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/search':
       default:
         const desktopSearchPageProps = {
-          onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, selectedFile, onFileSelect: handleFileSelect, onClearFile: handleClearFile, ...commonProps
+          onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, selectedFile, onFileSelect: handleFileSelect, onClearFile: handleClearFile, navigate, ...commonProps
         };
         return <SearchPage {...desktopSearchPageProps} />;
     }
@@ -1205,7 +1228,7 @@ const App: React.FC = () => {
         case '/about': return <AboutPage onClose={() => window.history.back()} />;
         case '/settings': return (
             <div className={appClasses} style={appStyle}>
-                 <SettingsModal onClose={() => navigate('/search')} initialSection={initialSettingsSection} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onApiKeysChange={setApiKeys} currentTheme={theme} onThemeChange={setTheme} customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper} isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible} clockSettings={clockSettings} onClockSettingsChange={setClockSettings} temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit} speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage} stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode} customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker} widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode} searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings} searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings} accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings} languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings} notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings} developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings} analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings} proCredits={proCredits} unlockedProFeatures={unlockedProFeatures} onUnlockFeature={handleUnlockFeature} userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData} onExportData={handleExportData} />
+                 <SettingsModal onClose={() => navigate('/search')} initialSection={initialSettingsSection} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onApiKeysChange={setApiKeys} currentTheme={theme} onThemeChange={setTheme} customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper} isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible} clockSettings={clockSettings} onClockSettingsChange={setClockSettings} temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit} speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage} stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode} customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker} widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode} searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings} searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings} accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings} languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings} notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings} developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings} analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings} proCredits={proCredits} unlockedProFeatures={unlockedProFeatures} onUnlockFeature={handleUnlockFeature} userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData} onExportData={handleExportData} tokenUsage={tokenUsage} onTokenUsageChange={setTokenUsage} />
             </div>
         );
         default:

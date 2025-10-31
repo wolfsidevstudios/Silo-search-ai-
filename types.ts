@@ -257,3 +257,20 @@ export interface CreatorIdeasResult {
     platform: string;
     ideas: VideoIdeaSummary[];
 }
+
+export interface NewsArticle {
+    source: { name: string };
+    author: string | null;
+    title: string;
+    description: string | null;
+    url: string;
+    urlToImage: string | null;
+    publishedAt: string;
+}
+
+export interface StockQuote {
+    '01. symbol': string;
+    '05. price': string;
+    '09. change': string;
+    '10. change percent': string;
+}
