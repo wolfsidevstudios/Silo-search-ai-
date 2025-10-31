@@ -4,6 +4,7 @@ import { HistoryIcon } from '../icons/HistoryIcon';
 import { SettingsIcon } from '../icons/SettingsIcon';
 import { MobileSearchPage } from './MobileSearchPage';
 import { MobileHistoryPage } from './MobileHistoryPage';
+import { SummarizationSource } from '../types';
 
 interface MobileAppProps {
     currentPath: string;
@@ -15,9 +16,9 @@ interface MobileAppProps {
     onOpenComingSoonModal: () => void;
     isStudyMode: boolean;
     setIsStudyMode: (isStudyMode: boolean) => void;
-    selectedFile: { name: string } | null;
-    onFileSelect: () => void;
-    onClearFile: () => void;
+    summarizationSource: SummarizationSource | null;
+    onOpenSummarizeSourceSelector: () => void;
+    onClearSummarizationSource: () => void;
 }
 
 export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, ...props }) => {
@@ -39,9 +40,9 @@ export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, ...
                             onOpenComingSoonModal={props.onOpenComingSoonModal}
                             isStudyMode={props.isStudyMode}
                             setIsStudyMode={props.setIsStudyMode}
-                            selectedFile={props.selectedFile}
-                            onFileSelect={props.onFileSelect}
-                            onClearFile={props.onClearFile}
+                            summarizationSource={props.summarizationSource}
+                            onOpenSummarizeSourceSelector={props.onOpenSummarizeSourceSelector}
+                            onClearSummarizationSource={props.onClearSummarizationSource}
                         />;
         }
     };

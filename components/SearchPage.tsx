@@ -6,7 +6,7 @@ import { Clock } from './Clock';
 import { DraggableSticker } from './DraggableSticker';
 import { DraggableWidget } from './DraggableWidget';
 import { NoteWidget, WeatherWidget } from './widgets/Widgets';
-import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, TemperatureUnit, SearchInputSettings } from '../types';
+import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, TemperatureUnit, SearchInputSettings, SummarizationSource } from '../types';
 import { Footer } from './Footer';
 
 interface SearchPageProps {
@@ -35,9 +35,9 @@ interface SearchPageProps {
   onOpenComingSoonModal: () => void;
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
-  selectedFile: { name: string } | null;
-  onFileSelect: () => void;
-  onClearFile: () => void;
+  summarizationSource: SummarizationSource | null;
+  onOpenSummarizeSourceSelector: () => void;
+  onClearSummarizationSource: () => void;
   navigate: (path: string) => void;
 }
 
@@ -67,9 +67,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onOpenComingSoonModal,
   isStudyMode,
   setIsStudyMode,
-  selectedFile,
-  onFileSelect,
-  onClearFile,
+  summarizationSource,
+  onOpenSummarizeSourceSelector,
+  onClearSummarizationSource,
   navigate,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -162,9 +162,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
               onOpenComingSoonModal={onOpenComingSoonModal} 
               isStudyMode={isStudyMode}
               setIsStudyMode={setIsStudyMode}
-              onFileSelect={onFileSelect}
-              selectedFile={selectedFile}
-              onClearFile={onClearFile}
+              summarizationSource={summarizationSource}
+              onOpenSummarizeSourceSelector={onOpenSummarizeSourceSelector}
+              onClearSummarizationSource={onClearSummarizationSource}
             />
           </div>
         </main>

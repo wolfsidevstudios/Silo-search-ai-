@@ -311,3 +311,26 @@ export interface DeepResearchResult {
   keyTakeaways: string[];
   sources: QuickLink[];
 }
+
+export interface FileRecord {
+  id: number;
+  name: string;
+  type: string;
+  size: number;
+  content: Blob;
+  createdAt: Date;
+}
+
+export interface NoteRecord {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SummarizationSource {
+  id: number;
+  name: string;
+  type: 'file' | 'note';
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { SearchInput } from '../SearchInput';
+import { SummarizationSource } from '../types';
 
 interface MobileSearchPageProps {
   onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: 'youtube' | 'tiktok' | 'instagram'; researchSearch?: boolean; }) => void;
@@ -7,9 +8,9 @@ interface MobileSearchPageProps {
   onOpenComingSoonModal: () => void;
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
-  selectedFile: { name: string } | null;
-  onFileSelect: () => void;
-  onClearFile: () => void;
+  summarizationSource: SummarizationSource | null;
+  onOpenSummarizeSourceSelector: () => void;
+  onClearSummarizationSource: () => void;
 }
 
 export const MobileSearchPage: React.FC<MobileSearchPageProps> = (props) => {
@@ -27,9 +28,9 @@ export const MobileSearchPage: React.FC<MobileSearchPageProps> = (props) => {
             onOpenComingSoonModal={props.onOpenComingSoonModal} 
             isStudyMode={props.isStudyMode}
             setIsStudyMode={props.setIsStudyMode}
-            onFileSelect={props.onFileSelect}
-            selectedFile={props.selectedFile}
-            onClearFile={props.onClearFile}
+            summarizationSource={props.summarizationSource}
+            onOpenSummarizeSourceSelector={props.onOpenSummarizeSourceSelector}
+            onClearSummarizationSource={props.onClearSummarizationSource}
           />
         </div>
       </main>

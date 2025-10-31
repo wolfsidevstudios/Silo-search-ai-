@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { SearchResult, UserProfile, SearchInputSettings, YouTubeVideo } from '../types';
+import type { SearchResult, UserProfile, SearchInputSettings, YouTubeVideo, SummarizationSource } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { RedoIcon } from './icons/RedoIcon';
@@ -28,15 +28,15 @@ interface ResultsPageProps {
   speechLanguage: 'en-US' | 'es-ES';
   onOpenComingSoonModal: () => void;
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
-  selectedFile: { name: string } | null;
-  onFileSelect: () => void;
-  onClearFile: () => void;
+  summarizationSource: SummarizationSource | null;
+  onOpenSummarizeSourceSelector: () => void;
+  onClearSummarizationSource: () => void;
   onOpenVideoPlayer: (videoId: string, playlist: YouTubeVideo[]) => void;
 }
 
 type ResultTab = 'summary' | 'videos' | 'flashcards' | 'quiz';
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage, selectedFile, onFileSelect, onClearFile, onOpenVideoPlayer }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, onOpenVideoPlayer }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isStudyMode, setIsStudyMode] = useState(result.isStudyQuery || false);
   const [activeTab, setActiveTab] = useState<ResultTab>('summary');
@@ -192,7 +192,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
 
       <footer className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm">
         <div className="max-w-xl mx-auto">
-          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} selectedFile={selectedFile} onFileSelect={onFileSelect} onClearFile={onClearFile} />
+          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={onOpenSummarizeSourceSelector} onClearSummarizationSource={onClearSummarizationSource} showModes={false} />
           <Footer onOpenLegalPage={onOpenLegalPage} className="p-0 pt-2 text-xs" />
         </div>
       </footer>

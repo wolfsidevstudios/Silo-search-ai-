@@ -21,6 +21,7 @@ import { LightbulbIcon } from './icons/LightbulbIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
 import { InstagramIcon } from './icons/InstagramIcon';
 import { FileTextIcon } from './icons/FileTextIcon';
+import type { SummarizationSource } from '../types';
 
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
@@ -82,12 +83,13 @@ interface SearchInputProps {
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
   variant?: 'home';
-  onFileSelect: () => void;
-  selectedFile: { name: string } | null;
-  onClearFile: () => void;
+  summarizationSource: SummarizationSource | null;
+  onOpenSummarizeSourceSelector: () => void;
+  onClearSummarizationSource: () => void;
+  showModes?: boolean;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode, variant, onFileSelect, selectedFile, onClearFile }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode, variant, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, showModes = true }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -99,11 +101,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
 
   useEffect(() => {
-    if (selectedFile) {
+    if (summarizationSource) {
         setActiveMode('default');
         setIsStudyMode(false);
     }
-  }, [selectedFile, setIsStudyMode]);
+  }, [summarizationSource, setIsStudyMode]);
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -180,8 +182,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   };
   
   const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator' | 'research') => {
-    if (selectedFile) {
-        alert("File Search is active. Clear the file to use other modes.");
+    if (summarizationSource) {
+        alert("A file is selected for summarization. Clear the file to use other modes.");
         return;
     }
     if (isStudyMode) {
@@ -191,8 +193,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   };
 
   const handleStudyToggle = () => {
-    if (selectedFile) {
-        alert("File Search is active. Clear the file to use Study Mode.");
+    if (summarizationSource) {
+        alert("A file is selected for summarization. Clear the file to use Study Mode.");
         return;
     }
     if (activeMode !== 'default') {
@@ -216,17 +218,17 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     return (
       <div>
         <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
-            {selectedFile && (
+            {summarizationSource && (
                 <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
                     <FileTextIcon className="w-4 h-4" />
-                    <span className="truncate max-w-xs">Searching in: {selectedFile.name}</span>
-                    <button type="button" onClick={onClearFile} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+                    <span className="truncate max-w-xs">Summarizing: {summarizationSource.name}</span>
+                    <button type="button" onClick={onClearSummarizationSource} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
                 </div>
             )}
             <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask anything or search in a file..."
+                placeholder="Ask anything or summarize a file..."
                 className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg"
             />
 
@@ -236,7 +238,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                     <button type="button" title="Search" className="p-2 rounded-lg bg-gray-100 text-black ring-1 ring-gray-300">
                         <SearchIcon className="w-5 h-5" />
                     </button>
-                    <button type="button" title="File Search" onClick={onFileSelect} className={`p-2 rounded-lg text-gray-500 ${selectedFile ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
+                    <button type="button" title="Summarize from source" onClick={onOpenSummarizeSourceSelector} className={`p-2 rounded-lg text-gray-500 ${summarizationSource ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
                         <FileTextIcon className="w-5 h-5" />
                     </button>
                 </div>
@@ -254,38 +256,42 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                 </div>
             </div>
         </form>
-         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
-          {[
-              { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
-              { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
-              { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
-              { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
-              { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
-              { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
-              { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
-              { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
-          ].map(({ id, label, Icon, action, isActive }) => (
-              <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                  <Icon className="w-4 h-4" />
-                  <span>{label}</span>
-              </button>
-          ))}
-      </div>
-      {activeMode === 'creator' && (
-        <div className="mt-4 flex items-center justify-center gap-2" role="group" aria-label="Select a platform">
-            <span className="text-sm font-medium text-gray-600 mr-2">For:</span>
-            {[
-                { id: 'youtube', label: 'YouTube', Icon: YouTubeIcon },
-                { id: 'tiktok', label: 'TikTok', Icon: TikTokIcon },
-                { id: 'instagram', label: 'Instagram', Icon: InstagramIcon },
-            ].map(({ id, label, Icon }) => (
-                <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                    <Icon className="w-4 h-4" />
-                    <span>{label}</span>
-                </button>
-            ))}
-        </div>
-      )}
+         {showModes && (
+            <>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
+                {[
+                    { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
+                    { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
+                    { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
+                    { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
+                    { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
+                    { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
+                    { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
+                    { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
+                ].map(({ id, label, Icon, action, isActive }) => (
+                    <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                        <Icon className="w-4 h-4" />
+                        <span>{label}</span>
+                    </button>
+                ))}
+            </div>
+            {activeMode === 'creator' && (
+                <div className="mt-4 flex items-center justify-center gap-2" role="group" aria-label="Select a platform">
+                    <span className="text-sm font-medium text-gray-600 mr-2">For:</span>
+                    {[
+                        { id: 'youtube', label: 'YouTube', Icon: YouTubeIcon },
+                        { id: 'tiktok', label: 'TikTok', Icon: TikTokIcon },
+                        { id: 'instagram', label: 'Instagram', Icon: InstagramIcon },
+                    ].map(({ id, label, Icon }) => (
+                        <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                            <Icon className="w-4 h-4" />
+                            <span>{label}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+            </>
+         )}
       </div>
     );
   }
@@ -300,14 +306,14 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     <div>
       <form onSubmit={handleSubmit} className={containerClasses}>
         <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
-        {selectedFile && (
+        {summarizationSource && (
             <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-blue-100 text-blue-800">
                 <FileTextIcon className="w-4 h-4" />
-                <span className="font-medium truncate max-w-[100px]">{selectedFile.name}</span>
-                <button type="button" onClick={onClearFile} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+                <span className="font-medium truncate max-w-[100px]">{summarizationSource.name}</span>
+                <button type="button" onClick={onClearSummarizationSource} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
             </div>
         )}
-        {isStudyMode && !selectedFile && (
+        {isStudyMode && !summarizationSource && (
             <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-green-100 text-green-800">
                 <BookOpenIcon className="w-4 h-4" />
                 <span className="font-medium">Study Mode</span>
@@ -315,8 +321,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             </div>
         )}
         <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
-        <button type="button" onClick={onFileSelect} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${selectedFile ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Search in file">
-            <FileTextIcon className={isGlossy && !selectedFile ? 'text-white/80' : ''} />
+        <button type="button" onClick={onOpenSummarizeSourceSelector} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
+            <FileTextIcon className={isGlossy && !summarizationSource ? 'text-white/80' : ''} />
         </button>
         {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
         
@@ -356,7 +362,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
         <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
       </form>
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
+      {showModes && (
+        <>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
           {[
               { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
               { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
@@ -387,6 +395,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                 </button>
             ))}
         </div>
+      )}
+      </>
       )}
     </div>
   );

@@ -7,7 +7,7 @@ import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
 import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -33,6 +33,9 @@ import { CreatorIdeasPage } from './components/CreatorIdeasPage';
 import { DiscoverPage } from './components/DiscoverPage';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
 import { DeepResearchPage } from './components/DeepResearchPage';
+import { CreatePage } from './components/CreatePage';
+import * as db from './utils/db';
+import { FileSelectorModal } from './components/FileSelectorModal';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -103,7 +106,6 @@ const App: React.FC = () => {
   const [isStickerEditMode, setStickerEditMode] = useState(false);
   const [isWidgetEditMode, setWidgetEditMode] = useState(false);
   const [isStudyMode, setIsStudyMode] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<{ name: string; content: string } | null>(null);
   
   const [isChatModeOpen, setChatModeOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -149,6 +151,52 @@ const App: React.FC = () => {
 
   const isMobile = useIsMobile();
   
+  // New state for Create Hub and Summarization
+  const [files, setFiles] = useState<FileRecord[]>([]);
+  const [notes, setNotes] = useState<NoteRecord[]>([]);
+  const [isFileSelectorOpen, setFileSelectorOpen] = useState(false);
+  const [summarizationSource, setSummarizationSource] = useState<SummarizationSource | null>(null);
+
+  useEffect(() => {
+      const initData = async () => {
+          await db.initDB();
+          const [dbFiles, dbNotes] = await Promise.all([db.getFiles(), db.getNotes()]);
+          setFiles(dbFiles);
+          setNotes(dbNotes);
+      };
+      initData();
+  }, []);
+
+  const handleFileUpload = async (file: File) => {
+      await db.addFile(file);
+      const dbFiles = await db.getFiles();
+      setFiles(dbFiles);
+  };
+
+  const handleDeleteFile = async (id: number) => {
+      await db.deleteFile(id);
+      setFiles(files.filter(f => f.id !== id));
+  };
+  
+  const handleSaveNote = async (note: Partial<NoteRecord>) => {
+      await db.saveNote(note);
+      const dbNotes = await db.getNotes();
+      setNotes(dbNotes);
+  };
+
+  const handleDeleteNote = async (id: number) => {
+      await db.deleteNote(id);
+      setNotes(notes.filter(n => n.id !== id));
+  };
+
+  const handleSelectSummarizationSource = (source: SummarizationSource | null) => {
+      setSummarizationSource(source);
+      setFileSelectorOpen(false);
+      if (source) {
+        setIsStudyMode(false);
+      }
+  };
+
   const navigate = useCallback((path: string, options?: { replace?: boolean, section?: string }) => {
     if (options?.replace) {
       window.history.replaceState(null, '', path);
@@ -173,10 +221,12 @@ const App: React.FC = () => {
         const storedResult = sessionStorage.getItem('searchResult');
         const storedQuery = sessionStorage.getItem('currentQuery');
         const storedStudyMode = sessionStorage.getItem('isStudyMode');
+        const storedSource = sessionStorage.getItem('summarizationSource');
         if (storedResult && storedQuery) {
             setSearchResult(JSON.parse(storedResult));
             setCurrentQuery(storedQuery);
             setIsStudyMode(storedStudyMode ? JSON.parse(storedStudyMode) : false);
+            setSummarizationSource(storedSource ? JSON.parse(storedSource) : null);
         } else {
             navigate('/search', { replace: true });
         }
@@ -730,44 +780,6 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleFileSelect = async () => {
-    if (!('showOpenFilePicker' in window)) {
-      alert('Your browser does not support the File System Access API.');
-      return;
-    }
-    try {
-      const [fileHandle] = await window.showOpenFilePicker({
-        types: [{
-          description: 'Text Files',
-          accept: {
-            'text/plain': ['.txt', '.text'],
-            'text/markdown': ['.md', '.markdown'],
-            'application/json': ['.json'],
-            'text/csv': ['.csv'],
-            'text/html': ['.html', '.htm'],
-          },
-        }],
-        multiple: false,
-      });
-      const file = await fileHandle.getFile();
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-          alert('File is too large. Please select a file smaller than 5MB.');
-          return;
-      }
-      const content = await file.text();
-      setSelectedFile({ name: file.name, content });
-      setIsStudyMode(false); // Turn off study mode when a file is selected
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        console.error('Error picking file:', err);
-      }
-    }
-  };
-
-  const handleClearFile = () => {
-    setSelectedFile(null);
-  };
-
   const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; }) => {
     if (!query.trim()) return;
     if (!apiKeys.gemini) {
@@ -781,10 +793,10 @@ const App: React.FC = () => {
     setSidebarOpen(false);
     setError(null);
 
-    if (selectedFile) {
+    if (summarizationSource) {
         if (!isTemporaryMode) {
           setRecentSearches(prevSearches => {
-            const searchQuery = `file: ${query} in ${selectedFile.name}`;
+            const searchQuery = `file: ${query} in ${summarizationSource.name}`;
             const updatedSearches = [searchQuery, ...prevSearches.filter(s => s !== searchQuery)];
             return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
           });
@@ -944,15 +956,35 @@ const App: React.FC = () => {
         }
     }
 
-    const studyMode = selectedFile ? false : (options.studyMode ?? isStudyMode);
+    const studyMode = summarizationSource ? false : (options.studyMode ?? isStudyMode);
 
     setIsLoading(true);
     setCurrentQuery(query);
     setIsStudyMode(studyMode);
+    
+    let fileContent: string | undefined;
+    if (summarizationSource) {
+      if (summarizationSource.type === 'file') {
+        const file = await db.getFile(summarizationSource.id);
+        if (file && file.content.type.startsWith('text/')) {
+          fileContent = await file.content.text();
+        } else if (file) {
+          alert(`Cannot summarize this file type: ${file.content.type}. Only text-based files are supported.`);
+          setIsLoading(false);
+          return;
+        }
+      } else if (summarizationSource.type === 'note') {
+        const note = await db.getNote(summarizationSource.id);
+        if (note) {
+          fileContent = note.content;
+        }
+      }
+    }
+
 
     try {
-      const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode, selectedFile?.content);
-      const youtubePromise = (selectedFile || !apiKeys.youtube)
+      const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode, fileContent);
+      const youtubePromise = (summarizationSource || !apiKeys.youtube)
         ? Promise.resolve<YouTubeVideo[] | undefined>(undefined)
         : fetchYouTubeVideos(query, apiKeys.youtube);
 
@@ -974,6 +1006,11 @@ const App: React.FC = () => {
       sessionStorage.setItem('searchResult', JSON.stringify(combinedResult));
       sessionStorage.setItem('currentQuery', query);
       sessionStorage.setItem('isStudyMode', JSON.stringify(studyMode));
+      if (summarizationSource) {
+        sessionStorage.setItem('summarizationSource', JSON.stringify(summarizationSource));
+      } else {
+        sessionStorage.removeItem('summarizationSource');
+      }
 
       navigate('/results');
 
@@ -993,7 +1030,7 @@ const App: React.FC = () => {
     } finally {
         setIsLoading(false);
     }
-  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, selectedFile, setTokenUsage]);
+  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, summarizationSource, setTokenUsage]);
 
   const handleGoHome = () => navigate('/search');
   const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
@@ -1109,7 +1146,9 @@ const App: React.FC = () => {
   const handleDeleteAllData = () => {
     if (window.confirm('Are you sure you want to delete all app data? This action is irreversible and will reset the application to its default state.')) {
         window.localStorage.clear();
-        window.location.reload();
+        db.deleteDB().then(() => {
+            window.location.reload();
+        });
     }
   };
 
@@ -1209,7 +1248,7 @@ const App: React.FC = () => {
     
     if (isMobile) {
         switch(path) {
-            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery}/>;
+            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery}/>;
             case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
@@ -1219,13 +1258,13 @@ const App: React.FC = () => {
             case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
             case '/search':
             case '/history':
-            default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} />;
+            default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} />;
         }
     }
 
     // Desktop view
     switch(path) {
-      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery} />;
+      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery} />;
       case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
@@ -1234,10 +1273,11 @@ const App: React.FC = () => {
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
+      case '/create': return <CreatePage files={files} notes={notes} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/search':
       default:
         const desktopSearchPageProps = {
-          onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, selectedFile, onFileSelect: handleFileSelect, onClearFile: handleClearFile, navigate, ...commonProps
+          onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onOpenSummarizeSourceSelector: () => setFileSelectorOpen(true), onClearSummarizationSource: () => setSummarizationSource(null), navigate, ...commonProps
         };
         return <SearchPage {...desktopSearchPageProps} />;
     }
@@ -1285,6 +1325,7 @@ const App: React.FC = () => {
                     {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} onDeleteRecentSearch={handleDeleteRecentSearch} />}
                     <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
                     <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
+                    <FileSelectorModal isOpen={isFileSelectorOpen} onClose={() => setFileSelectorOpen(false)} files={files} notes={notes} onSelect={handleSelectSummarizationSource} />
                     {videoPlayerState.isOpen && videoPlayerState.videoId && (
                       <VideoPlayerModal
                         initialVideoId={videoPlayerState.videoId}
