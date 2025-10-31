@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Header } from './Header';
 import { ArrowUpIcon } from './icons/ArrowUpIcon';
@@ -8,9 +7,9 @@ import type { UserProfile, ChatMessage } from '../types';
 import { LogoIcon } from './icons/LogoIcon';
 
 const SITES = {
-  wiktionary: { name: 'Wiktionary', url: 'https://en.wiktionary.org/wiki/Special:Search?search=' },
-  archive: { name: 'Internet Archive', url: 'https://archive.org/search?query=' },
-  openstreetmap: { name: 'OpenStreetMap', url: 'https://www.openstreetmap.org/search?query=' },
+  wiktionary: { name: 'Wiktionary', baseUrl: 'https://en.wiktionary.org/wiki/Special:Search', searchUrl: 'https://en.wiktionary.org/wiki/Special:Search?search=' },
+  archive: { name: 'Internet Archive', baseUrl: 'https://archive.org/', searchUrl: 'https://archive.org/search?query=' },
+  openstreetmap: { name: 'OpenStreetMap', baseUrl: 'https://www.openstreetmap.org/', searchUrl: 'https://www.openstreetmap.org/search?query=' },
 };
 type SiteKey = keyof typeof SITES;
 
@@ -36,16 +35,20 @@ export const WebAgentPage: React.FC<WebAgentPageProps> = ({ initialQuery, gemini
   const chatRef = useRef<Chat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 }); // Center of iframe
-
-  useEffect(() => {
+  
+  const setupChat = () => {
     if (!geminiApiKey) return;
     const ai = new GoogleGenAI({ apiKey: geminiApiKey });
     chatRef.current = ai.chats.create({
       model: 'gemini-2.5-flash',
       config: {
-        systemInstruction: "You are a helpful AI web agent assistant. You are helping a user search specific websites. Keep your responses concise and conversational, confirming the actions you are taking for the user."
+        systemInstruction: "You are a helpful AI web agent assistant. Your primary goal is to help a user search specific websites. When the user asks you to perform a search, first confirm the action (e.g., 'Alright, searching Wikipedia for \"Quantum Physics\"...'). After the search results page has loaded (which you cannot see), you must act as if you've analyzed the page. Provide a brief, helpful summary of what the user can likely find on the page, based on their query and the nature of the website. For example: 'The page for \"Quantum Physics\" on Wikipedia is loaded. It likely covers the history, key principles, and major experiments. What specific information are you looking for?'. Be conversational and concise."
       }
     });
+  }
+
+  useEffect(() => {
+    setupChat();
     setChatHistory([{ role: 'model', text: 'Hello! I am your AI Web Agent. What would you like to search for? Please type your query and select a website below.' }]);
   }, [geminiApiKey]);
   
@@ -59,20 +62,32 @@ export const WebAgentPage: React.FC<WebAgentPageProps> = ({ initialQuery, gemini
     
     setIsLoading(true);
     const siteDetails = SITES[site];
-    const fullUrl = `${siteDetails.url}${encodeURIComponent(query)}`;
     const userMessage: ChatMessage = { role: 'user', text: `Search for "${query}" on ${siteDetails.name}.` };
     setChatHistory(prev => [...prev, userMessage]);
     setUserInput('');
-    setIframeUrl(null); // Clear previous content
 
-    // Simulate cursor moving to iframe
-    setCursorPosition({ x: Math.random() * 40 + 30, y: Math.random() * 40 + 30 });
+    // Start AI call in background
+    const aiPromise = chatRef.current?.sendMessage({ message: userMessage.text });
 
+    // Simulate cursor movement
+    setCursorPosition({ x: 40, y: 15 }); // Move to a plausible search bar location
+    await new Promise(resolve => setTimeout(resolve, 1000)); // wait 1s
+    
+    setCursorPosition({ x: 75, y: 15 }); // Move to plausible search button location
+    await new Promise(resolve => setTimeout(resolve, 800)); // wait 0.8s
+    
+    // Navigate iframe
+    const fullUrl = `${siteDetails.searchUrl}${encodeURIComponent(query)}`;
+    setIframeUrl(fullUrl);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setCursorPosition({ x: 50, y: 50 }); // Reset cursor to center
+    
     try {
       if (!chatRef.current) throw new Error("Chat not initialized.");
-      const response = await chatRef.current.sendMessage({ message: userMessage.text });
-      setChatHistory(prev => [...prev, { role: 'model', text: response.text }]);
-      setIframeUrl(fullUrl);
+      const response = await aiPromise;
+      if (response) {
+        setChatHistory(prev => [...prev, { role: 'model', text: response.text }]);
+      }
     } catch (err) {
       console.error("AI chat error:", err);
       setChatHistory(prev => [...prev, { role: 'model', text: "Sorry, I encountered an error. Please try again." }]);
@@ -80,6 +95,22 @@ export const WebAgentPage: React.FC<WebAgentPageProps> = ({ initialQuery, gemini
       setIsLoading(false);
     }
   };
+  
+  const handleSiteSelect = (site: SiteKey) => {
+    setSelectedSite(site);
+    setIframeUrl(SITES[site].baseUrl);
+    setChatHistory(prev => [...prev, { role: 'model', text: `Okay, I've loaded ${SITES[site].name}. What should I search for?` }]);
+    setUserInput('');
+  };
+  
+  const handleNewChat = () => {
+    setupChat();
+    setChatHistory([{ role: 'model', text: 'Hello! I am your AI Web Agent. What would you like to search for? Please type your query and select a website below.' }]);
+    setIframeUrl(null);
+    setSelectedSite(null);
+    setUserInput('');
+  };
+
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -88,12 +119,17 @@ export const WebAgentPage: React.FC<WebAgentPageProps> = ({ initialQuery, gemini
         {/* Chat Panel */}
         <div className="w-full md:w-1/3 flex flex-col bg-white border-r">
           <div className="p-4 border-b">
-            <h2 className="text-lg font-bold">Web Agent Chat</h2>
+            <div className="flex justify-between items-center mb-2">
+                <h2 className="text-lg font-bold">Web Agent Chat</h2>
+                <button onClick={handleNewChat} className="px-3 py-1 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">
+                    New Chat
+                </button>
+            </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {(Object.keys(SITES) as SiteKey[]).map(key => (
                 <button
                   key={key}
-                  onClick={() => setSelectedSite(key)}
+                  onClick={() => handleSiteSelect(key)}
                   className={`px-3 py-1 text-sm rounded-full border ${selectedSite === key ? 'bg-black text-white border-black' : 'bg-white hover:bg-gray-100'}`}
                 >
                   {SITES[key].name}
@@ -135,7 +171,7 @@ export const WebAgentPage: React.FC<WebAgentPageProps> = ({ initialQuery, gemini
         {/* Browser Panel */}
         <div className="w-full md:w-2/3 bg-gray-200 relative">
           {iframeUrl ? (
-            <iframe src={iframeUrl} className="w-full h-full border-none" title="Web Agent Browser" sandbox="allow-scripts allow-same-origin"></iframe>
+            <iframe src={iframeUrl} className="w-full h-full border-none" title="Web Agent Browser" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
               <LogoIcon className="w-16 h-16 mb-4 opacity-50"/>

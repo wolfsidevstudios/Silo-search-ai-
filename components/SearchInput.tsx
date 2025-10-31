@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -18,6 +17,9 @@ import { PlaneIcon } from './icons/PlaneIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { ImageIcon } from './icons/ImageIcon';
 import { BrowserIcon } from './icons/BrowserIcon';
+import { LightbulbIcon } from './icons/LightbulbIcon';
+import { TikTokIcon } from './icons/TikTokIcon';
+import { InstagramIcon } from './icons/InstagramIcon';
 
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
@@ -67,8 +69,10 @@ interface CustomWindow extends Window {
 }
 declare const window: CustomWindow;
 
+type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
+
 interface SearchInputProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
@@ -86,7 +90,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent'>('default');
+  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator'>('default');
+  const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -141,15 +146,18 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         shoppingSearch: activeMode === 'shop',
         pexelsSearch: activeMode === 'pexels',
         agentSearch: activeMode === 'agent',
+        creatorSearch: activeMode === 'creator',
+        creatorPlatform: activeMode === 'creator' ? creatorPlatform : undefined,
     };
 
-    if (['map', 'travel', 'shop', 'pexels', 'agent'].includes(activeMode) && !query.trim()) {
+    if (['map', 'travel', 'shop', 'pexels', 'agent', 'creator'].includes(activeMode) && !query.trim()) {
         let modeName = activeMode.charAt(0).toUpperCase() + activeMode.slice(1);
         if (activeMode === 'map') modeName = 'Map Search';
         if (activeMode === 'travel') modeName = 'Travel Planner';
         if (activeMode === 'shop') modeName = 'Shopping Agent';
         if (activeMode === 'pexels') modeName = 'Media Search';
         if (activeMode === 'agent') modeName = 'Web Agent';
+        if (activeMode === 'creator') modeName = 'Creator Mode';
         alert(`Please enter a query to use ${modeName}.`);
         return;
     }
@@ -157,7 +165,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     onSearch(query, options);
   };
   
-  const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent') => {
+  const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator') => {
     if (isStudyMode) {
       setIsStudyMode(false);
     }
@@ -243,6 +251,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
               { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
               { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
               { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
+              { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
               { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
               { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
           ].map(({ id, label, Icon, action, isActive }) => (
@@ -252,6 +261,21 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
               </button>
           ))}
       </div>
+      {activeMode === 'creator' && (
+        <div className="mt-4 flex items-center justify-center gap-2" role="group" aria-label="Select a platform">
+            <span className="text-sm font-medium text-gray-600 mr-2">For:</span>
+            {[
+                { id: 'youtube', label: 'YouTube', Icon: YouTubeIcon },
+                { id: 'tiktok', label: 'TikTok', Icon: TikTokIcon },
+                { id: 'instagram', label: 'Instagram', Icon: InstagramIcon },
+            ].map(({ id, label, Icon }) => (
+                <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                    <Icon className="w-4 h-4" />
+                    <span>{label}</span>
+                </button>
+            ))}
+        </div>
+      )}
     </>
   );
 };

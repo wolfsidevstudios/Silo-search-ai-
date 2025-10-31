@@ -230,3 +230,14 @@ export interface PexelsResult {
   summary: string;
   mediaType: 'photo' | 'video';
 }
+
+export interface VideoIdea {
+    title: string;
+    description: string;
+    virality_score: number;
+}
+export interface CreatorIdeasResult {
+    topic: string;
+    platform: string;
+    ideas: VideoIdea[];
+}

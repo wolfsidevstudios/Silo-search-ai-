@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product } from '../types';
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean): Promise<SearchResult> {
   if (!apiKey) {
@@ -346,4 +346,53 @@ Return a JSON object with 'searchTerm' and 'mediaType'.`;
     console.error("Error processing Pexels query with Gemini:", error);
     throw new Error("AI failed to process the media query.");
   }
+}
+
+export async function fetchCreatorIdeas(query: string, platform: string, apiKey: string): Promise<CreatorIdeasResult> {
+    if (!apiKey) {
+      throw new Error("Gemini API key is missing.");
+    }
+    
+    const ai = new GoogleGenAI({ apiKey });
+  
+    const prompt = `You are a viral content strategist. Generate 5 creative and engaging video ideas for the platform '${platform}' based on the topic: "${query}". For each idea, provide a catchy 'title', a brief 'description' of the video's content and style, and a 'virality_score' from 1 to 10 indicating its potential to go viral. The response should be a JSON object.`;
+  
+    const ideaSchema = {
+      type: Type.OBJECT,
+      properties: {
+        title: { type: Type.STRING, description: "A catchy, short title for the video." },
+        description: { type: Type.STRING, description: "A one or two-sentence description of the video content and format." },
+        virality_score: { type: Type.NUMBER, description: 'A score from 1 to 10 representing viral potential.' },
+      },
+      required: ["title", "description", "virality_score"]
+    };
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            topic: { type: Type.STRING, description: "The original topic provided by the user." },
+            platform: { type: Type.STRING, description: "The target platform for the content." },
+            ideas: {
+                type: Type.ARRAY,
+                items: ideaSchema,
+                description: "An array of 5 video ideas."
+            }
+        },
+        required: ["topic", "platform", "ideas"]
+    };
+  
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: { responseMimeType: "application/json", responseSchema: schema },
+      });
+  
+      const result: CreatorIdeasResult = JSON.parse(response.text);
+      return result;
+  
+    } catch (error) {
+      console.error("Error fetching creator ideas from Gemini API:", error);
+      throw new Error("Failed to get a valid response from the AI model for creator ideas.");
+    }
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -6,9 +5,9 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { IntroModal } from './components/IntroModal';
-import { fetchSearchResults, processPexelsQuery } from './services/geminiService';
+import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -30,9 +29,11 @@ import { fetchShoppingResults } from './services/geminiService';
 import { fetchPexelsMedia } from './services/pexelsService';
 import { PexelsPage } from './components/PexelsPage';
 import { WebAgentPage } from './components/WebAgentPage';
+import { CreatorIdeasPage } from './components/CreatorIdeasPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
+type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
 
 declare global {
   interface Window {
@@ -85,6 +86,8 @@ const App: React.FC = () => {
   const [pexelsResult, setPexelsResult] = useState<PexelsResult | null>(null);
   const [pexelsQuery, setPexelsQuery] = useState<string>('');
   const [agentQuery, setAgentQuery] = useState<string>('');
+  const [creatorIdeasResult, setCreatorIdeasResult] = useState<CreatorIdeasResult | null>(null);
+  const [creatorQuery, setCreatorQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingQuery, setLoadingQuery] = useState('');
@@ -153,6 +156,15 @@ const App: React.FC = () => {
             setSearchResult(JSON.parse(storedResult));
             setCurrentQuery(storedQuery);
             setIsStudyMode(storedStudyMode ? JSON.parse(storedStudyMode) : false);
+        } else {
+            navigate('/search', { replace: true });
+        }
+    } else if (path === '/creator-ideas') {
+        const storedResult = sessionStorage.getItem('creatorIdeasResult');
+        const storedQuery = sessionStorage.getItem('creatorQuery');
+        if (storedResult && storedQuery) {
+            setCreatorIdeasResult(JSON.parse(storedResult));
+            setCreatorQuery(storedQuery);
         } else {
             navigate('/search', { replace: true });
         }
@@ -690,13 +702,37 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; }) => {
     if (!query.trim()) return;
     
     setLoadingQuery(query);
     setLastSearchOptions(options);
     setSidebarOpen(false);
     setError(null);
+
+    if (options.creatorSearch && options.creatorPlatform) {
+        setIsLoading(true);
+        setCreatorQuery(query);
+        if (!isTemporaryMode) {
+          setRecentSearches(prevSearches => {
+            const updatedSearches = [`creator: ${query}`, ...prevSearches.filter(s => s !== `creator: ${query}`)];
+            return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
+          });
+        }
+        try {
+            const result = await fetchCreatorIdeas(query, options.creatorPlatform, GEMINI_API_KEY);
+            setCreatorIdeasResult(result);
+            sessionStorage.setItem('creatorIdeasResult', JSON.stringify(result));
+            sessionStorage.setItem('creatorQuery', query);
+            navigate('/creator-ideas');
+        } catch (err) {
+            console.error(err);
+            setError('Sorry, something went wrong with the creator agent. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+        return;
+    }
 
     if (options.agentSearch) {
         setAgentQuery(query);
@@ -1015,6 +1051,8 @@ const App: React.FC = () => {
           queryToRetry = mapQuery;
         } else if (lastSearchOptions.pexelsSearch) {
           queryToRetry = pexelsQuery;
+        } else if (lastSearchOptions.creatorSearch) {
+            queryToRetry = creatorQuery;
         } else {
           queryToRetry = currentQuery;
         }
@@ -1056,6 +1094,7 @@ const App: React.FC = () => {
             case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
             case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
             case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={GEMINI_API_KEY} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
+            case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={creatorQuery} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />;
@@ -1070,6 +1109,7 @@ const App: React.FC = () => {
       case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
       case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={GEMINI_API_KEY} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
+      case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/search':
       default:
         const desktopSearchPageProps = {

@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { SearchInput } from './SearchInput';
 import { Header } from './Header';
@@ -11,7 +10,7 @@ import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, Use
 import { Footer } from './Footer';
 
 interface SearchPageProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: 'youtube' | 'tiktok' | 'instagram' }) => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SearchIcon } from '../icons/SearchIcon';
 import { HistoryIcon } from '../icons/HistoryIcon';
@@ -9,7 +8,7 @@ import { MobileHistoryPage } from './MobileHistoryPage';
 interface MobileAppProps {
     currentPath: string;
     navigate: (path: string) => void;
-    onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
+    onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: 'youtube' | 'tiktok' | 'instagram' }) => void;
     recentSearches: string[];
     onClearRecents: () => void;
     speechLanguage: 'en-US' | 'es-ES';
