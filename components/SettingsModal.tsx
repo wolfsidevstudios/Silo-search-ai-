@@ -437,7 +437,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                             <LayersIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
                             <div>
                                 <h5 className="font-semibold text-gray-800">Deep Research Mode</h5>
-                                <p className="text-sm text-gray-600">Get comprehensive reports and outlines on any topic. <span className="text-xs font-semibold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full">COMING SOON</span></p>
+                                <p className="text-sm text-gray-600">Get comprehensive reports and outlines on any topic.</p>
                             </div>
                         </li>
                     </ul>

@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail } from '../types';
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail, DeepResearchResult } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean, fileContent?: string): Promise<SearchResult & { estimatedTokens: number }> {
   if (!apiKey) {
@@ -114,6 +114,74 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   } catch (error) {
     console.error("Error fetching from Gemini API:", error);
     throw new Error("Failed to get a valid response from the AI model. This could be due to an invalid API key or network issues.");
+  }
+}
+
+export async function fetchDeepResearch(query: string, apiKey: string): Promise<DeepResearchResult> {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `Generate a comprehensive research report outline for the topic: "${query}".
+  The report should be well-structured and detailed. Use Google Search to gather up-to-date information and provide sources.
+  Return the response in JSON format.
+  - "title": A concise and informative title for the report.
+  - "introduction": A brief introductory paragraph.
+  - "sections": An array of objects, each with a "title" and "content". The content should be a detailed paragraph, possibly with markdown for lists.
+  - "conclusion": A concluding paragraph summarizing the key points.
+  - "keyTakeaways": An array of 5-7 distinct, single-sentence key takeaways.
+  `;
+  
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      title: { type: Type.STRING },
+      introduction: { type: Type.STRING },
+      sections: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            content: { type: Type.STRING, description: "Detailed content, can include markdown lists." }
+          },
+          required: ["title", "content"]
+        }
+      },
+      conclusion: { type: Type.STRING },
+      keyTakeaways: {
+        type: Type.ARRAY,
+        items: { type: Type.STRING }
+      }
+    },
+    required: ["title", "introduction", "sections", "conclusion", "keyTakeaways"]
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: { 
+        tools: [{googleSearch: {}}],
+        responseMimeType: "application/json", 
+        responseSchema: schema 
+      },
+    });
+
+    const result: Omit<DeepResearchResult, 'sources'> = JSON.parse(response.text);
+
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const sources: QuickLink[] = groundingChunks
+        .map((chunk: any) => chunk.web)
+        .filter((web: any): web is QuickLink => !!(web && web.title && web.uri));
+    
+    return { ...result, sources };
+
+  } catch (error) {
+    console.error("Error fetching deep research from Gemini API:", error);
+    throw new Error("Failed to get a valid research report from the AI model.");
   }
 }
 

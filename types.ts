@@ -297,3 +297,17 @@ export interface TikTokVideo {
     coverUrl: string;
     musicName: string;
 }
+
+export interface ResearchSection {
+  title: string;
+  content: string; // Can be markdown
+}
+
+export interface DeepResearchResult {
+  title: string;
+  introduction: string;
+  sections: ResearchSection[];
+  conclusion: string;
+  keyTakeaways: string[];
+  sources: QuickLink[];
+}

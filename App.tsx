@@ -5,9 +5,9 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
-import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas } from './services/geminiService';
+import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo } from './types';
+import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -32,6 +32,7 @@ import { WebAgentPage } from './components/WebAgentPage';
 import { CreatorIdeasPage } from './components/CreatorIdeasPage';
 import { DiscoverPage } from './components/DiscoverPage';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
+import { DeepResearchPage } from './components/DeepResearchPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -89,6 +90,8 @@ const App: React.FC = () => {
   const [agentQuery, setAgentQuery] = useState<string>('');
   const [creatorIdeasResult, setCreatorIdeasResult] = useState<CreatorIdeasResult | null>(null);
   const [creatorQuery, setCreatorQuery] = useState('');
+  const [deepResearchResult, setDeepResearchResult] = useState<DeepResearchResult | null>(null);
+  const [researchQuery, setResearchQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingQuery, setLoadingQuery] = useState('');
@@ -174,6 +177,15 @@ const App: React.FC = () => {
             setSearchResult(JSON.parse(storedResult));
             setCurrentQuery(storedQuery);
             setIsStudyMode(storedStudyMode ? JSON.parse(storedStudyMode) : false);
+        } else {
+            navigate('/search', { replace: true });
+        }
+    } else if (path === '/research') {
+        const storedResult = sessionStorage.getItem('deepResearchResult');
+        const storedQuery = sessionStorage.getItem('researchQuery');
+        if (storedResult && storedQuery) {
+            setDeepResearchResult(JSON.parse(storedResult));
+            setResearchQuery(storedQuery);
         } else {
             navigate('/search', { replace: true });
         }
@@ -756,7 +768,7 @@ const App: React.FC = () => {
     setSelectedFile(null);
   };
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; }) => {
     if (!query.trim()) return;
     if (!apiKeys.gemini) {
       alert('Please set your Gemini API key in settings or complete the onboarding process.');
@@ -777,6 +789,25 @@ const App: React.FC = () => {
             return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
           });
         }
+    } else if (options.researchSearch) {
+        setIsLoading(true);
+        setResearchQuery(query);
+        if (!isTemporaryMode) {
+          setRecentSearches(prev => [`research: ${query}`, ...prev.filter(s => s !== `research: ${query}`)].slice(0, MAX_RECENT_SEARCHES));
+        }
+        try {
+            const result = await fetchDeepResearch(query, apiKeys.gemini);
+            setDeepResearchResult(result);
+            sessionStorage.setItem('deepResearchResult', JSON.stringify(result));
+            sessionStorage.setItem('researchQuery', query);
+            navigate('/research');
+        } catch (err) {
+            console.error(err);
+            setError('Sorry, something went wrong with the deep research. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+        return;
     } else if (options.creatorSearch && options.creatorPlatform) {
         setIsLoading(true);
         setCreatorQuery(query);
@@ -1141,6 +1172,8 @@ const App: React.FC = () => {
           queryToRetry = pexelsQuery;
         } else if (lastSearchOptions.creatorSearch) {
             queryToRetry = creatorQuery;
+        } else if (lastSearchOptions.researchSearch) {
+            queryToRetry = researchQuery;
         } else {
           queryToRetry = currentQuery;
         }
@@ -1177,6 +1210,7 @@ const App: React.FC = () => {
     if (isMobile) {
         switch(path) {
             case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery}/>;
+            case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
             case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
@@ -1192,6 +1226,7 @@ const App: React.FC = () => {
     // Desktop view
     switch(path) {
       case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} selectedFile={selectedFile} onFileSelect={handleFileSelect} onClearFile={handleClearFile} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery} />;
+      case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
       case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;

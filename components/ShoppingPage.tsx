@@ -7,7 +7,7 @@ import { SearchInput } from './SearchInput';
 interface ShoppingPageProps {
   initialResult: ShoppingResult;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; researchSearch?: boolean; }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
@@ -51,6 +51,9 @@ export const ShoppingPage: React.FC<ShoppingPageProps> = ({ initialResult, origi
               onOpenComingSoonModal={() => {}} 
               isStudyMode={false}
               setIsStudyMode={() => {}}
+              onFileSelect={()=>{}}
+              selectedFile={null}
+              onClearFile={()=>{}}
             />
           </div>
           <div className="flex-grow overflow-y-auto p-6">

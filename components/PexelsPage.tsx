@@ -11,7 +11,7 @@ import { CameraIcon } from './icons/CameraIcon';
 interface PexelsPageProps {
   initialResult: PexelsResult;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; researchSearch?: boolean; }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
@@ -67,6 +67,9 @@ export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQ
                     onOpenComingSoonModal={() => {}} 
                     isStudyMode={false}
                     setIsStudyMode={() => {}}
+                    onFileSelect={()=>{}}
+                    selectedFile={null}
+                    onClearFile={()=>{}}
                 />
             </div>
         </div>

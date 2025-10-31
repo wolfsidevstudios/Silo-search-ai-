@@ -14,7 +14,7 @@ import { fetchCreatorIdeaDetails } from '../services/geminiService';
 interface CreatorIdeasPageProps {
   result: CreatorIdeasResult;
   geminiApiKey: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: 'youtube' | 'tiktok' | 'instagram' }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: 'youtube' | 'tiktok' | 'instagram'; researchSearch?: boolean; }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
@@ -107,7 +107,7 @@ export const CreatorIdeasPage: React.FC<CreatorIdeasPageProps> = ({ result, gemi
         )}
         <footer className="sticky bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm z-20">
             <div className="max-w-xl mx-auto">
-                <SearchInput onSearch={onSearch} isLarge={false} speechLanguage="en-US" onOpenComingSoonModal={() => {}} isStudyMode={false} setIsStudyMode={() => {}} />
+                <SearchInput onSearch={onSearch} isLarge={false} speechLanguage="en-US" onOpenComingSoonModal={() => {}} isStudyMode={false} setIsStudyMode={() => {}} onFileSelect={()=>{}} selectedFile={null} onClearFile={()=>{}} />
                 <Footer onOpenLegalPage={headerProps.onOpenLegalPage} className="p-0 pt-2 text-xs" />
             </div>
       </footer>
