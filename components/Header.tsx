@@ -17,7 +17,7 @@ interface HeaderProps {
   showHomeButton?: boolean;
   userProfile: UserProfile | null;
   onLogout: () => void;
-  activeTab?: 'search' | 'discover' | 'create';
+  activeTab?: 'search' | 'discover' | 'create' | 'ai-labs' | 'spaces';
   onNavigate?: (path: string) => void;
 }
 

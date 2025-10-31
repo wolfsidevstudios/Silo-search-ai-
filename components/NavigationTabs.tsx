@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface NavigationTabsProps {
-  activeTab: 'search' | 'discover' | 'create';
+  activeTab: 'search' | 'discover' | 'create' | 'ai-labs' | 'spaces';
   onNavigate: (path: string) => void;
 }
 
@@ -18,6 +18,18 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({ activeTab, onNav
             className={`px-6 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === 'discover' ? 'bg-white shadow' : 'text-gray-600 hover:bg-white/50'}`}
         >
             Discover
+        </button>
+        <button
+            onClick={() => onNavigate('/ai-labs')}
+            className={`px-6 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === 'ai-labs' ? 'bg-white shadow' : 'text-gray-600 hover:bg-white/50'}`}
+        >
+            AI Labs
+        </button>
+        <button
+            onClick={() => onNavigate('/spaces')}
+            className={`px-6 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === 'spaces' ? 'bg-white shadow' : 'text-gray-600 hover:bg-white/50'}`}
+        >
+            Spaces
         </button>
         <button
             onClick={() => onNavigate('/create')}

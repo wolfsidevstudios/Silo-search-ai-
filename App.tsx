@@ -39,6 +39,8 @@ import { FileSelectorModal } from './components/FileSelectorModal';
 import { SpaceEditorModal } from './components/SpaceEditorModal';
 import { SpacePage } from './components/SpacePage';
 import { AiResultPage } from './components/AiResultPage';
+import { AiLabsPage } from './components/AiLabsPage';
+import { SpacesListPage } from './components/SpacesListPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -1321,7 +1323,9 @@ const App: React.FC = () => {
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
-      case '/create': return <CreatePage onSearch={handleSearch} files={files} notes={notes} spaces={spaces} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} onOpenSpaceEditor={handleOpenSpaceEditor} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/ai-labs': return <AiLabsPage onSearch={handleSearch} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/spaces': return <SpacesListPage spaces={spaces} onOpenSpaceEditor={handleOpenSpaceEditor} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/create': return <CreatePage files={files} notes={notes} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/create/result': return creativeSession ? <AiResultPage session={creativeSession} geminiApiKey={apiKeys.gemini} onExit={() => { setCreativeSession(null); navigate('/create'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
       default:
         if (path.startsWith('/space/')) {
