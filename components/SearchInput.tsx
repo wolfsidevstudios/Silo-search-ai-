@@ -203,7 +203,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                 className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg"
             />
 
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between mt-auto pt-4">
                 {/* Left side toolbar */}
                 <div className="flex items-center space-x-1">
                     <button type="button" title="Search" className="p-2 rounded-lg bg-gray-100 text-black ring-1 ring-gray-300">

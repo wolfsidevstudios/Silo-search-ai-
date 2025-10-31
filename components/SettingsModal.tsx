@@ -44,6 +44,7 @@ import { NewspaperIcon } from './icons/NewspaperIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { ImageIcon } from './icons/ImageIcon';
 import { ExaIcon } from './icons/ExaIcon';
+import { GoogleIcon } from './icons/GoogleIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -76,6 +77,7 @@ interface SettingsPageProps {
 }
 
 const AI_PROVIDERS = [
+    { id: 'gemini', name: 'Google Gemini', Icon: GoogleIcon, description: 'The core model powering Kyndra AI. Get your key from Google AI Studio.', placeholder: 'Enter your Google Gemini API key', getLink: 'https://aistudio.google.com/app/apikey' },
     { id: 'youtube', name: 'YouTube Data API', Icon: YouTubeIcon, description: 'Required for the video search feature. Get your key from the Google Cloud Console.', placeholder: 'Enter your YouTube Data v3 API key', getLink: 'https://console.cloud.google.com/apis/library/youtube.googleapis.com' },
     { id: 'pexels', name: 'Pexels API', Icon: ImageIcon, description: 'Required for the media search feature. Get a free key from the Pexels website.', placeholder: 'Enter your Pexels API key', getLink: 'https://www.pexels.com/api/' },
     { id: 'exa', name: 'Exa API', Icon: ExaIcon, description: 'Required for the Shopping Agent feature. Get your key from the Exa dashboard.', placeholder: 'Enter your Exa API key', getLink: 'https://dashboard.exa.ai/login' },

@@ -4,7 +4,7 @@ import { ResultsPage } from './components/ResultsPage';
 import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
-import { IntroModal } from './components/IntroModal';
+import { Onboarding } from './components/Onboarding';
 import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
 import type { SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult } from './types';
@@ -40,8 +40,6 @@ declare global {
     google?: any;
   }
 }
-
-const GEMINI_API_KEY = 'AIzaSyA6gHTOOCiOhk0CFvquK2Lv4Einis2C0GY';
 
 interface ComingSoonModalProps {
   isOpen: boolean;
@@ -105,7 +103,11 @@ const App: React.FC = () => {
   const [isChatLoading, setChatLoading] = useState(false);
   const chatRef = useRef<Chat | null>(null);
 
-  const [showIntroModal, setShowIntroModal] = useState(false);
+  const [isOnboarding, setIsOnboarding] = useState(() => {
+    const onboardingComplete = !!window.localStorage.getItem('onboardingComplete_v2');
+    const geminiKeyExists = !!(JSON.parse(window.localStorage.getItem('ai-api-keys') || '{}').gemini);
+    return !(onboardingComplete && geminiKeyExists);
+  });
   const [showChromeBanner, setShowChromeBanner] = useState(false);
 
   const [termsAgreement, setTermsAgreement] = useState<TermsAgreement>(() => {
@@ -312,14 +314,6 @@ const App: React.FC = () => {
   const handleOpenComingSoonModal = () => setComingSoonModalOpen(true);
   const handleCloseComingSoonModal = () => setComingSoonModalOpen(false);
 
-
-  useEffect(() => {
-    const hasSeenIntro = window.localStorage.getItem('hasSeenWelcome_v1');
-    if (!hasSeenIntro) {
-      setShowIntroModal(true);
-    }
-  }, []);
-
   useEffect(() => {
     const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
     const hasHiddenBanner = localStorage.getItem('hideChromeBanner') === 'true';
@@ -340,11 +334,6 @@ const App: React.FC = () => {
   const handleCloseChromeBanner = () => {
     setShowChromeBanner(false);
     localStorage.setItem('hideChromeBanner', 'true');
-  };
-
-  const handleCloseIntroModal = () => {
-    setShowIntroModal(false);
-    window.localStorage.setItem('hasSeenWelcome_v1', 'true');
   };
   
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
@@ -591,6 +580,10 @@ const App: React.FC = () => {
     }
   }, [customStickers]);
 
+  const onApiKeysChange = (keys: { [key: string]: string }) => {
+    setApiKeys(keys);
+  };
+
   useEffect(() => {
     try {
       window.localStorage.setItem('ai-api-keys', JSON.stringify(apiKeys));
@@ -704,6 +697,11 @@ const App: React.FC = () => {
 
   const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; }) => {
     if (!query.trim()) return;
+    if (!apiKeys.gemini) {
+      alert('Please set your Gemini API key in settings or complete the onboarding process.');
+      setIsOnboarding(true);
+      return;
+    }
     
     setLoadingQuery(query);
     setLastSearchOptions(options);
@@ -720,7 +718,7 @@ const App: React.FC = () => {
           });
         }
         try {
-            const result = await fetchCreatorIdeas(query, options.creatorPlatform, GEMINI_API_KEY);
+            const result = await fetchCreatorIdeas(query, options.creatorPlatform, apiKeys.gemini);
             setCreatorIdeasResult(result);
             sessionStorage.setItem('creatorIdeasResult', JSON.stringify(result));
             sessionStorage.setItem('creatorQuery', query);
@@ -757,8 +755,8 @@ const App: React.FC = () => {
             if (!apiKeys.pexels) {
                 throw new Error("Pexels API key is missing. Please add it in settings.");
             }
-            const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-            const pexelsParams = await processPexelsQuery(query, GEMINI_API_KEY);
+            const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
+            const pexelsParams = await processPexelsQuery(query, apiKeys.gemini);
             const { media, mediaType } = await fetchPexelsMedia(pexelsParams.searchTerm, apiKeys.pexels, pexelsParams.mediaType);
             
             const summaryResponse = await ai.models.generateContent({
@@ -798,7 +796,7 @@ const App: React.FC = () => {
           });
         }
         try {
-            const result = await fetchShoppingResults(query, GEMINI_API_KEY, apiKeys.exa);
+            const result = await fetchShoppingResults(query, apiKeys.gemini, apiKeys.exa);
             setShoppingResult(result);
             sessionStorage.setItem('shoppingResult', JSON.stringify(result));
             sessionStorage.setItem('shoppingQuery', query);
@@ -822,7 +820,7 @@ const App: React.FC = () => {
           });
         }
         try {
-            const result = await fetchTravelPlan(query, GEMINI_API_KEY);
+            const result = await fetchTravelPlan(query, apiKeys.gemini);
             setTravelPlan(result);
             sessionStorage.setItem('travelPlan', JSON.stringify(result));
             sessionStorage.setItem('travelQuery', query);
@@ -863,7 +861,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const geminiPromise = fetchSearchResults(query, GEMINI_API_KEY, searchSettings, studyMode);
+      const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode);
       const youtubePromise = apiKeys.youtube
         ? fetchYouTubeVideos(query, apiKeys.youtube)
         : Promise.resolve<YouTubeVideo[] | undefined>(undefined);
@@ -915,7 +913,11 @@ const App: React.FC = () => {
   };
   
   const handleEnterChatMode = (query: string, summary: string) => {
-    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    if (!apiKeys.gemini) {
+      setIsOnboarding(true);
+      return;
+    }
+    const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
     chatRef.current = ai.chats.create({ 
       model: searchSettings.model === 's1-mini' ? 'gemini-2.5-flash' : searchSettings.model,
       config: {
@@ -1001,7 +1003,6 @@ const App: React.FC = () => {
   };
 
   const handleUpdateWidget = (updatedWidget: WidgetInstance) => {
-    // FIX: Corrected a typo where 's' was used instead of 'w' for the widget item in the map function.
     setWidgets(prev => prev.map(w => w.id === updatedWidget.id ? updatedWidget : w));
   };
 
@@ -1043,6 +1044,13 @@ const App: React.FC = () => {
     } else {
       alert("You don't have enough credits to unlock this. Check the Rewards section to see how to earn more!");
     }
+  };
+
+  const handleOnboardingComplete = (geminiApiKey: string) => {
+    const newApiKeys = { ...apiKeys, gemini: geminiApiKey };
+    onApiKeysChange(newApiKeys);
+    window.localStorage.setItem('onboardingComplete_v2', 'true');
+    setIsOnboarding(false);
   };
 
   const renderAppContent = () => {
@@ -1097,12 +1105,12 @@ const App: React.FC = () => {
     if (isMobile) {
         switch(path) {
             case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={currentQuery}/>;
-            case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+            case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
             case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
             case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
-            case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={GEMINI_API_KEY} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
-            case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={GEMINI_API_KEY} {...commonProps} /> : <LoadingState query={creatorQuery} />;
+            case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
+            case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />;
@@ -1112,12 +1120,12 @@ const App: React.FC = () => {
     // Desktop view
     switch(path) {
       case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={currentQuery} />;
-      case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={GEMINI_API_KEY} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
       case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
       case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
-      case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={GEMINI_API_KEY} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
-      case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={GEMINI_API_KEY} {...commonProps} /> : <LoadingState query={creatorQuery} />;
+      case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
+      case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/search':
       default:
         const desktopSearchPageProps = {
@@ -1132,6 +1140,10 @@ const App: React.FC = () => {
 
   const renderRouter = () => {
     const path = currentPath.split('?')[0];
+    
+    if (isOnboarding && userProfile) {
+        return <Onboarding onComplete={handleOnboardingComplete} />;
+    }
 
     if (termsAgreement === 'pending') {
       return <TermsPage isInitialPrompt={true} onAgree={handleAgreeToTerms} onDisagree={handleDisagreeToTerms} />;
@@ -1164,9 +1176,8 @@ const App: React.FC = () => {
                     {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
                     {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} onDeleteRecentSearch={handleDeleteRecentSearch} />}
                     <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
-                    <IntroModal isOpen={showIntroModal} onClose={handleCloseIntroModal} />
                     <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
-                    <div className={`${isSidebarOpen || isChatModeOpen || showIntroModal || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
+                    <div className={`${isSidebarOpen || isChatModeOpen || isComingSoonModalOpen ? 'blur-sm' : ''} transition-filter duration-300 min-h-screen flex flex-col`}>
                     {renderAppContent()}
                     </div>
                 </div>
