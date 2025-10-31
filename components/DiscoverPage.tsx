@@ -6,11 +6,14 @@ import { fetchStockQuotes } from '../services/stockService';
 import { fetchTrendingProducts } from '../services/productHuntService';
 import { fetchYouTubeVideos, fetchTrendingYouTubeVideos } from '../services/youtubeService';
 import { fetchTrendingTikTokVideos } from '../services/tiktokService';
-import type { NewsArticle, StockQuote, UserProfile, ProductHuntPost, YouTubeVideo, TikTokVideo } from '../types';
+import type { NewsArticle, StockQuote, UserProfile, ProductHuntPost, YouTubeVideo, TikTokVideo, QuickLink } from '../types';
 import { LogoIcon } from './icons/LogoIcon';
 import { ProductHuntIcon } from './icons/ProductHuntIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
+import { fetchNewsSummary } from '../services/geminiService';
+import { SparklesIcon } from './icons/SparklesIcon';
+import { LinkIcon } from './icons/LinkIcon';
 
 interface DiscoverPageProps {
   navigate: (path: string) => void;
@@ -110,6 +113,9 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [stocks, setStocks] = useState<StockQuote[]>([]);
     const [trendingProducts, setTrendingProducts] = useState<ProductHuntPost[]>([]);
+    const [newsSummary, setNewsSummary] = useState<string | null>(null);
+    const [newsSummarySources, setNewsSummarySources] = useState<QuickLink[]>([]);
+    const [isSummaryLoading, setIsSummaryLoading] = useState(true);
     
     const [youtubeSearchQuery, setYoutubeSearchQuery] = useState('');
     const [displayedVideos, setDisplayedVideos] = useState<YouTubeVideo[]>([]);
@@ -121,20 +127,41 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const loadInitialData = async () => {
+        const loadDataAndSummary = async () => {
             setIsLoading(true);
-            const [newsData, stockData, productsData, trendingVideosData] = await Promise.all([
+            setIsSummaryLoading(true);
+
+            const [
+                newsResult,
+                stockResult,
+                productsResult,
+                trendingVideosResult,
+                summaryResult
+            ] = await Promise.allSettled([
                 fetchTopHeadlines(),
                 fetchStockQuotes(),
                 fetchTrendingProducts(),
-                fetchTrendingYouTubeVideos(apiKeys.youtube)
+                fetchTrendingYouTubeVideos(apiKeys.youtube),
+                apiKeys.gemini ? fetchNewsSummary(apiKeys.gemini) : Promise.reject("Gemini API key not set"),
             ]);
-            setNews(newsData.filter(a => a.urlToImage));
-            setStocks(stockData);
-            setTrendingProducts(productsData);
-            setDisplayedVideos(trendingVideosData);
+
+            if (newsResult.status === 'fulfilled') setNews(newsResult.value.filter(a => a.urlToImage));
+            if (stockResult.status === 'fulfilled') setStocks(stockResult.value);
+            if (productsResult.status === 'fulfilled') setTrendingProducts(productsResult.value);
+            if (trendingVideosResult.status === 'fulfilled') setDisplayedVideos(trendingVideosResult.value);
+
+            if (summaryResult.status === 'fulfilled') {
+                setNewsSummary(summaryResult.value.summary);
+                setNewsSummarySources(summaryResult.value.sources);
+            } else {
+                setNewsSummary("AI news summary could not be loaded. Please check your Gemini API key in settings.");
+                setNewsSummarySources([]);
+            }
+            
+            setIsSummaryLoading(false);
             setIsLoading(false);
         };
+
         const loadTikTokData = async () => {
             if (!apiKeys.apify) {
                 setTikTokError("Please add your Apify API key in settings to see TikTok videos.");
@@ -153,9 +180,9 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
             }
         };
 
-        loadInitialData();
+        loadDataAndSummary();
         loadTikTokData();
-    }, [apiKeys.youtube, apiKeys.apify]);
+    }, [apiKeys.gemini, apiKeys.youtube, apiKeys.apify]);
 
     const handleYoutubeSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -195,6 +222,36 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
             case 'news':
                 return (
                     <>
+                        <section className="mb-12">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+                                <SparklesIcon className="w-6 h-6" />
+                                <span>AI News Briefing</span>
+                            </h2>
+                            {isSummaryLoading ? (
+                                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                                    <div className="h-4 bg-gray-200 rounded-full w-3/4 mb-4 animate-pulse"></div>
+                                    <div className="h-4 bg-gray-200 rounded-full w-full mb-2 animate-pulse"></div>
+                                    <div className="h-4 bg-gray-200 rounded-full w-5/6 animate-pulse"></div>
+                                </div>
+                            ) : (
+                                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                                    <p className="text-gray-700">{newsSummary}</p>
+                                    {newsSummarySources.length > 0 && (
+                                        <div className="mt-4 pt-4 border-t">
+                                            <h4 className="text-sm font-semibold text-gray-600 mb-2 flex items-center space-x-1.5"><LinkIcon className="w-4 h-4" /><span>Sources</span></h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {newsSummarySources.map((source, index) => (
+                                                    <a key={index} href={source.uri} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200">
+                                                        {source.title}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </section>
+
                         <section className="mb-12">
                             <h2 className="text-2xl font-bold text-gray-800 mb-4">Top Headlines</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

@@ -505,3 +505,40 @@ export async function fetchCreatorIdeaDetails(idea: VideoIdeaSummary, topic: str
         throw new Error("Failed to get a valid response from the AI model for idea details.");
     }
 }
+
+export async function fetchNewsSummary(apiKey: string): Promise<{ summary: string; sources: QuickLink[] }> {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `Provide a concise, 2-3 sentence summary of the most important news headlines happening right now.`;
+  const config: GenerateContentConfig = {
+    tools: [{googleSearch: {}}],
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: config,
+    });
+
+    const summary = response.text;
+    if (!summary) {
+        throw new Error("Received an empty summary from the API for news.");
+    }
+
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const sources: QuickLink[] = groundingChunks
+        .map((chunk: any) => chunk.web)
+        .filter((web: any): web is QuickLink => !!(web && web.title && web.uri));
+    
+    return { summary, sources };
+
+  } catch (error) {
+    console.error("Error fetching news summary from Gemini API:", error);
+    throw new Error("Failed to get a valid news summary from the AI model.");
+  }
+}

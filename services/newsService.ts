@@ -1,6 +1,6 @@
 import type { NewsArticle } from '../types';
 
-const NEWS_API_KEY = 'b4e1222b4c194a529d2f2c385875082a';
+const NEWS_API_KEY = '51663a890f03415aa4cf2502d6b01435';
 const NEWS_API_URL = `https://api.worldnewsapi.com/top-news?source-country=us&language=en&api-key=${NEWS_API_KEY}`;
 
 interface WorldNewsArticle {
