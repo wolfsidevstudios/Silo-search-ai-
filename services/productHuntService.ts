@@ -1,36 +1,15 @@
 import type { ProductHuntPost } from '../types';
 
 const PRODUCT_HUNT_API_KEY = 'fe9Bb7hdCYSMzIahpuT69NTcicvzSWxFEP7E-2O4854';
-const PRODUCT_HUNT_API_URL = 'https://api.producthunt.com/v2/api/graphql';
-
-const GET_TRENDING_PRODUCTS_QUERY = `
-query {
-  posts(order: VOTES, first: 6) {
-    edges {
-      node {
-        id
-        name
-        tagline
-        url
-        votesCount
-        thumbnail {
-          url
-        }
-      }
-    }
-  }
-}
-`;
+const PRODUCT_HUNT_API_URL = 'https://api.producthunt.com/v2/api/products';
 
 export async function fetchTrendingProducts(): Promise<ProductHuntPost[]> {
     try {
         const response = await fetch(PRODUCT_HUNT_API_URL, {
-            method: 'POST',
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${PRODUCT_HUNT_API_KEY}`,
             },
-            body: JSON.stringify({ query: GET_TRENDING_PRODUCTS_QUERY }),
         });
 
         if (!response.ok) {
@@ -45,8 +24,14 @@ export async function fetchTrendingProducts(): Promise<ProductHuntPost[]> {
             return [];
         }
 
-        const posts = data.data.posts.edges.map((edge: any) => edge.node);
-        return posts.filter((post: any): post is ProductHuntPost => post && post.thumbnail); // Ensure thumbnail exists
+        // Assuming the response has a "products" key with an array of products
+        const products: any[] = data.products || [];
+
+        // The old implementation fetched 6 products, so we'll slice to match
+        // We also assume the product objects match the ProductHuntPost type, including thumbnail and votesCount
+        return products
+            .slice(0, 6)
+            .filter((post: any): post is ProductHuntPost => post && post.thumbnail && post.thumbnail.url);
     } catch (error) {
         console.error("Error fetching from Product Hunt:", error);
         return [];
