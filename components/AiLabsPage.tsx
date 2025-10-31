@@ -18,7 +18,7 @@ interface AiLabsPageProps {
 
 export const AiLabsPage: React.FC<AiLabsPageProps> = ({ onSearch, navigate, onOpenLegalPage, ...headerProps }) => {
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
+        <div className="flex flex-col min-h-screen ai-labs-background">
             <Header {...headerProps} activeTab="ai-labs" onNavigate={navigate} />
             <main className="flex-grow flex min-h-0">
                 <AiHomePage onSearch={onSearch} />
