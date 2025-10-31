@@ -24,7 +24,7 @@ const getSystemInstruction = (tool: AiCreativeTool): string => {
         case 'docs':
             return "You are a professional technical writer. Your task is to create a well-structured and beautifully formatted document in Markdown based on the user's request. Use headings, lists, bold text, and other markdown features to make the document clear and readable. Respond only with the Markdown content.";
         case 'code':
-            return "You are an expert programmer. Your task is to generate clean, efficient, and well-commented code based on the user's request. Specify the language in a markdown code block (e.g., ```python). Respond ONLY with the raw code inside the markdown code block. Do not include any explanations or extra text.";
+            return "You are an expert web developer. Your task is to create a complete, single-file HTML application based on the user's description. The response must be a single block of HTML code. Include all necessary HTML, CSS (in a <style> tag), and JavaScript (in a <script> tag) in one file. Respond ONLY with the raw HTML code. Do not include any explanations, markdown formatting, or any text outside of the HTML code block.";
     }
 };
 
@@ -78,30 +78,6 @@ const DocPreview: React.FC<{ markdown: string }> = ({ markdown }) => {
         <div className="w-full h-full flex flex-col">
             <div className="flex-grow bg-white p-6 overflow-y-auto">
                 <div className="prose prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: renderMarkdown(markdown) }} />
-            </div>
-        </div>
-    );
-};
-
-
-const CodePreview: React.FC<{ code: string }> = ({ code }) => {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = () => {
-        // Extracts content from inside ```...```
-        const codeToCopy = code.replace(/```(?:\w+\n)?([\s\S]+)```/, '$1').trim();
-        navigator.clipboard.writeText(codeToCopy);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <div className="w-full h-full flex flex-col bg-gray-800 text-white">
-            <div className="flex-shrink-0 p-2 border-b border-gray-700 flex justify-end items-center">
-                <button onClick={handleCopy} className="px-3 py-1 text-xs font-semibold bg-gray-600 rounded-md">{copied ? 'Copied!' : 'Copy Code'}</button>
-            </div>
-            <div className="flex-grow overflow-auto">
-                <pre className="p-4 text-sm"><code>{code}</code></pre>
             </div>
         </div>
     );
@@ -185,7 +161,7 @@ export const AiResultPage: React.FC<AiResultPageProps> = ({ session, geminiApiKe
         switch(session.tool) {
             case 'design': return <DesignPreview html={generatedContent} />;
             case 'docs': return <DocPreview markdown={generatedContent} />;
-            case 'code': return <CodePreview code={generatedContent} />;
+            case 'code': return <DesignPreview html={generatedContent} />;
             default: return null;
         }
     };
