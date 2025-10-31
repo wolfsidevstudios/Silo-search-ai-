@@ -8,7 +8,6 @@ import { DraggableWidget } from './DraggableWidget';
 import { NoteWidget, WeatherWidget } from './widgets/Widgets';
 import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, TemperatureUnit, SearchInputSettings } from '../types';
 import { Footer } from './Footer';
-import { NavigationTabs } from './NavigationTabs';
 
 interface SearchPageProps {
   onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: 'youtube' | 'tiktok' | 'instagram' }) => void;
@@ -141,9 +140,10 @@ export const SearchPage: React.FC<SearchPageProps> = ({
           onOpenSettings={onOpenSettings}
           userProfile={userProfile}
           onLogout={onLogout}
+          activeTab="search"
+          onNavigate={navigate}
         />
         <main className="flex-grow flex flex-col items-center justify-center px-4 pb-12 text-center">
-          <NavigationTabs activeTab="search" onNavigate={navigate} />
           {isClockVisible && <div className="mb-8"><Clock settings={clockSettings} temperatureUnit={temperatureUnit} /></div>}
           {isTemporaryMode && (
             <div className="flex flex-col items-center mb-8 text-gray-600">

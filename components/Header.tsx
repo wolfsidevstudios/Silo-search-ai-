@@ -6,6 +6,7 @@ import { HomeIcon } from './icons/HomeIcon';
 import { MenuIcon } from './icons/MenuIcon';
 import { IncognitoIcon } from './icons/IncognitoIcon';
 import type { UserProfile } from '../types';
+import { NavigationTabs } from './NavigationTabs';
 
 interface HeaderProps {
   isTemporaryMode: boolean;
@@ -16,9 +17,11 @@ interface HeaderProps {
   showHomeButton?: boolean;
   userProfile: UserProfile | null;
   onLogout: () => void;
+  activeTab?: 'search' | 'discover';
+  onNavigate?: (path: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton, userProfile, onLogout }) => {
+export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, onHome, showHomeButton, userProfile, onLogout, activeTab, onNavigate }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
   }, []);
   
   return (
-    <header className="p-6 flex justify-between items-center">
+    <header className="p-6 flex justify-between items-center relative">
       <div className="flex items-center space-x-4">
         <button onClick={onToggleSidebar} className="p-2 rounded-full hover:bg-black/10 transition-colors" aria-label="Open menu">
           <MenuIcon />
@@ -48,6 +51,13 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
           </div>
         </div>
       </div>
+      
+      {activeTab && onNavigate && (
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <NavigationTabs activeTab={activeTab} onNavigate={onNavigate} />
+        </div>
+      )}
+
       <div className="flex items-center space-x-4">
         <button onClick={onToggleTemporaryMode} className={`p-2 rounded-full transition-colors ${isTemporaryMode ? 'bg-gray-800 text-white' : 'hover:bg-black/10'}`} aria-label="Toggle temporary mode">
           <IncognitoIcon />

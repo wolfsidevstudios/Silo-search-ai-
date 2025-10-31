@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { NavigationTabs } from './NavigationTabs';
 import { fetchTopHeadlines } from '../services/newsService';
 import { fetchStockQuotes } from '../services/stockService';
 import { fetchTrendingProducts } from '../services/productHuntService';
@@ -95,9 +94,12 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <Header {...headerProps} />
-            <main className="flex-grow flex flex-col items-center px-4 pb-12">
-                <NavigationTabs activeTab="discover" onNavigate={navigate} />
+            <Header 
+                {...headerProps}
+                activeTab="discover"
+                onNavigate={navigate}
+            />
+            <main className="flex-grow flex flex-col items-center px-4 pt-8 pb-12">
                 {isLoading ? (
                      <div className="flex flex-col items-center justify-center flex-grow">
                         <LogoIcon className="w-16 h-16 animate-spin" />
