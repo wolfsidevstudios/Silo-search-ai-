@@ -231,13 +231,29 @@ export interface PexelsResult {
   mediaType: 'photo' | 'video';
 }
 
-export interface VideoIdea {
+export interface VideoIdeaSummary {
     title: string;
     description: string;
     virality_score: number;
 }
+
+export interface RelatedVideo {
+    title: string;
+    reason: string;
+}
+
+export interface VideoIdeaDetail {
+    script: string;
+    titles: string[];
+    description: string;
+    tags: string[];
+    hashtags: string[];
+    inspiration: string[];
+    related_videos: RelatedVideo[];
+}
+
 export interface CreatorIdeasResult {
     topic: string;
     platform: string;
-    ideas: VideoIdea[];
+    ideas: VideoIdeaSummary[];
 }

@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
-import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult } from '../types';
+import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail } from '../types';
 
 export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean): Promise<SearchResult> {
   if (!apiKey) {
@@ -394,5 +394,68 @@ export async function fetchCreatorIdeas(query: string, platform: string, apiKey:
     } catch (error) {
       console.error("Error fetching creator ideas from Gemini API:", error);
       throw new Error("Failed to get a valid response from the AI model for creator ideas.");
+    }
+}
+
+export async function fetchCreatorIdeaDetails(idea: VideoIdeaSummary, topic: string, platform: string, apiKey: string): Promise<VideoIdeaDetail> {
+    if (!apiKey) {
+      throw new Error("Gemini API key is missing.");
+    }
+    
+    const ai = new GoogleGenAI({ apiKey });
+
+    const prompt = `You are a viral content strategist. A user has selected a video idea to expand upon.
+    Original Topic: "${topic}"
+    Target Platform: "${platform}"
+    Selected Idea Title: "${idea.title}"
+    Selected Idea Description: "${idea.description}"
+
+    Now, generate a detailed content plan for this video idea. The response must be a JSON object containing the following keys:
+    - "script": A detailed video script, including scene descriptions, dialogue, and calls to action. Format it with clear sections (e.g., "Intro:", "Main Content:", "Outro:").
+    - "titles": An array of 5 catchy, SEO-friendly alternative titles for the video.
+    - "description": A well-written video description for the platform, including a summary, relevant links (as placeholders), and a call to action.
+    - "tags": An array of 10-15 relevant tags (keywords).
+    - "hashtags": An array of 10-15 relevant hashtags (including the '#' prefix).
+    - "inspiration": An array of 3-4 bullet points describing creative inspiration, visual styles, or similar successful content formats to draw from.
+    - "related_videos": An array of 3 objects, each representing an existing popular video on a similar topic. Each object should have a "title" and a "reason" explaining why it's a good reference.`;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            script: { type: Type.STRING, description: "A detailed video script." },
+            titles: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Array of 5 alternative titles." },
+            description: { type: Type.STRING, description: "A video description for the platform." },
+            tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Array of 10-15 tags." },
+            hashtags: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Array of 10-15 hashtags." },
+            inspiration: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Array of 3-4 inspiration points." },
+            related_videos: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        title: { type: Type.STRING },
+                        reason: { type: Type.STRING }
+                    },
+                    required: ["title", "reason"]
+                },
+                description: "Array of 3 related video examples."
+            }
+        },
+        required: ["script", "titles", "description", "tags", "hashtags", "inspiration", "related_videos"]
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { responseMimeType: "application/json", responseSchema: schema },
+        });
+
+        const result: VideoIdeaDetail = JSON.parse(response.text);
+        return result;
+
+    } catch (error) {
+        console.error("Error fetching creator idea details from Gemini API:", error);
+        throw new Error("Failed to get a valid response from the AI model for idea details.");
     }
 }
