@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -16,6 +17,7 @@ import { RedditIcon } from './icons/RedditIcon';
 import { PlaneIcon } from './icons/PlaneIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { ImageIcon } from './icons/ImageIcon';
+import { BrowserIcon } from './icons/BrowserIcon';
 
 interface SpeechRecognitionAlternative {
   readonly transcript: string;
@@ -66,7 +68,7 @@ interface CustomWindow extends Window {
 declare const window: CustomWindow;
 
 interface SearchInputProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
@@ -84,7 +86,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels'>('default');
+  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent'>('default');
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -138,14 +140,16 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         travelSearch: activeMode === 'travel',
         shoppingSearch: activeMode === 'shop',
         pexelsSearch: activeMode === 'pexels',
+        agentSearch: activeMode === 'agent',
     };
 
-    if (['map', 'travel', 'shop', 'pexels'].includes(activeMode) && !query.trim()) {
+    if (['map', 'travel', 'shop', 'pexels', 'agent'].includes(activeMode) && !query.trim()) {
         let modeName = activeMode.charAt(0).toUpperCase() + activeMode.slice(1);
         if (activeMode === 'map') modeName = 'Map Search';
         if (activeMode === 'travel') modeName = 'Travel Planner';
         if (activeMode === 'shop') modeName = 'Shopping Agent';
         if (activeMode === 'pexels') modeName = 'Media Search';
+        if (activeMode === 'agent') modeName = 'Web Agent';
         alert(`Please enter a query to use ${modeName}.`);
         return;
     }
@@ -153,7 +157,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     onSearch(query, options);
   };
   
-  const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels') => {
+  const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent') => {
     if (isStudyMode) {
       setIsStudyMode(false);
     }
@@ -240,6 +244,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
               { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
               { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
               { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
+              { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
           ].map(({ id, label, Icon, action, isActive }) => (
               <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
                   <Icon className="w-4 h-4" />

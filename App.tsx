@@ -29,6 +29,7 @@ import { ShoppingPage } from './components/ShoppingPage';
 import { fetchShoppingResults } from './services/geminiService';
 import { fetchPexelsMedia } from './services/pexelsService';
 import { PexelsPage } from './components/PexelsPage';
+import { WebAgentPage } from './components/WebAgentPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -83,6 +84,7 @@ const App: React.FC = () => {
   const [shoppingQuery, setShoppingQuery] = useState<string>('');
   const [pexelsResult, setPexelsResult] = useState<PexelsResult | null>(null);
   const [pexelsQuery, setPexelsQuery] = useState<string>('');
+  const [agentQuery, setAgentQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingQuery, setLoadingQuery] = useState('');
@@ -185,6 +187,13 @@ const App: React.FC = () => {
         if (storedResult && storedQuery) {
             setPexelsResult(JSON.parse(storedResult));
             setPexelsQuery(storedQuery);
+        } else {
+            navigate('/search', { replace: true });
+        }
+    } else if (path === '/agent') {
+        const storedAgentQuery = sessionStorage.getItem('agentQuery');
+        if (storedAgentQuery) {
+            setAgentQuery(storedAgentQuery);
         } else {
             navigate('/search', { replace: true });
         }
@@ -681,13 +690,26 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => {
     if (!query.trim()) return;
     
     setLoadingQuery(query);
     setLastSearchOptions(options);
     setSidebarOpen(false);
     setError(null);
+
+    if (options.agentSearch) {
+        setAgentQuery(query);
+        sessionStorage.setItem('agentQuery', query);
+        navigate('/agent');
+        if (!isTemporaryMode) {
+          setRecentSearches(prevSearches => {
+            const updatedSearches = [`agent: ${query}`, ...prevSearches.filter(s => s !== `agent: ${query}`)];
+            return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
+          });
+        }
+        return;
+    }
 
     if (options.pexelsSearch) {
         setIsLoading(true);
@@ -1033,6 +1055,7 @@ const App: React.FC = () => {
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
             case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
             case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
+            case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={GEMINI_API_KEY} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />;
@@ -1046,6 +1069,7 @@ const App: React.FC = () => {
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
       case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
       case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
+      case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={GEMINI_API_KEY} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/search':
       default:
         const desktopSearchPageProps = {

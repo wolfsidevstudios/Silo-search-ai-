@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { TravelPlan, UserProfile } from '../types';
 import { Header } from './Header';
@@ -10,7 +11,7 @@ import { InfoIcon } from './icons/InfoIcon';
 interface TravelPlanPageProps {
   plan: TravelPlan;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;

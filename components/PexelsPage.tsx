@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { UserProfile, PexelsResult, PexelsMedia } from '../types';
 import { Header } from './Header';
@@ -10,7 +11,7 @@ import { CameraIcon } from './icons/CameraIcon';
 interface PexelsPageProps {
   initialResult: PexelsResult;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;

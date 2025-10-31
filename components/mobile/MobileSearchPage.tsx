@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { SearchInput } from '../SearchInput';
 
 interface MobileSearchPageProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
   speechLanguage: 'en-US' | 'es-ES';
   onOpenComingSoonModal: () => void;
   isStudyMode: boolean;

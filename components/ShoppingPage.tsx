@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { UserProfile, ShoppingResult } from '../types';
 import { Header } from './Header';
@@ -6,7 +7,7 @@ import { SearchInput } from './SearchInput';
 interface ShoppingPageProps {
   initialResult: ShoppingResult;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
