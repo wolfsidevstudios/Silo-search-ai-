@@ -15,6 +15,9 @@ interface MobileAppProps {
     onOpenComingSoonModal: () => void;
     isStudyMode: boolean;
     setIsStudyMode: (isStudyMode: boolean) => void;
+    selectedFile: { name: string } | null;
+    onFileSelect: () => void;
+    onClearFile: () => void;
 }
 
 export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, ...props }) => {
@@ -36,6 +39,9 @@ export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, ...
                             onOpenComingSoonModal={props.onOpenComingSoonModal}
                             isStudyMode={props.isStudyMode}
                             setIsStudyMode={props.setIsStudyMode}
+                            selectedFile={props.selectedFile}
+                            onFileSelect={props.onFileSelect}
+                            onClearFile={props.onClearFile}
                         />;
         }
     };

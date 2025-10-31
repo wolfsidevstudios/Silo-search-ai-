@@ -82,9 +82,12 @@ interface SearchInputProps {
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
   variant?: 'home';
+  onFileSelect: () => void;
+  selectedFile: { name: string } | null;
+  onClearFile: () => void;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode, variant }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode, setIsStudyMode, variant, onFileSelect, selectedFile, onClearFile }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -94,6 +97,13 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
   const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator'>('default');
   const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
+
+  useEffect(() => {
+    if (selectedFile) {
+        setActiveMode('default');
+        setIsStudyMode(false);
+    }
+  }, [selectedFile, setIsStudyMode]);
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -168,6 +178,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   };
   
   const handleModeToggle = (mode: 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator') => {
+    if (selectedFile) {
+        alert("File Search is active. Clear the file to use other modes.");
+        return;
+    }
     if (isStudyMode) {
       setIsStudyMode(false);
     }
@@ -175,6 +189,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   };
 
   const handleStudyToggle = () => {
+    if (selectedFile) {
+        alert("File Search is active. Clear the file to use Study Mode.");
+        return;
+    }
     if (activeMode !== 'default') {
       setActiveMode('default');
     }
@@ -196,10 +214,17 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     return (
       <>
         <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
+            {selectedFile && (
+                <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
+                    <FileTextIcon className="w-4 h-4" />
+                    <span className="truncate max-w-xs">Searching in: {selectedFile.name}</span>
+                    <button type="button" onClick={onClearFile} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+                </div>
+            )}
             <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask anything..."
+                placeholder="Ask anything or search in a file..."
                 className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg"
             />
 
@@ -209,7 +234,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                     <button type="button" title="Search" className="p-2 rounded-lg bg-gray-100 text-black ring-1 ring-gray-300">
                         <SearchIcon className="w-5 h-5" />
                     </button>
-                    <button type="button" title="File Search" onClick={onOpenComingSoonModal} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
+                    <button type="button" title="File Search" onClick={onFileSelect} className={`p-2 rounded-lg text-gray-500 ${selectedFile ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
                         <FileTextIcon className="w-5 h-5" />
                     </button>
                     <button type="button" title="Deep Research" onClick={onOpenComingSoonModal} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
@@ -275,7 +300,14 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     <>
       <form onSubmit={handleSubmit} className={containerClasses}>
         <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
-        {isStudyMode && (
+        {selectedFile && (
+            <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                <FileTextIcon className="w-4 h-4" />
+                <span className="font-medium truncate max-w-[100px]">{selectedFile.name}</span>
+                <button type="button" onClick={onClearFile} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+            </div>
+        )}
+        {isStudyMode && !selectedFile && (
             <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-green-100 text-green-800">
                 <BookOpenIcon className="w-4 h-4" />
                 <span className="font-medium">Study Mode</span>
@@ -283,6 +315,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             </div>
         )}
         <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
+        <button type="button" onClick={onFileSelect} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${selectedFile ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Search in file">
+            <FileTextIcon className={isGlossy && !selectedFile ? 'text-white/80' : ''} />
+        </button>
         {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
         
         <button ref={moreButtonRef} type="button" onClick={() => setDropdownOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600'}`} aria-label="More search options" aria-haspopup="true" aria-expanded={isDropdownOpen}>

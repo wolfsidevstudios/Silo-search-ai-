@@ -7,6 +7,9 @@ interface MobileSearchPageProps {
   onOpenComingSoonModal: () => void;
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
+  selectedFile: { name: string } | null;
+  onFileSelect: () => void;
+  onClearFile: () => void;
 }
 
 export const MobileSearchPage: React.FC<MobileSearchPageProps> = (props) => {
@@ -24,6 +27,9 @@ export const MobileSearchPage: React.FC<MobileSearchPageProps> = (props) => {
             onOpenComingSoonModal={props.onOpenComingSoonModal} 
             isStudyMode={props.isStudyMode}
             setIsStudyMode={props.setIsStudyMode}
+            onFileSelect={props.onFileSelect}
+            selectedFile={props.selectedFile}
+            onClearFile={props.onClearFile}
           />
         </div>
       </main>

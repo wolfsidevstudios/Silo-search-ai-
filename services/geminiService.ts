@@ -1,18 +1,24 @@
 import { GoogleGenAI, GenerateContentConfig, Type } from "@google/genai";
 import type { SearchResult, QuickLink, SearchSettings, Flashcard, QuizItem, MapSearchResult, TravelPlan, ShoppingResult, Product, CreatorIdeasResult, VideoIdeaSummary, VideoIdeaDetail } from '../types';
 
-export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean): Promise<SearchResult> {
+export async function fetchSearchResults(query: string, apiKey: string, searchSettings: SearchSettings, isStudyMode: boolean, fileContent?: string): Promise<SearchResult> {
   if (!apiKey) {
     throw new Error("Gemini API key is missing.");
   }
   
   const ai = new GoogleGenAI({ apiKey });
 
-  const summaryPrompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
-  
+  let summaryPrompt: string;
   const config: GenerateContentConfig = {};
-  if (searchSettings.useWebSearch || searchSettings.model === 's1-mini') {
-    config.tools = [{googleSearch: {}}];
+
+  if (fileContent) {
+    summaryPrompt = `Given the following document content:\n\n---\n${fileContent}\n---\n\nBased ONLY on the document provided, answer the user's query: "${query}". Provide a detailed summary and answer. Do not use external knowledge.`;
+    // No web search for file search, so config remains empty.
+  } else {
+    summaryPrompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
+    if (searchSettings.useWebSearch || searchSettings.model === 's1-mini') {
+      config.tools = [{googleSearch: {}}];
+    }
   }
 
   try {
@@ -27,14 +33,15 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
         throw new Error("Received an empty summary from the API.");
     }
     
+    // QuickLinks are only for web search
     const groundingChunks = summaryResponse.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    const quickLinks: QuickLink[] = groundingChunks
+    const quickLinks: QuickLink[] = fileContent ? [] : groundingChunks
         .map((chunk: any) => chunk.web)
         .filter((web: any): web is QuickLink => !!(web && web.title && web.uri));
     
-    const baseResult: SearchResult = { summary, quickLinks, isStudyQuery: isStudyMode };
+    const baseResult: SearchResult = { summary, quickLinks, isStudyQuery: isStudyMode && !fileContent };
 
-    if (isStudyMode) {
+    if (isStudyMode && !fileContent) {
       const flashcardPrompt = `Based on the user's query "${query}", generate 5 flashcards for studying. Each flashcard should have a 'question' and an 'answer'.`;
       const quizPrompt = `Based on the user's query "${query}", generate a 3-question multiple-choice quiz. Each question should have a 'question', an array of 4 'options', and the 'correctAnswer' (which must be one of the options).`;
 

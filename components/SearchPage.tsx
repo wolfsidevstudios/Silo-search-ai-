@@ -35,6 +35,9 @@ interface SearchPageProps {
   onOpenComingSoonModal: () => void;
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
+  selectedFile: { name: string } | null;
+  onFileSelect: () => void;
+  onClearFile: () => void;
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -63,6 +66,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onOpenComingSoonModal,
   isStudyMode,
   setIsStudyMode,
+  selectedFile,
+  onFileSelect,
+  onClearFile,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -152,6 +158,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
               onOpenComingSoonModal={onOpenComingSoonModal} 
               isStudyMode={isStudyMode}
               setIsStudyMode={setIsStudyMode}
+              onFileSelect={onFileSelect}
+              selectedFile={selectedFile}
+              onClearFile={onClearFile}
             />
           </div>
         </main>

@@ -29,11 +29,14 @@ interface ResultsPageProps {
   speechLanguage: 'en-US' | 'es-ES';
   onOpenComingSoonModal: () => void;
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
+  selectedFile: { name: string } | null;
+  onFileSelect: () => void;
+  onClearFile: () => void;
 }
 
 type ResultTab = 'summary' | 'videos' | 'flashcards' | 'quiz';
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage, selectedFile, onFileSelect, onClearFile }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isStudyMode, setIsStudyMode] = useState(result.isStudyQuery || false);
   const [activeTab, setActiveTab] = useState<ResultTab>('summary');
@@ -216,7 +219,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
           ) : (
             <>
               {renderSummaryContent()}
-              {renderVideosContent()}
+              {result.videos && result.videos.length > 0 && renderVideosContent()}
             </>
           )}
 
@@ -225,7 +228,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
 
       <footer className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm">
         <div className="max-w-xl mx-auto">
-          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} />
+          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} selectedFile={selectedFile} onFileSelect={onFileSelect} onClearFile={onClearFile} />
           <Footer onOpenLegalPage={onOpenLegalPage} className="p-0 pt-2 text-xs" />
         </div>
       </footer>
