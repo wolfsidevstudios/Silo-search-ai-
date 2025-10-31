@@ -54,3 +54,40 @@ export async function fetchTopHeadlines(): Promise<NewsArticle[]> {
         return [];
     }
 }
+
+export async function searchNews(query: string): Promise<NewsArticle[]> {
+    const SEARCH_URL = `https://api.worldnewsapi.com/search-news?text=${encodeURIComponent(query)}&language=en&api-key=${NEWS_API_KEY}`;
+    try {
+        const response = await fetch(SEARCH_URL);
+        if (!response.ok) {
+            console.error("World News API search request failed:", response.status);
+            return [];
+        }
+        const data = await response.json();
+        
+        if (data.news && data.news.length > 0) {
+            return data.news.map((article: WorldNewsArticle): NewsArticle => {
+                let sourceName = 'Unknown Source';
+                try {
+                    sourceName = new URL(article.url).hostname.replace(/^www\./, '');
+                } catch (e) {
+                    console.warn(`Could not parse URL for source name: ${article.url}`);
+                }
+
+                return {
+                    source: { name: sourceName },
+                    author: article.author,
+                    title: article.title,
+                    description: article.summary,
+                    url: article.url,
+                    urlToImage: article.image,
+                    publishedAt: article.publish_date,
+                };
+            });
+        }
+        return [];
+    } catch (error) {
+        console.error("Error searching world news:", error);
+        return [];
+    }
+}

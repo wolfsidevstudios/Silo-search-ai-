@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { fetchTopHeadlines } from '../services/newsService';
-import { fetchStockQuotes } from '../services/stockService';
+import { fetchTopHeadlines, searchNews } from '../services/newsService';
+import { fetchStockQuotes, fetchStockQuote } from '../services/stockService';
 import { fetchTrendingProducts } from '../services/productHuntService';
 import { fetchYouTubeVideos, fetchTrendingYouTubeVideos } from '../services/youtubeService';
 import { fetchTrendingTikTokVideos } from '../services/tiktokService';
@@ -123,6 +123,10 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
     const [tikTokVideos, setTikTokVideos] = useState<TikTokVideo[]>([]);
     const [isTikTokLoading, setIsTikTokLoading] = useState(false);
     const [tikTokError, setTikTokError] = useState<string | null>(null);
+    const [newsSearchQuery, setNewsSearchQuery] = useState('');
+    const [isNewsSearch, setIsNewsSearch] = useState(false);
+    const [financeSearchQuery, setFinanceSearchQuery] = useState('');
+    const [isStockLoading, setIsStockLoading] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -198,6 +202,44 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
         setDisplayedVideos(searchResults);
         setIsYoutubeLoading(false);
     };
+
+    const handleNewsSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const query = newsSearchQuery.trim();
+        setIsLoading(true);
+        if (!query) {
+            const newsResult = await fetchTopHeadlines();
+            setNews(newsResult.filter(a => a.urlToImage));
+            setIsNewsSearch(false);
+        } else {
+            setIsNewsSearch(true);
+            const searchResults = await searchNews(query);
+            setNews(searchResults.filter(a => a.urlToImage));
+        }
+        setIsLoading(false);
+    };
+
+    const handleStockSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const symbol = financeSearchQuery.trim().toUpperCase();
+        if (!symbol) return;
+
+        if (stocks.some(stock => stock['01. symbol'] === symbol)) {
+            setFinanceSearchQuery('');
+            alert(`${symbol} is already in the list.`);
+            return;
+        }
+
+        setIsStockLoading(true);
+        const newStock = await fetchStockQuote(symbol);
+        if (newStock) {
+            setStocks(prevStocks => [newStock, ...prevStocks]);
+        } else {
+            alert(`Could not find stock symbol: ${symbol}`);
+        }
+        setFinanceSearchQuery('');
+        setIsStockLoading(false);
+    };
     
     const TabButton: React.FC<{ label: string; tabId: 'news' | 'finance' | 'videos' }> = ({ label, tabId }) => (
       <button
@@ -253,7 +295,23 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                         </section>
 
                         <section className="mb-12">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4">Top Headlines</h2>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-2xl font-bold text-gray-800">
+                                    {isNewsSearch ? `Results for "${newsSearchQuery}"` : 'Top Headlines'}
+                                </h2>
+                                <form onSubmit={handleNewsSearch} className="w-full max-w-sm">
+                                    <div className="relative">
+                                        <input
+                                            type="search"
+                                            value={newsSearchQuery}
+                                            onChange={(e) => setNewsSearchQuery(e.target.value)}
+                                            placeholder="Search news..."
+                                            className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-black focus:outline-none text-sm"
+                                        />
+                                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    </div>
+                                </form>
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {news.slice(0, 12).map((article, index) => <NewsCard key={index} article={article} />)}
                             </div>
@@ -272,7 +330,22 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
             case 'finance':
                  return (
                     <section>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Market Snapshot</h2>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-bold text-gray-800">Market Snapshot</h2>
+                             <form onSubmit={handleStockSearch} className="w-full max-w-xs">
+                                <div className="relative">
+                                    <input
+                                        type="search"
+                                        value={financeSearchQuery}
+                                        onChange={(e) => setFinanceSearchQuery(e.target.value)}
+                                        placeholder="Add stock symbol (e.g., NVDA)"
+                                        className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-black focus:outline-none text-sm"
+                                    />
+                                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                </div>
+                            </form>
+                        </div>
+                        {isStockLoading && <p className="text-center text-gray-500 mb-4">Fetching stock data...</p>}
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                             {stocks.map(stock => <StockCard key={stock['01. symbol']} stock={stock} />)}
                         </div>
