@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { UserProfile, PexelsResult, PexelsMedia } from '../types';
 import { Header } from './Header';
@@ -59,6 +60,7 @@ export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQ
       <main className="flex-grow flex flex-col">
         <div className="w-full p-4 border-b border-gray-200 bg-gray-50">
             <div className="max-w-2xl mx-auto">
+                {/* Fix: Replaced outdated props `onFileSelect`, `selectedFile`, `onClearFile` with the correct ones for summarization source handling. */}
                 <SearchInput 
                     onSearch={onSearch} 
                     initialValue={originalQuery}
@@ -67,9 +69,9 @@ export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQ
                     onOpenComingSoonModal={() => {}} 
                     isStudyMode={false}
                     setIsStudyMode={() => {}}
-                    onFileSelect={()=>{}}
-                    selectedFile={null}
-                    onClearFile={()=>{}}
+                    summarizationSource={null}
+                    onOpenSummarizeSourceSelector={() => {}}
+                    onClearSummarizationSource={() => {}}
                 />
             </div>
         </div>

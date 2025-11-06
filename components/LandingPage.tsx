@@ -1,5 +1,6 @@
 
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { XIcon } from './icons/XIcon';
 import { GitHubIcon } from './icons/GitHubIcon';
@@ -19,12 +20,58 @@ import { CheckIcon } from './icons/CheckIcon';
 import { StarIcon } from './icons/StarIcon';
 import { PlaneIcon } from './icons/PlaneIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
+import { LayersIcon } from './icons/LayersIcon';
+import { LightbulbIcon } from './icons/LightbulbIcon';
 
 
 interface LandingPageProps {
   onNavigateToLogin: () => void;
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
 }
+
+const testimonials = [
+  {
+    avatar: "https://i.pravatar.cc/40?u=a",
+    name: "Sarah D.",
+    role: "UX Designer",
+    review: "Kyndra AI has completely changed how I research. The AI summaries are a huge time-saver and the interface is beautiful and intuitive.",
+  },
+  {
+    avatar: "https://i.pravatar.cc/40?u=b",
+    name: "Alex M.",
+    role: "Student",
+    review: "As a student, getting to the point quickly is crucial. Kyndra AI helps me understand complex topics fast. The study mode is a lifesaver for exam prep!",
+  },
+  {
+    avatar: "https://i.pravatar.cc/40?u=c",
+    name: "David L.",
+    role: "Developer",
+    review: "Love the BYOK model. I have full control over my API usage and costs. The app is clean, fast, and respects my privacy. Highly recommend.",
+  },
+  {
+    avatar: "https://i.pravatar.cc/40?u=d",
+    name: "Maria G.",
+    role: "Marketing Manager",
+    review: "The new Creator Mode is a game-changer for brainstorming content ideas. My workflow has never been faster.",
+  },
+];
+
+const TestimonialCard: React.FC<{ testimonial: typeof testimonials[0] }> = ({ testimonial }) => (
+  <li className="bg-white p-6 rounded-lg shadow-sm border h-full flex flex-col" style={{ width: '350px' }}>
+    <div className="flex items-center">
+      <img className="h-10 w-10 rounded-full" src={testimonial.avatar} alt="User avatar" />
+      <div className="ml-4">
+        <div className="text-sm font-semibold text-gray-900">{testimonial.name}</div>
+        <div className="text-sm text-gray-500">{testimonial.role}</div>
+      </div>
+    </div>
+    <div className="flex mt-4">
+      {[...Array(5)].map((_, i) => <StarIcon key={i} className="w-5 h-5 text-yellow-400" />)}
+    </div>
+    <p className="mt-4 text-gray-600 text-sm flex-grow">{testimonial.review}</p>
+  </li>
+);
+
 
 const useAnimateOnScroll = () => {
   useEffect(() => {
@@ -51,8 +98,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [query, setQuery] = useState('');
   const [placeholder, setPlaceholder] = useState('');
+  const scrollerRef = useRef<HTMLDivElement>(null);
   
   useAnimateOnScroll();
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (scroller && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        scroller.setAttribute("data-animated", "true");
+        
+        const scrollerInner = scroller.querySelector('.scroller__inner');
+        if (scrollerInner) {
+            const scrollerContent = Array.from(scrollerInner.children);
+
+            scrollerContent.forEach(item => {
+                // Fix: Cast item to Element to resolve 'cloneNode' does not exist on type 'unknown' error.
+                const duplicatedItem = (item as Element).cloneNode(true) as HTMLElement;
+                duplicatedItem.setAttribute('aria-hidden', 'true');
+                scrollerInner.appendChild(duplicatedItem);
+            });
+        }
+    }
+  }, []);
 
   useEffect(() => {
     const questions = [
@@ -272,8 +339,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
             </div>
         </section>
         
-        {/* How it works Section */}
+        {/* Kyndra 2.0 Section */}
         <section className="py-16 md:py-24 bg-gray-50 border-y">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-24 lg:items-center">
+                    <div className="scroll-animate">
+                        <h2 className="text-3xl font-extrabold text-gray-900">
+                            <span className="block text-purple-600 mb-2">Introducing Kyndra AI 2.0</span>
+                            Faster, Smarter, More Personal.
+                        </h2>
+                        <p className="mt-4 text-lg text-gray-600">
+                            Experience a completely redesigned interface and unlock powerful new modes to find exactly what you need, faster than ever.
+                        </p>
+                        <dl className="mt-8 space-y-6">
+                            <div className="flex">
+                                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                                    <LayersIcon className="w-6 h-6" aria-hidden="true" />
+                                </div>
+                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Deep Research Mode</span> Generate comprehensive reports and outlines on any topic in seconds.</dd>
+                            </div>
+                            <div className="flex">
+                                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                                    <PlaneIcon className="w-6 h-6" aria-hidden="true" />
+                                </div>
+                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Travel Planner</span> Get complete, personalized itineraries for your next adventure.</dd>
+                            </div>
+                            <div className="flex">
+                                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                                    <LightbulbIcon className="w-6 h-6" aria-hidden="true" />
+                                </div>
+                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Creator Mode</span> Brainstorm viral video ideas for YouTube, TikTok, and Instagram.</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div className="mt-10 lg:mt-0 flex items-center justify-center scroll-animate" style={{ transitionDelay: '200ms' }}>
+                        <div className="relative w-full max-w-md">
+                            <div className="absolute -inset-4 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl blur-xl opacity-50"></div>
+                            <div className="relative bg-white p-2 rounded-2xl shadow-2xl">
+                                <img src="https://i.ibb.co/L5wVj2X/Screenshot-2024-08-05-at-10-38-23-AM.png" alt="Kyndra AI 2.0 UI" className="rounded-xl"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {/* How it works Section */}
+        <section className="py-16 md:py-24 bg-white">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center scroll-animate">
                     <h2 className="text-3xl font-extrabold text-gray-900">Get started in minutes</h2>
@@ -300,7 +412,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         </section>
 
         {/* Privacy Section */}
-        <section className="bg-white py-16 md:py-24">
+        <section className="bg-gray-50 py-16 md:py-24 border-y">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center scroll-animate">
                     <div>
@@ -329,7 +441,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-16 md:py-24 bg-gray-50 border-y">
+        <section id="pricing" className="py-16 md:py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center scroll-animate">
               <h2 className="text-3xl font-extrabold text-gray-900">Simple, transparent pricing</h2>
@@ -402,80 +514,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
         </section>
 
         {/* Testimonials Section */}
-        <section id="testimonials" className="py-16 md:py-24 bg-white border-y">
+        <section id="testimonials" className="py-16 md:py-24 bg-gray-50 border-y">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center scroll-animate">
                     <h2 className="text-3xl font-extrabold text-gray-900">Loved by users worldwide</h2>
                     <p className="mt-4 text-lg text-gray-500">Don't just take our word for it. Here's what people are saying.</p>
                 </div>
-                <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate">
-                        <div className="flex items-center">
-                            <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=a" alt="User avatar" />
-                            <div className="ml-4">
-                                <div className="text-sm font-semibold text-gray-900">Sarah D.</div>
-                                <div className="text-sm text-gray-500">UX Designer</div>
-                            </div>
-                        </div>
-                        <div className="flex mt-4">
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                        </div>
-                        <p className="mt-4 text-gray-600 text-sm">"Kyndra AI has completely changed how I research. The AI summaries are a huge time-saver and the interface is beautiful and intuitive."</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate" style={{ transitionDelay: '200ms' }}>
-                        <div className="flex items-center">
-                            <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=b" alt="User avatar" />
-                            <div className="ml-4">
-                                <div className="text-sm font-semibold text-gray-900">Alex M.</div>
-                                <div className="text-sm text-gray-500">Student</div>
-                            </div>
-                        </div>
-                        <div className="flex mt-4">
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                        </div>
-                        <p className="mt-4 text-gray-600 text-sm">"As a student, getting to the point quickly is crucial. Kyndra AI helps me understand complex topics fast. The study mode is a lifesaver for exam prep!"</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border transition-all hover:-translate-y-1 hover:shadow-lg scroll-animate" style={{ transitionDelay: '400ms' }}>
-                        <div className="flex items-center">
-                            <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/40?u=c" alt="User avatar" />
-                            <div className="ml-4">
-                                <div className="text-sm font-semibold text-gray-900">David L.</div>
-                                <div className="text-sm text-gray-500">Developer</div>
-                            </div>
-                        </div>
-                        <div className="flex mt-4">
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                            <StarIcon className="w-5 h-5 text-yellow-400" />
-                        </div>
-                        <p className="mt-4 text-gray-600 text-sm">"Love the BYOK model. I have full control over my API usage and costs. The app is clean, fast, and respects my privacy. Highly recommend."</p>
-                    </div>
-                </div>
-                <div className="mt-12 text-center">
-                    <a 
-                        href="https://testimonial.to/siloseearchai" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
-                    >
-                        Leave a review
-                    </a>
-                </div>
+            </div>
+            <div className="mt-16 scroller" ref={scrollerRef} data-speed="slow">
+                <ul className="scroller__inner">
+                    {testimonials.map((testimonial, index) => (
+                        <TestimonialCard key={index} testimonial={testimonial} />
+                    ))}
+                </ul>
+            </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 text-center">
+                <a 
+                    href="https://testimonial.to/siloseearchai" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
+                >
+                    Leave a review
+                </a>
             </div>
         </section>
 
         {/* Final CTA */}
-        <section className="bg-gray-50">
+        <section className="bg-white">
             <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8 scroll-animate">
                 <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                     <span className="block">Ready to transform your search?</span>

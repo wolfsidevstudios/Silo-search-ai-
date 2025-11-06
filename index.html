@@ -302,6 +302,41 @@
       .scene-final-cta.active .final-title { animation: fadeInUp 0.8s ease-out 0.5s forwards; }
       .scene-final-cta.active .final-url-bar { animation: scaleIn 0.8s ease-out 1.2s forwards; }
 
+      /* Testimonial Scroller */
+      .scroller {
+        max-width: 100%;
+      }
+      .scroller__inner {
+        padding-block: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .scroller[data-animated="true"] {
+        overflow: hidden;
+        -webkit-mask: linear-gradient(
+          90deg,
+          transparent,
+          white 20%,
+          white 80%,
+          transparent
+        );
+        mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+      }
+      .scroller[data-animated="true"] .scroller__inner {
+        width: max-content;
+        flex-wrap: nowrap;
+        animation: scroll 80s linear infinite;
+      }
+      .scroller[data-animated="true"] .scroller__inner:hover {
+        animation-play-state: paused;
+      }
+      @keyframes scroll {
+        to {
+          transform: translate(calc(-50% - 0.5rem));
+        }
+      }
+
     </style>
   <script type="importmap">
 {
