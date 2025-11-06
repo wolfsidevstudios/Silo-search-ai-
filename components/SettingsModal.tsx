@@ -41,9 +41,7 @@ import { CodeIcon } from './icons/CodeIcon';
 import { PlaneIcon } from './icons/PlaneIcon';
 import { StoreIcon } from './icons/StoreIcon';
 import { NewspaperIcon } from './icons/NewspaperIcon';
-import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { ImageIcon } from './icons/ImageIcon';
-import { ExaIcon } from './icons/ExaIcon';
 import { GoogleIcon } from './icons/GoogleIcon';
 import { BarChartIcon } from './icons/BarChartIcon';
 import { ApifyIcon } from './icons/ApifyIcon';
@@ -85,7 +83,6 @@ const AI_PROVIDERS = [
     { id: 'gemini', name: 'Google Gemini', Icon: GoogleIcon, description: 'The core model powering Kyndra AI. Get your key from Google AI Studio.', placeholder: 'Enter your Google Gemini API key', getLink: 'https://aistudio.google.com/app/apikey' },
     { id: 'youtube', name: 'YouTube Data API', Icon: YouTubeIcon, description: 'Required for the video search feature. Get your key from the Google Cloud Console.', placeholder: 'Enter your YouTube Data v3 API key', getLink: 'https://console.cloud.google.com/apis/library/youtube.googleapis.com' },
     { id: 'pexels', name: 'Pexels API', Icon: ImageIcon, description: 'Required for the media search feature. Get a free key from the Pexels website.', placeholder: 'Enter your Pexels API key', getLink: 'https://www.pexels.com/api/' },
-    { id: 'exa', name: 'Exa API', Icon: ExaIcon, description: 'Required for the Shopping Agent feature. Get your key from the Exa dashboard.', placeholder: 'Enter your Exa API key', getLink: 'https://dashboard.exa.ai/login' },
     { id: 'apify', name: 'Apify', Icon: ApifyIcon, description: 'Required for TikTok video integration. Get your token from your Apify account settings.', placeholder: 'Enter your Apify API token', getLink: 'https://console.apify.com/account/integrations' },
     { id: 'streamline', name: 'StreamlineHQ', Icon: DesignToolIcon, description: 'Required for illustrations in the Design Engine. Get your key from the Streamline dashboard.', placeholder: 'Enter your Streamline API key', getLink: 'https://app.streamlinehq.com/account/api' },
     { id: 'openai', name: 'OpenAI', Icon: OpenAIIcon, description: 'You can find your OpenAI API key on your OpenAI account page.', placeholder: 'Enter your OpenAI API key (e.g., sk-...)', getLink: 'https://platform.openai.com/api-keys' },
@@ -419,13 +416,6 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                             <div>
                                 <h5 className="font-semibold text-gray-800">Travel Planner</h5>
                                 <p className="text-sm text-gray-600">Generates a complete travel itinerary with suggestions for flights, hotels, and activities.</p>
-                            </div>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                            <ShoppingCartIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
-                            <div>
-                                <h5 className="font-semibold text-gray-800">Shopping Agent</h5>
-                                <p className="text-sm text-gray-600">Finds and ranks the top 3 products based on your query, with images, summaries, and buy links.</p>
                             </div>
                         </li>
                         <li className="flex items-start space-x-3">

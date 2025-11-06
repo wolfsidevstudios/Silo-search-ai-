@@ -1,7 +1,7 @@
 import type { FileRecord, NoteRecord, Space } from '../types';
 
 const DB_NAME = 'KyndraDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const FILE_STORE = 'files';
 const NOTE_STORE = 'notes';
 const SPACE_STORE = 'spaces';
@@ -27,7 +27,8 @@ export const initDB = (): Promise<IDBDatabase> => {
       if (!dbInstance.objectStoreNames.contains(NOTE_STORE)) {
         dbInstance.createObjectStore(NOTE_STORE, { keyPath: 'id', autoIncrement: true });
       }
-      if (event.oldVersion < 2 && !dbInstance.objectStoreNames.contains(SPACE_STORE)) {
+      // Fix: Add the 'spaces' object store for the new feature.
+      if (!dbInstance.objectStoreNames.contains(SPACE_STORE)) {
         dbInstance.createObjectStore(SPACE_STORE, { keyPath: 'id', autoIncrement: true });
       }
     };
@@ -162,64 +163,69 @@ export const deleteNote = (id: number): Promise<void> => {
   });
 };
 
+// Fix: Added missing Space operations for IndexedDB.
 // --- Space Operations ---
 
 export const saveSpace = (space: Partial<Space>): Promise<number> => {
     return new Promise(async (resolve, reject) => {
-        const db = await initDB();
-        const transaction = db.transaction(SPACE_STORE, 'readwrite');
-        const store = transaction.objectStore(SPACE_STORE);
-
-        let request;
-        if (space.id) {
-            const existingSpace = await getSpace(space.id);
-            const updatedSpace = { ...existingSpace, ...space };
-            request = store.put(updatedSpace);
-        } else {
-            const newSpace: Omit<Space, 'id'> = {
-                name: space.name || 'Untitled Space',
-                systemInstruction: space.systemInstruction || '',
-                dataSources: space.dataSources || [],
-                websites: space.websites || [],
-                createdAt: new Date(),
-            };
-            request = store.add(newSpace);
-        }
-
-        request.onsuccess = () => resolve(request.result as number);
-        request.onerror = () => reject('Error saving space.');
+      const db = await initDB();
+      const transaction = db.transaction(SPACE_STORE, 'readwrite');
+      const store = transaction.objectStore(SPACE_STORE);
+      
+      let request;
+      if (space.id) {
+          const existingSpace = await getSpace(space.id);
+          if (!existingSpace) {
+            return reject('Space not found for updating');
+          }
+          const updatedSpace: Space = { ...existingSpace, ...space, updatedAt: new Date() };
+          request = store.put(updatedSpace);
+      } else {
+          const newSpace: Omit<Space, 'id'> = {
+              name: space.name || 'Untitled Space',
+              systemInstruction: space.systemInstruction || '',
+              dataSources: space.dataSources || [],
+              websites: space.websites || [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+          };
+          request = store.add(newSpace);
+      }
+  
+      request.onsuccess = () => resolve(request.result as number);
+      request.onerror = () => reject('Error saving space.');
     });
 };
 
 export const getSpaces = (): Promise<Space[]> => {
     return new Promise(async (resolve, reject) => {
-        const db = await initDB();
-        const transaction = db.transaction(SPACE_STORE, 'readonly');
-        const store = transaction.objectStore(SPACE_STORE);
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-        request.onerror = () => reject('Error fetching spaces.');
+      const db = await initDB();
+      const transaction = db.transaction(SPACE_STORE, 'readonly');
+      const store = transaction.objectStore(SPACE_STORE);
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result.sort((a,b) => b.updatedAt.getTime() - a.updatedAt.getTime()));
+      request.onerror = () => reject('Error fetching spaces.');
     });
 };
 
 export const getSpace = (id: number): Promise<Space | null> => {
     return new Promise(async (resolve, reject) => {
-        const db = await initDB();
-        const transaction = db.transaction(SPACE_STORE, 'readonly');
-        const store = transaction.objectStore(SPACE_STORE);
-        const request = store.get(id);
-        request.onsuccess = () => resolve(request.result || null);
-        request.onerror = () => reject('Error fetching space.');
+      const db = await initDB();
+      const transaction = db.transaction(SPACE_STORE, 'readonly');
+      const store = transaction.objectStore(SPACE_STORE);
+      const request = store.get(id);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject('Error fetching space.');
     });
 };
 
 export const deleteSpace = (id: number): Promise<void> => {
     return new Promise(async (resolve, reject) => {
-        const db = await initDB();
-        const transaction = db.transaction(SPACE_STORE, 'readwrite');
-        const store = transaction.objectStore(SPACE_STORE);
-        const request = store.delete(id);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject('Error deleting space.');
+      const db = await initDB();
+      const transaction = db.transaction(SPACE_STORE, 'readwrite');
+      const store = transaction.objectStore(SPACE_STORE);
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject('Error deleting space.');
     });
 };

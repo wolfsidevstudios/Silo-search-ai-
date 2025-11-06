@@ -7,7 +7,7 @@ import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
 import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, ShoppingResult, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, Space } from './types';
+import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource } from './types';
 import { LogoIcon } from './components/icons/LogoIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -24,8 +24,6 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { MobileApp } from './components/mobile/MobileApp';
 import { TravelPlanPage } from './components/TravelPlanPage';
 import { fetchTravelPlan } from './services/geminiService';
-import { ShoppingPage } from './components/ShoppingPage';
-import { fetchShoppingResults } from './services/geminiService';
 import { fetchPexelsMedia } from './services/pexelsService';
 import { PexelsPage } from './components/PexelsPage';
 import { WebAgentPage } from './components/WebAgentPage';
@@ -36,11 +34,7 @@ import { DeepResearchPage } from './components/DeepResearchPage';
 import { CreatePage } from './components/CreatePage';
 import * as db from './utils/db';
 import { FileSelectorModal } from './components/FileSelectorModal';
-import { SpaceEditorModal } from './components/SpaceEditorModal';
-import { SpacePage } from './components/SpacePage';
 import { AiResultPage } from './components/AiResultPage';
-import { AiLabsPage } from './components/AiLabsPage';
-import { SpacesListPage } from './components/SpacesListPage';
 import { DesignEnginePage } from './components/DesignEnginePage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
@@ -92,8 +86,6 @@ const App: React.FC = () => {
   const [mapQuery, setMapQuery] = useState<string>('');
   const [travelPlan, setTravelPlan] = useState<TravelPlan | null>(null);
   const [travelQuery, setTravelQuery] = useState<string>('');
-  const [shoppingResult, setShoppingResult] = useState<ShoppingResult | null>(null);
-  const [shoppingQuery, setShoppingQuery] = useState<string>('');
   const [pexelsResult, setPexelsResult] = useState<PexelsResult | null>(null);
   const [pexelsQuery, setPexelsQuery] = useState<string>('');
   const [agentQuery, setAgentQuery] = useState<string>('');
@@ -159,20 +151,16 @@ const App: React.FC = () => {
   
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [notes, setNotes] = useState<NoteRecord[]>([]);
-  const [spaces, setSpaces] = useState<Space[]>([]);
   const [isFileSelectorOpen, setFileSelectorOpen] = useState(false);
   const [summarizationSource, setSummarizationSource] = useState<SummarizationSource | null>(null);
-  const [isSpaceEditorOpen, setIsSpaceEditorOpen] = useState(false);
-  const [editingSpace, setEditingSpace] = useState<Partial<Space> | null>(null);
   const [creativeSession, setCreativeSession] = useState<{ tool: AiCreativeTool, query: string } | null>(null);
 
   useEffect(() => {
       const initData = async () => {
           await db.initDB();
-          const [dbFiles, dbNotes, dbSpaces] = await Promise.all([db.getFiles(), db.getNotes(), db.getSpaces()]);
+          const [dbFiles, dbNotes] = await Promise.all([db.getFiles(), db.getNotes()]);
           setFiles(dbFiles);
           setNotes(dbNotes);
-          setSpaces(dbSpaces);
       };
       initData();
   }, []);
@@ -205,30 +193,6 @@ const App: React.FC = () => {
       if (source) {
         setIsStudyMode(false);
       }
-  };
-
-  const handleOpenSpaceEditor = (space: Partial<Space> | null) => {
-    setEditingSpace(space);
-    setIsSpaceEditorOpen(true);
-  };
-  const handleCloseSpaceEditor = () => {
-    setEditingSpace(null);
-    setIsSpaceEditorOpen(false);
-  };
-  const handleSaveSpace = async (space: Partial<Space>) => {
-    await db.saveSpace(space);
-    const dbSpaces = await db.getSpaces();
-    setSpaces(dbSpaces);
-    handleCloseSpaceEditor();
-  };
-  const handleDeleteSpace = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this space? This action is irreversible.')) {
-        await db.deleteSpace(id);
-        setSpaces(spaces.filter(s => s.id !== id));
-        if (currentPath.startsWith(`/space/${id}`)) {
-            navigate('/create');
-        }
-    }
   };
 
 
@@ -296,15 +260,6 @@ const App: React.FC = () => {
         if (storedPlan && storedQuery) {
             setTravelPlan(JSON.parse(storedPlan));
             setTravelQuery(storedQuery);
-        } else {
-            navigate('/search', { replace: true });
-        }
-    } else if (path === '/shopping') {
-        const storedResult = sessionStorage.getItem('shoppingResult');
-        const storedQuery = sessionStorage.getItem('shoppingQuery');
-        if (storedResult && storedQuery) {
-            setShoppingResult(JSON.parse(storedResult));
-            setShoppingQuery(storedQuery);
         } else {
             navigate('/search', { replace: true });
         }
@@ -824,7 +779,7 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => {
     if (!query.trim()) return;
     if (!apiKeys.gemini) {
       alert('Please set your Gemini API key in settings or complete the onboarding process.');
@@ -940,33 +895,6 @@ const App: React.FC = () => {
         } catch (err) {
             console.error(err);
             setError('Sorry, something went wrong with the media search. Please check your API keys and try again.');
-        } finally {
-            setIsLoading(false);
-        }
-        return;
-    } else if (options.shoppingSearch) {
-        if (!apiKeys.exa) {
-            alert('To use the Shopping Agent, please add your Exa API key in the settings.');
-            handleOpenSettingsPage('api-keys');
-            return;
-        }
-        setIsLoading(true);
-        setShoppingQuery(query);
-        if (!isTemporaryMode) {
-          setRecentSearches(prevSearches => {
-            const updatedSearches = [`shop: ${query}`, ...prevSearches.filter(s => s !== `shop: ${query}`)];
-            return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
-          });
-        }
-        try {
-            const result = await fetchShoppingResults(query, apiKeys.gemini, apiKeys.exa);
-            setShoppingResult(result);
-            sessionStorage.setItem('shoppingResult', JSON.stringify(result));
-            sessionStorage.setItem('shoppingQuery', query);
-            navigate('/shopping');
-        } catch (err) {
-            console.error(err);
-            setError('Sorry, something went wrong with the shopping agent. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -1260,8 +1188,6 @@ const App: React.FC = () => {
         
         if (lastSearchOptions.travelSearch) {
           queryToRetry = travelQuery;
-        } else if (lastSearchOptions.shoppingSearch) {
-          queryToRetry = shoppingQuery;
         } else if (lastSearchOptions.mapSearch) {
           queryToRetry = mapQuery;
         } else if (lastSearchOptions.pexelsSearch) {
@@ -1309,7 +1235,6 @@ const App: React.FC = () => {
             case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
-            case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
             case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
             case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
             case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
@@ -1325,22 +1250,14 @@ const App: React.FC = () => {
       case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
-      case '/shopping': return shoppingResult ? <ShoppingPage initialResult={shoppingResult} originalQuery={shoppingQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={shoppingQuery} />;
       case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
-      case '/ai-labs': return <AiLabsPage onSearch={handleSearch} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-      case '/spaces': return <SpacesListPage spaces={spaces} onOpenSpaceEditor={handleOpenSpaceEditor} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/create': return <CreatePage files={files} notes={notes} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-      case '/create/result': return creativeSession && (creativeSession.tool === 'docs' || creativeSession.tool === 'code') ? <AiResultPage session={creativeSession} geminiApiKey={apiKeys.gemini} onExit={() => { setCreativeSession(null); navigate('/ai-labs'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
-      case '/create/design-result': return creativeSession && creativeSession.tool === 'design' ? <DesignEnginePage session={creativeSession} apiKeys={apiKeys} onExit={() => { setCreativeSession(null); navigate('/ai-labs'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
+      case '/create/result': return creativeSession && (creativeSession.tool === 'docs' || creativeSession.tool === 'code') ? <AiResultPage session={creativeSession} geminiApiKey={apiKeys.gemini} onExit={() => { setCreativeSession(null); navigate('/create'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
+      case '/create/design-result': return creativeSession && creativeSession.tool === 'design' ? <DesignEnginePage session={creativeSession} apiKeys={apiKeys} onExit={() => { setCreativeSession(null); navigate('/create'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
       default:
-        if (path.startsWith('/space/')) {
-            const spaceId = parseInt(path.split('/')[2], 10);
-            return <SpacePage spaceId={spaceId} geminiApiKey={apiKeys.gemini} onOpenSpaceEditor={handleOpenSpaceEditor} onDeleteSpace={handleDeleteSpace} navigate={navigate} {...commonProps} />;
-        }
-        
         const desktopSearchPageProps = {
           onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onOpenSummarizeSourceSelector: () => setFileSelectorOpen(true), onClearSummarizationSource: () => setSummarizationSource(null), navigate, ...commonProps
         };
@@ -1391,7 +1308,6 @@ const App: React.FC = () => {
                     <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
                     <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />
                     <FileSelectorModal isOpen={isFileSelectorOpen} onClose={() => setFileSelectorOpen(false)} files={files} notes={notes} onSelect={handleSelectSummarizationSource} />
-                    <SpaceEditorModal isOpen={isSpaceEditorOpen} onClose={handleCloseSpaceEditor} onSave={handleSaveSpace} spaceToEdit={editingSpace} allFiles={files} allNotes={notes} />
                     {videoPlayerState.isOpen && videoPlayerState.videoId && (
                       <VideoPlayerModal
                         initialVideoId={videoPlayerState.videoId}

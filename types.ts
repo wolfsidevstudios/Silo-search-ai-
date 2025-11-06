@@ -156,19 +156,6 @@ export interface TravelPlan {
   mapBoundingBox: [number, number, number, number]; // minLon, minLat, maxLon, maxLat
 }
 
-export interface Product {
-  name: string;
-  summary: string;
-  price: string;
-  buyUrl: string;
-  imageUrl: string;
-}
-
-export interface ShoppingResult {
-  overallSummary: string;
-  products: Product[];
-}
-
 export interface PexelsPhotoSource {
   original: string;
   large2x: string;
@@ -335,6 +322,18 @@ export interface SummarizationSource {
   type: 'file' | 'note';
 }
 
+// Fix: Added missing ShoppingResult and Space types.
+export interface ShoppingResult {
+  overallSummary: string;
+  products: {
+    imageUrl: string;
+    name: string;
+    summary: string;
+    price: string;
+    buyUrl: string;
+  }[];
+}
+
 export interface Space {
   id: number;
   name: string;
@@ -342,6 +341,7 @@ export interface Space {
   dataSources: { type: 'file' | 'note'; id: number; name: string }[];
   websites: string[];
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export type AiCreativeTool = 'design' | 'docs' | 'code';

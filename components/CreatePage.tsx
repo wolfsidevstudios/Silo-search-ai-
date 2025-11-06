@@ -1,22 +1,28 @@
 import React, { useState, useRef } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import type { UserProfile, FileRecord, NoteRecord } from '../types';
+import type { UserProfile, FileRecord, NoteRecord, Space } from '../types';
 import { FileIcon } from './icons/FileIcon';
 import { FileTextIcon } from './icons/FileTextIcon';
 import { PlusSquareIcon } from './icons/PlusSquareIcon';
 import { UploadCloudIcon } from './icons/UploadCloudIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
+import { LayersIcon } from './icons/LayersIcon';
+import { AiHomePage } from './AiHomePage';
+import { HomeIcon } from './icons/HomeIcon';
 
 interface CreatePageProps {
   files: FileRecord[];
   notes: NoteRecord[];
+  spaces: Space[];
   onFileUpload: (file: File) => void;
   onDeleteFile: (id: number) => void;
   onSaveNote: (note: Partial<NoteRecord>) => void;
   onDeleteNote: (id: number) => void;
+  onOpenSpaceEditor: (space: Partial<Space> | null) => void;
   navigate: (path: string) => void;
+  onSearch: (query: string, options: any) => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
   onToggleTemporaryMode: () => void;
@@ -26,7 +32,7 @@ interface CreatePageProps {
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
 }
 
-type ActiveView = 'files' | 'notes' | 'pdfs';
+type ActiveView = 'ai-home' | 'files' | 'notes' | 'pdfs' | 'spaces';
 
 const formatBytes = (bytes: number, decimals = 2) => {
   if (bytes === 0) return '0 Bytes';
@@ -62,8 +68,8 @@ const NoteEditor: React.FC<{ note: NoteRecord | null; onSave: (note: Partial<Not
 };
 
 
-export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, onFileUpload, onDeleteFile, onSaveNote, onDeleteNote, navigate, ...headerProps }) => {
-    const [activeView, setActiveView] = useState<ActiveView>('files');
+export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, spaces, onFileUpload, onDeleteFile, onSaveNote, onDeleteNote, onOpenSpaceEditor, navigate, onSearch, ...headerProps }) => {
+    const [activeView, setActiveView] = useState<ActiveView>('ai-home');
     const [selectedNote, setSelectedNote] = useState<NoteRecord | null>(null);
     const [isEditingNote, setIsEditingNote] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -90,6 +96,8 @@ export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, onFileUplo
         }
         
         switch (activeView) {
+            case 'ai-home':
+                return <AiHomePage onSearch={onSearch} />;
             case 'files':
                 return (
                     <div className="p-6">
@@ -147,6 +155,31 @@ export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, onFileUplo
                          <p className="text-center text-gray-500 py-12">PDF creation coming soon.</p>
                     </div>
                 );
+            case 'spaces':
+                return (
+                    <div className="p-6">
+                        <header className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold">My Spaces</h2>
+                            <button onClick={() => onOpenSpaceEditor(null)} className="flex items-center space-x-2 px-4 py-2 bg-black text-white rounded-full font-medium text-sm hover:bg-gray-800"><PlusSquareIcon className="w-4 h-4" /><span>New Space</span></button>
+                        </header>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {spaces.length > 0 ? spaces.map(space => (
+                                <button key={space.id} onClick={() => navigate(`/space/${space.id}`)} className="text-left p-4 bg-white rounded-lg border hover:shadow-md hover:-translate-y-0.5 transition-all">
+                                    <h3 className="font-bold text-gray-800">{space.name}</h3>
+                                    <p className="text-xs text-gray-500 mt-2 line-clamp-2">{space.systemInstruction || 'No system instruction'}</p>
+                                    <div className="text-xs text-gray-500 mt-3">
+                                        <p>{space.dataSources.length} data sources</p>
+                                        <p>{space.websites.length} websites</p>
+                                    </div>
+                                </button>
+                            )) : (
+                                <div className="md:col-span-2 lg:col-span-3 text-center text-gray-500 py-12">
+                                    <p>Create a Space to build a custom search agent.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
         }
     };
 
@@ -162,8 +195,10 @@ export const CreatePage: React.FC<CreatePageProps> = ({ files, notes, onFileUplo
             <Header {...headerProps} activeTab="create" onNavigate={navigate} />
             <main className="flex-grow flex min-h-0">
                 <aside className="w-20 bg-white border-r flex-shrink-0 p-2 space-y-2">
+                    <SidebarButton view="ai-home" icon={<HomeIcon />} label="AI Home" />
                     <SidebarButton view="files" icon={<FileIcon className="w-6 h-6" />} label="My Files" />
                     <SidebarButton view="notes" icon={<FileTextIcon className="w-6 h-6" />} label="Notes" />
+                    <SidebarButton view="spaces" icon={<LayersIcon className="w-6 h-6" />} label="Spaces" />
                     <SidebarButton view="pdfs" icon={<FileIcon className="w-6 h-6" />} label="PDFs" />
                 </aside>
                 <div className="flex-grow overflow-y-auto">

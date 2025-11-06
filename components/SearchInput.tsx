@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -16,7 +17,6 @@ import { YouTubeIcon } from './icons/YouTubeIcon';
 import { WikipediaIcon } from './icons/WikipediaIcon';
 import { RedditIcon } from './icons/RedditIcon';
 import { PlaneIcon } from './icons/PlaneIcon';
-import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { ImageIcon } from './icons/ImageIcon';
 import { BrowserIcon } from './icons/BrowserIcon';
 import { LightbulbIcon } from './icons/LightbulbIcon';
@@ -34,7 +34,7 @@ import { DesignToolIcon } from './icons/DesignToolIcon';
 type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
 
 interface SearchInputProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
@@ -57,7 +57,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'shop' | 'pexels' | 'agent' | 'creator' | 'research' | 'design' | 'docs' | 'code'>('default');
+  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'pexels' | 'agent' | 'creator' | 'research' | 'design' | 'docs' | 'code'>('default');
   const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
 
   useEffect(() => {
@@ -120,7 +120,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         studyMode: isStudyMode,
         mapSearch: activeMode === 'map',
         travelSearch: activeMode === 'travel',
-        shoppingSearch: activeMode === 'shop',
         pexelsSearch: activeMode === 'pexels',
         agentSearch: activeMode === 'agent',
         creatorSearch: activeMode === 'creator',
@@ -226,7 +225,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                     { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
                     { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
                     { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
-                    { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
                     { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
                     { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
                     { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
@@ -350,7 +348,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
               { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
               { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
               { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
-              { id: 'shop', label: 'Shopping Agent', Icon: ShoppingCartIcon, action: () => handleModeToggle('shop'), isActive: activeMode === 'shop' },
               { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
               { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
               { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
