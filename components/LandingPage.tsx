@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { XIcon } from './icons/XIcon';
@@ -94,6 +92,22 @@ const useAnimateOnScroll = () => {
   }, []);
 };
 
+export function ArcadeEmbed() {
+  return (
+    <div style={{ position: 'relative', paddingBottom: 'calc(47.46527777777778% + 41px)', height: '0', width: '100%' }}>
+      <iframe
+        src="https://demo.arcade.software/pElU8tKfBDlhG3torSXp?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+        title="Use Study Mode to Prepare for a Division Quiz"
+        frameBorder="0"
+        loading="lazy"
+        allowFullScreen
+        allow="clipboard-write"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', colorScheme: 'light' }}
+      />
+    </div>
+  )
+}
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onOpenLegalPage }) => {
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [query, setQuery] = useState('');
@@ -112,7 +126,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
             const scrollerContent = Array.from(scrollerInner.children);
 
             scrollerContent.forEach(item => {
-                // Fix: Cast item to Element to resolve 'cloneNode' does not exist on type 'unknown' error.
                 const duplicatedItem = (item as Element).cloneNode(true) as HTMLElement;
                 duplicatedItem.setAttribute('aria-hidden', 'true');
                 scrollerInner.appendChild(duplicatedItem);
@@ -372,13 +385,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                             </div>
                         </dl>
                     </div>
-                    <div className="mt-10 lg:mt-0 flex items-center justify-center scroll-animate" style={{ transitionDelay: '200ms' }}>
-                        <div className="relative w-full max-w-md">
-                            <div className="absolute -inset-4 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl blur-xl opacity-50"></div>
-                            <div className="relative bg-white p-2 rounded-2xl shadow-2xl">
-                                <img src="https://i.ibb.co/L5wVj2X/Screenshot-2024-08-05-at-10-38-23-AM.png" alt="Kyndra AI 2.0 UI" className="rounded-xl"/>
-                            </div>
-                        </div>
+                    <div className="mt-10 lg:mt-0 scroll-animate" style={{ transitionDelay: '200ms' }}>
+                        <ArcadeEmbed />
                     </div>
                 </div>
             </div>

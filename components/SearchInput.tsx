@@ -2,6 +2,7 @@
 
 
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -28,7 +29,7 @@ import type { SummarizationSource } from '../types';
 import { CodeIcon } from './icons/CodeIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
 
-// Fix: The custom `CustomWindow` interface was removed as it was causing type conflicts
+// The custom `CustomWindow` interface was removed as it was causing type conflicts
 // with native browser definitions for SpeechRecognition, leading to errors.
 // By removing it, we can rely on default DOM library definitions or type assertions.
 
@@ -69,9 +70,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   }, [summarizationSource, setIsStudyMode]);
 
   useEffect(() => {
-    // Fix: Using `(window as any)` to access non-standard properties `SpeechRecognition` and
-    // `webkitSpeechRecognition` after removing the conflicting CustomWindow interface. This resolves
-    // the type error on `onerror`.
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
       console.warn("Speech recognition not supported in this browser.");
@@ -82,32 +80,30 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = speechLanguage;
-
-    // Fix: Switched to addEventListener to avoid type conflicts with on-event properties like onerror.
-    const onStart = () => setIsListening(true);
-    const onEnd = () => setIsListening(false);
-    const onError = (event: any) => {
+    
+    // Use on-event properties directly to avoid type conflicts that can arise with addEventListener for this API.
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error', event.error);
       setIsListening(false);
     };
-    const onResult = (event: any) => {
+    recognition.onresult = (event: any) => {
       const transcript = Array.from(event.results).map((result: any) => result[0]).map((result: any) => result.transcript).join('');
       setQuery(transcript);
     };
-
-    recognition.addEventListener('start', onStart);
-    recognition.addEventListener('end', onEnd);
-    recognition.addEventListener('error', onError);
-    recognition.addEventListener('result', onResult);
     
     recognitionRef.current = recognition;
 
     return () => {
-      recognition.removeEventListener('start', onStart);
-      recognition.removeEventListener('end', onEnd);
-      recognition.removeEventListener('error', onError);
-      recognition.removeEventListener('result', onResult);
-      recognition.stop();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        // Nullify handlers to prevent memory leaks in some older browsers
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onresult = null;
+      }
     };
   }, [speechLanguage]);
   
