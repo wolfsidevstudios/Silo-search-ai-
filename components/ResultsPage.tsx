@@ -11,6 +11,7 @@ import { Footer } from './Footer';
 import { FlashcardView } from './FlashcardView';
 import { QuizView } from './QuizView';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { AiSparkleIcon } from './icons/AiSparkleIcon';
 
 interface ResultsPageProps {
   result: SearchResult;
@@ -89,7 +90,12 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
   }, []);
 
   const renderSummaryContent = () => (
-    <>
+    <div className="relative summary-bg-gradient p-6 rounded-2xl border border-gray-200">
+        <div className="absolute -top-4 -left-4 w-12 h-12 bg-white rounded-full border-2 border-black flex items-center justify-center shadow-lg overflow-hidden">
+             <div className="absolute top-0 -left-4 w-16 h-16 bg-blue-200 rounded-full loading-blob" style={{ animationDuration: '8s' }}></div>
+             <div className="absolute bottom-0 -right-4 w-16 h-16 bg-purple-200 rounded-full loading-blob" style={{ animationDelay: '2s', animationDuration: '10s' }}></div>
+            <AiSparkleIcon className="w-6 h-6 relative z-10" />
+        </div>
       <p className="text-lg leading-relaxed text-gray-800 text-center">
         {result.summary}
       </p>
@@ -110,11 +116,11 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
       {result.quickLinks && result.quickLinks.length > 0 && (
         <div className="flex flex-wrap justify-center gap-3 mt-12">
           {result.quickLinks.slice(0, 5).map((link, index) => (
-            <a key={index} href={link.uri} target="_blank" rel="noopener noreferrer" className="bg-gray-100 text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-gray-200 transition-colors">{link.title}</a>
+            <a key={index} href={link.uri} target="_blank" rel="noopener noreferrer" className="bg-white/50 text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-white transition-colors border">{link.title}</a>
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 
   const renderVideosContent = () => (
@@ -190,7 +196,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm">
+      <footer className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-transparent">
         <div className="max-w-xl mx-auto">
           <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={onOpenSummarizeSourceSelector} onClearSummarizationSource={onClearSummarizationSource} showModes={false} />
           <Footer onOpenLegalPage={onOpenLegalPage} className="p-0 pt-2 text-xs" />

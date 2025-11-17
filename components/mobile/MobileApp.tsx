@@ -4,13 +4,13 @@ import { HistoryIcon } from '../icons/HistoryIcon';
 import { SettingsIcon } from '../icons/SettingsIcon';
 import { MobileSearchPage } from './MobileSearchPage';
 import { MobileHistoryPage } from './MobileHistoryPage';
-import { SummarizationSource } from '../types';
+import { SummarizationSource, HistoryRecord } from '../types';
 
 interface MobileAppProps {
     currentPath: string;
     navigate: (path: string) => void;
     onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: 'youtube' | 'tiktok' | 'instagram', researchSearch?: boolean; }) => void;
-    recentSearches: string[];
+    history: HistoryRecord[];
     onClearRecents: () => void;
     speechLanguage: 'en-US' | 'es-ES';
     onOpenComingSoonModal: () => void;
@@ -26,7 +26,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, ...
         switch (currentPath) {
             case '/history':
                 return <MobileHistoryPage 
-                            recentSearches={props.recentSearches}
+                            history={props.history}
                             onSearch={(query) => {
                                 props.onSearch(query, {});
                             }}

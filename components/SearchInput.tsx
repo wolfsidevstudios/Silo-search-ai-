@@ -3,6 +3,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -51,7 +53,8 @@ interface SearchInputProps {
   showModes?: boolean;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode = false, setIsStudyMode = () => {}, variant, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, showModes = true }) => {
+// Fix: Updated default `setIsStudyMode` to accept an argument, resolving type errors.
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode = false, setIsStudyMode = (_isStudyMode: boolean) => {}, variant, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, showModes = true }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);

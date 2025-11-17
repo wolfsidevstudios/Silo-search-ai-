@@ -7,8 +7,8 @@ import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
 import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource } from './types';
-import { LogoIcon } from './components/icons/LogoIcon';
+import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, HistoryRecord } from './types';
+import { AiSparkleIcon } from './components/icons/AiSparkleIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
 import { TermsPage } from './components/TermsPage';
@@ -31,11 +31,9 @@ import { CreatorIdeasPage } from './components/CreatorIdeasPage';
 import { DiscoverPage } from './components/DiscoverPage';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
 import { DeepResearchPage } from './components/DeepResearchPage';
-import { CreatePage } from './components/CreatePage';
+import { HistoryPage } from './components/HistoryPage';
 import * as db from './utils/db';
 import { FileSelectorModal } from './components/FileSelectorModal';
-import { AiResultPage } from './components/AiResultPage';
-import { DesignEnginePage } from './components/DesignEnginePage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -151,16 +149,17 @@ const App: React.FC = () => {
   
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [notes, setNotes] = useState<NoteRecord[]>([]);
+  const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [isFileSelectorOpen, setFileSelectorOpen] = useState(false);
   const [summarizationSource, setSummarizationSource] = useState<SummarizationSource | null>(null);
-  const [creativeSession, setCreativeSession] = useState<{ tool: AiCreativeTool, query: string } | null>(null);
 
   useEffect(() => {
       const initData = async () => {
           await db.initDB();
-          const [dbFiles, dbNotes] = await Promise.all([db.getFiles(), db.getNotes()]);
+          const [dbFiles, dbNotes, dbHistory] = await Promise.all([db.getFiles(), db.getNotes(), db.getHistoryRecords()]);
           setFiles(dbFiles);
           setNotes(dbNotes);
+          setHistory(dbHistory);
       };
       initData();
   }, []);
@@ -278,13 +277,6 @@ const App: React.FC = () => {
             setAgentQuery(storedAgentQuery);
         } else {
             navigate('/search', { replace: true });
-        }
-    } else if (path === '/create/result' || path === '/create/design-result') {
-        const storedSession = sessionStorage.getItem('creativeSession');
-        if (storedSession) {
-            setCreativeSession(JSON.parse(storedSession));
-        } else {
-            navigate('/create', { replace: true });
         }
     }
   }, [navigate]);
@@ -523,7 +515,7 @@ const App: React.FC = () => {
         const parsed = JSON.parse(item);
         return {
           useWebSearch: typeof parsed.useWebSearch === 'boolean' ? parsed.useWebSearch : true,
-          model: (parsed.model === 'gemini-2.5-flash' || parsed.model === 's1-mini') ? parsed.model : 'gemini-2.5-flash',
+          model: (parsed.model === 'gemini-2.5-flash' || parsed.model === 'gemini-2.5-pro') ? parsed.model : 'gemini-2.5-flash',
         };
       }
     } catch (error) {
@@ -792,19 +784,6 @@ const App: React.FC = () => {
     setSidebarOpen(false);
     setError(null);
 
-    const creativeTool = options.designSearch ? 'design' : options.docSearch ? 'docs' : options.codeSearch ? 'code' : null;
-    if (creativeTool) {
-        const session = { tool: creativeTool, query };
-        setCreativeSession(session);
-        sessionStorage.setItem('creativeSession', JSON.stringify(session));
-        if (creativeTool === 'design') {
-          navigate('/create/design-result');
-        } else {
-          navigate('/create/result');
-        }
-        return;
-    }
-
     if (summarizationSource) {
         if (!isTemporaryMode) {
           setRecentSearches(prevSearches => {
@@ -1007,6 +986,14 @@ const App: React.FC = () => {
                 gemini: { tokens: (prev.gemini?.tokens || 0) + estimatedTokens }
             }));
         }
+        const newHistoryRecord: HistoryRecord = {
+          ...combinedResult,
+          query: query,
+          timestamp: new Date(),
+        };
+        await db.addHistoryRecord(newHistoryRecord);
+        const updatedHistory = await db.getHistoryRecords();
+        setHistory(updatedHistory);
       }
     } catch (err) {
       console.error(err);
@@ -1037,7 +1024,7 @@ const App: React.FC = () => {
     }
     const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
     chatRef.current = ai.chats.create({ 
-      model: searchSettings.model === 's1-mini' ? 'gemini-2.5-flash' : searchSettings.model,
+      model: searchSettings.model === 'gemini-2.5-pro' ? 'gemini-2.5-pro' : 'gemini-2.5-flash',
       config: {
         systemInstruction: 'You are a helpful AI assistant. The user has just performed a search and received a summary. Continue the conversation by answering follow-up questions about the search topic. Be concise, clear, and organize your answers in short sentences.'
       }
@@ -1240,7 +1227,7 @@ const App: React.FC = () => {
             case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
             case '/search':
             case '/history':
-            default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} recentSearches={recentSearches} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} />;
+            default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} history={history} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} />;
         }
     }
 
@@ -1254,9 +1241,7 @@ const App: React.FC = () => {
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
-      case '/create': return <CreatePage files={files} notes={notes} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} onSaveNote={handleSaveNote} onDeleteNote={handleDeleteNote} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-      case '/create/result': return creativeSession && (creativeSession.tool === 'docs' || creativeSession.tool === 'code') ? <AiResultPage session={creativeSession} geminiApiKey={apiKeys.gemini} onExit={() => { setCreativeSession(null); navigate('/create'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
-      case '/create/design-result': return creativeSession && creativeSession.tool === 'design' ? <DesignEnginePage session={creativeSession} apiKeys={apiKeys} onExit={() => { setCreativeSession(null); navigate('/create'); }} {...commonProps} /> : <LoadingState query="Initializing..." />;
+      case '/history': return <HistoryPage history={history} onSearch={(q) => handleSearch(q, {})} onOpenVideoPlayer={handleOpenVideoPlayer} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       default:
         const desktopSearchPageProps = {
           onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onOpenSummarizeSourceSelector: () => setFileSelectorOpen(true), onClearSummarizationSource: () => setSummarizationSource(null), navigate, ...commonProps
@@ -1327,11 +1312,32 @@ const App: React.FC = () => {
   return renderRouter();
 };
 
+const SkeletonLoader: React.FC = () => (
+    <div className="w-full max-w-2xl mx-auto mt-8 space-y-4">
+        <div className="flex space-x-4">
+            <div className="w-24 h-16 rounded-lg shimmer"></div>
+            <div className="flex-1 space-y-2">
+                <div className="h-4 w-3/4 rounded shimmer"></div>
+                <div className="h-4 w-full rounded shimmer"></div>
+                <div className="h-4 w-1/2 rounded shimmer"></div>
+            </div>
+        </div>
+        <div className="h-4 w-full rounded shimmer"></div>
+        <div className="h-4 w-5/6 rounded shimmer"></div>
+    </div>
+);
+
+
 const LoadingState: React.FC<{query: string}> = ({ query }) => (
-    <div className="flex flex-col items-center justify-center min-h-screen text-center p-4 bg-white/50 backdrop-blur-sm rounded-lg">
-        <LogoIcon className="w-20 h-20 animate-spin" />
-        <p className="mt-4 text-lg text-gray-600">Searching for...</p>
-        <p className="mt-1 text-xl font-medium text-black">{query}</p>
+    <div className="relative flex flex-col items-center justify-center min-h-screen text-center p-4 overflow-hidden">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full loading-blob" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full loading-blob" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-0 -left-4 w-72 h-72 bg-violet-300 rounded-full loading-blob" style={{ animationDelay: '4s' }}></div>
+        <div className="relative z-10">
+            <p className="text-lg text-gray-600">Searching for...</p>
+            <p className="mt-1 text-xl font-medium text-black">{query}</p>
+            <SkeletonLoader />
+        </div>
     </div>
 );
 

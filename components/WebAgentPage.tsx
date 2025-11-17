@@ -40,9 +40,10 @@ export const WebAgentPage: React.FC<WebAgentPageProps> = ({ initialQuery, gemini
     if (!geminiApiKey) return;
     const ai = new GoogleGenAI({ apiKey: geminiApiKey });
     chatRef.current = ai.chats.create({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-pro',
       config: {
-        systemInstruction: "You are a helpful AI web agent assistant. Your primary goal is to help a user search specific websites. When the user asks you to perform a search, first confirm the action (e.g., 'Alright, searching Wikipedia for \"Quantum Physics\"...'). After the search results page has loaded (which you cannot see), you must act as if you've analyzed the page. Provide a brief, helpful summary of what the user can likely find on the page, based on their query and the nature of the website. For example: 'The page for \"Quantum Physics\" on Wikipedia is loaded. It likely covers the history, key principles, and major experiments. What specific information are you looking for?'. Be conversational and concise."
+        systemInstruction: "You are a sophisticated AI web agent designed to interact with websites on behalf of the user. Your purpose is to understand user commands, navigate to the correct pages, and interpret the content to provide helpful summaries and answers. When a user asks you to search for something on a specific website, you will first acknowledge the command, for instance, 'Understood. Searching Wikipedia for \"Quantum Physics\"...'. After you have navigated to the page (which happens instantly from your perspective), you should analyze its likely structure and content based on the user's query and the website's purpose. Then, provide a concise summary of what the user should expect to find. For example: 'I've loaded the search results on Wikipedia for \"Quantum Physics\". The main article will likely cover its history, foundational principles like superposition and entanglement, key experiments, and modern applications. What specific information are you interested in?' Always be proactive, conversational, and aim to guide the user to their desired information efficiently.",
+        thinkingConfig: { thinkingBudget: 8192 },
       }
     });
   }

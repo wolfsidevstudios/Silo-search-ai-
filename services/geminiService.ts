@@ -8,15 +8,21 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   
   const ai = new GoogleGenAI({ apiKey });
 
+  const modelName = searchSettings.model || 'gemini-2.5-flash';
   let summaryPrompt: string;
   const config: GenerateContentConfig = {};
+  
+  if (modelName === 'gemini-2.5-pro') {
+    config.thinkingConfig = { thinkingBudget: 8192 };
+  }
+
 
   if (fileContent) {
     summaryPrompt = `Given the following document content:\n\n---\n${fileContent}\n---\n\nBased ONLY on the document provided, answer the user's query: "${query}". Provide a detailed summary and answer. Do not use external knowledge.`;
     // No web search for file search, so config remains empty.
   } else {
     summaryPrompt = `Based on the user's search query, provide a concise 3-sentence summary. The user's query is: "${query}"`;
-    if (searchSettings.useWebSearch || searchSettings.model === 's1-mini') {
+    if (searchSettings.useWebSearch) {
       config.tools = [{googleSearch: {}}];
     }
   }
@@ -25,7 +31,7 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
     let promptTokens = summaryPrompt.length / 4;
     
     const summaryResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: modelName,
       contents: summaryPrompt,
       config: config,
     });
@@ -77,15 +83,15 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
       };
       
       const flashcardPromise = ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: modelName,
         contents: flashcardPrompt,
-        config: { responseMimeType: "application/json", responseSchema: flashcardSchema },
+        config: { responseMimeType: "application/json", responseSchema: flashcardSchema, ...(modelName === 'gemini-2.5-pro' && { thinkingConfig: { thinkingBudget: 4096 }}) },
       });
 
       const quizPromise = ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: modelName,
         contents: quizPrompt,
-        config: { responseMimeType: "application/json", responseSchema: quizSchema },
+        config: { responseMimeType: "application/json", responseSchema: quizSchema, ...(modelName === 'gemini-2.5-pro' && { thinkingConfig: { thinkingBudget: 4096 }}) },
       });
       
       const [flashcardResult, quizResult] = await Promise.allSettled([flashcardPromise, quizPromise]);
@@ -161,12 +167,13 @@ export async function fetchDeepResearch(query: string, apiKey: string): Promise<
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-pro',
       contents: prompt,
       config: { 
         tools: [{googleSearch: {}}],
         responseMimeType: "application/json", 
-        responseSchema: schema 
+        responseSchema: schema,
+        thinkingConfig: { thinkingBudget: 8192 },
       },
     });
 

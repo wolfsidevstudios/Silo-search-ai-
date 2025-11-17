@@ -32,6 +32,12 @@ export interface SearchResult {
   quiz?: QuizItem[];
 }
 
+export interface HistoryRecord extends SearchResult {
+  id?: number;
+  query: string;
+  timestamp: Date;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
@@ -87,7 +93,7 @@ export interface SearchInputSettings {
 
 export interface SearchSettings {
   useWebSearch: boolean;
-  model: 'gemini-2.5-flash' | 's1-mini';
+  model: 'gemini-2.5-flash' | 'gemini-2.5-pro';
 }
 
 export interface AccessibilitySettings {

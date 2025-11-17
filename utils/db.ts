@@ -1,10 +1,11 @@
-import type { FileRecord, NoteRecord, Space } from '../types';
+import type { FileRecord, NoteRecord, Space, HistoryRecord } from '../types';
 
 const DB_NAME = 'KyndraDB';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const FILE_STORE = 'files';
 const NOTE_STORE = 'notes';
 const SPACE_STORE = 'spaces';
+const HISTORY_STORE = 'history';
 
 let db: IDBDatabase;
 
@@ -27,9 +28,11 @@ export const initDB = (): Promise<IDBDatabase> => {
       if (!dbInstance.objectStoreNames.contains(NOTE_STORE)) {
         dbInstance.createObjectStore(NOTE_STORE, { keyPath: 'id', autoIncrement: true });
       }
-      // Fix: Add the 'spaces' object store for the new feature.
       if (!dbInstance.objectStoreNames.contains(SPACE_STORE)) {
         dbInstance.createObjectStore(SPACE_STORE, { keyPath: 'id', autoIncrement: true });
+      }
+      if (!dbInstance.objectStoreNames.contains(HISTORY_STORE)) {
+        dbInstance.createObjectStore(HISTORY_STORE, { keyPath: 'id', autoIncrement: true });
       }
     };
   });
@@ -163,7 +166,6 @@ export const deleteNote = (id: number): Promise<void> => {
   });
 };
 
-// Fix: Added missing Space operations for IndexedDB.
 // --- Space Operations ---
 
 export const saveSpace = (space: Partial<Space>): Promise<number> => {
@@ -228,4 +230,41 @@ export const deleteSpace = (id: number): Promise<void> => {
       request.onsuccess = () => resolve();
       request.onerror = () => reject('Error deleting space.');
     });
+};
+
+// --- History Operations ---
+export const addHistoryRecord = (record: Omit<HistoryRecord, 'id'>): Promise<number> => {
+  return new Promise(async (resolve, reject) => {
+    const db = await initDB();
+    const transaction = db.transaction(HISTORY_STORE, 'readwrite');
+    const store = transaction.objectStore(HISTORY_STORE);
+    const request = store.add(record);
+    request.onsuccess = () => resolve(request.result as number);
+    request.onerror = () => reject('Error adding history record.');
+  });
+};
+
+export const getHistoryRecords = (): Promise<HistoryRecord[]> => {
+  return new Promise(async (resolve, reject) => {
+    const db = await initDB();
+    const transaction = db.transaction(HISTORY_STORE, 'readonly');
+    const store = transaction.objectStore(HISTORY_STORE);
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const sorted = request.result.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      resolve(sorted);
+    };
+    request.onerror = () => reject('Error fetching history records.');
+  });
+};
+
+export const clearHistory = (): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    const db = await initDB();
+    const transaction = db.transaction(HISTORY_STORE, 'readwrite');
+    const store = transaction.objectStore(HISTORY_STORE);
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject('Error clearing history.');
+  });
 };

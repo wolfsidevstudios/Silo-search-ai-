@@ -155,7 +155,15 @@
       @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
       @keyframes typing-kf { from { width: 0; } to { width: 100%; } }
       @keyframes blink-caret-kf { from, to { border-color: transparent; } 50% { border-color: black; } }
-      @keyframes shimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
+      @keyframes shimmer {
+        0% { background-position: -468px 0; }
+        100% { background-position: 468px 0; }
+      }
+      .shimmer {
+        animation: shimmer 1.5s linear infinite;
+        background: linear-gradient(to right, #f6f7f8 4%, #edeef1 25%, #f6f7f8 36%);
+        background-size: 1000px 100%;
+      }
       @keyframes slideInFromRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
       @keyframes slideInFromLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
       @keyframes pulse-dot { 0%, 100% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
@@ -200,6 +208,19 @@
       }
       .animation-delay-2000 {
         animation-delay: 2s;
+      }
+      .loading-blob {
+        position: absolute;
+        border-radius: 50%;
+        mix-blend-mode: multiply;
+        filter: blur(40px);
+        animation: blob 10s infinite ease-in-out;
+      }
+      .summary-bg-gradient {
+        background: linear-gradient(145deg, rgba(243, 232, 255, 0.7), rgba(232, 245, 255, 0.7));
+      }
+      .history-card-bg {
+        background-image: linear-gradient(to top right, #fff1f2, #fbe2e3);
       }
 
       /* Design Engine Backgrounds */

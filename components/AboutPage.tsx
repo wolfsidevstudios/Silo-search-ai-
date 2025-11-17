@@ -19,7 +19,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose }) => {
       <main className="flex-grow p-6 md:p-8">
         <div className="max-w-3xl mx-auto text-center">
             <LogoIcon className="w-24 h-24 mx-auto mb-4" />
-            <p className="text-lg text-gray-600">Version 1.3.0</p>
+            <p className="text-lg text-gray-600">Version 2.5.0</p>
         </div>
         <div className="max-w-3xl mx-auto mt-8 prose prose-sm text-gray-700">
              <h4>Our Mission</h4>
