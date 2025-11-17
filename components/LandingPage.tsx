@@ -20,6 +20,9 @@ import { PlaneIcon } from './icons/PlaneIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { LayersIcon } from './icons/LayersIcon';
 import { LightbulbIcon } from './icons/LightbulbIcon';
+import { ChipIcon } from './icons/ChipIcon';
+import { HistoryIcon } from './icons/HistoryIcon';
+import { BrowserIcon } from './icons/BrowserIcon';
 
 
 interface LandingPageProps {
@@ -352,36 +355,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
             </div>
         </section>
         
-        {/* Kyndra 2.0 Section */}
+        {/* Kyndra 2.5 Section */}
         <section className="py-16 md:py-24 bg-gray-50 border-y">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="lg:grid lg:grid-cols-2 lg:gap-24 lg:items-center">
                     <div className="scroll-animate">
                         <h2 className="text-3xl font-extrabold text-gray-900">
-                            <span className="block text-purple-600 mb-2">Introducing Kyndra AI 2.0</span>
-                            Faster, Smarter, More Personal.
+                            <span className="block text-purple-600 mb-2">Introducing Kyndra AI 2.5</span>
+                            Our biggest leap ever.
                         </h2>
                         <p className="mt-4 text-lg text-gray-600">
-                            Experience a completely redesigned interface and unlock powerful new modes to find exactly what you need, faster than ever.
+                            This major update brings significant UI and AI enhancements, a refreshed design, and a foundation for future model integrations.
                         </p>
                         <dl className="mt-8 space-y-6">
                             <div className="flex">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
-                                    <LayersIcon className="w-6 h-6" aria-hidden="true" />
+                                    <ChipIcon className="w-6 h-6" aria-hidden="true" />
                                 </div>
-                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Deep Research Mode</span> Generate comprehensive reports and outlines on any topic in seconds.</dd>
+                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Upgraded AI Models</span> Switch between the speed of Gemini 2.5 Flash and the advanced reasoning of Gemini 2.5 Pro for tailored responses.</dd>
                             </div>
                             <div className="flex">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
-                                    <PlaneIcon className="w-6 h-6" aria-hidden="true" />
+                                    <HistoryIcon className="w-6 h-6" aria-hidden="true" />
                                 </div>
-                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Travel Planner</span> Get complete, personalized itineraries for your next adventure.</dd>
+                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Smart History</span> A beautifully redesigned page that visually organizes past searches with summaries and related videos.</dd>
                             </div>
                             <div className="flex">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
-                                    <LightbulbIcon className="w-6 h-6" aria-hidden="true" />
+                                    <BrowserIcon className="w-6 h-6" aria-hidden="true" />
                                 </div>
-                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Creator Mode</span> Brainstorm viral video ideas for YouTube, TikTok, and Instagram.</dd>
+                                <dd className="ml-4 text-sm text-gray-500"><span className="font-medium text-gray-900 block">Enhanced Web Agent</span> Powered by Gemini's computer use model, our web agent is more capable than ever at browsing and summarizing websites for you.</dd>
                             </div>
                         </dl>
                     </div>
