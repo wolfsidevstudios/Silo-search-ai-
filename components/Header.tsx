@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { HomeIcon } from './icons/HomeIcon';
@@ -8,6 +9,8 @@ import { IncognitoIcon } from './icons/IncognitoIcon';
 import type { UserProfile } from '../types';
 import { NavigationTabs } from './NavigationTabs';
 import { VoiceIcon } from './icons/VoiceIcon';
+import { ProfileIcon } from './icons/ProfileIcon';
+import { AiSparkleIcon } from './icons/AiSparkleIcon';
 
 interface HeaderProps {
   isTemporaryMode: boolean;
@@ -18,7 +21,7 @@ interface HeaderProps {
   showHomeButton?: boolean;
   userProfile: UserProfile | null;
   onLogout: () => void;
-  activeTab?: 'search' | 'discover' | 'history';
+  activeTab?: 'search' | 'discover' | 'history' | 'ai-labs';
   onNavigate?: (path: string) => void;
 }
 
@@ -63,6 +66,18 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
         {onNavigate && (
           <>
             <div className="w-px h-6 bg-gray-200"></div>
+            <button
+                onClick={() => onNavigate('/labs')}
+                className="relative flex items-center space-x-2 px-4 py-2 bg-white rounded-full shadow border hover:shadow-md transition-all group overflow-hidden"
+                aria-label="Open AI Labs"
+            >
+                <div className="absolute inset-0 labs-button-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative flex items-center space-x-2">
+                    <ProfileIcon className="w-5 h-5 text-gray-600" />
+                    <span className="font-semibold text-sm text-gray-700">Labs</span>
+                    <AiSparkleIcon className="w-5 h-5 text-purple-500" />
+                </div>
+            </button>
             <button onClick={() => onNavigate('/live')} className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow border hover:bg-gray-100 transition-colors" aria-label="Open Kyndra Live">
               <VoiceIcon className="w-5 h-5" />
             </button>

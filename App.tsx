@@ -35,6 +35,8 @@ import { HistoryPage } from './components/HistoryPage';
 import * as db from './utils/db';
 import { FileSelectorModal } from './components/FileSelectorModal';
 import { KyndraLivePage } from './components/KyndraLivePage';
+import { AiLabsPage } from './components/AiLabsPage';
+import { AiToolPage } from './components/labs/AiToolPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -1212,6 +1214,7 @@ const App: React.FC = () => {
     if (isLoading) return <LoadingState query={loadingQuery} />;
     
     const path = currentPath.split('?')[0];
+    const pathParts = path.split('/').filter(Boolean);
 
     const commonProps = {
       isTemporaryMode,
@@ -1222,6 +1225,14 @@ const App: React.FC = () => {
       onLogout: handleLogout,
       navigate: navigate,
     };
+
+    if (pathParts[0] === 'labs') {
+        if (pathParts.length > 1) {
+            const toolId = pathParts[1];
+            return <AiToolPage toolId={toolId} apiKeys={apiKeys} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
+        }
+        return <AiLabsPage onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+    }
     
     if (isMobile) {
         switch(path) {

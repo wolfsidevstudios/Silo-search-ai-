@@ -198,6 +198,11 @@
         background-size: 400% 400%;
         animation: animated-gradient 20s ease infinite;
       }
+      .labs-bg-gradient {
+        background: radial-gradient(circle at 10% 20%, rgba(192, 132, 252, 0.1), transparent 40%),
+                    radial-gradient(circle at 80% 90%, rgba(147, 197, 253, 0.1), transparent 40%),
+                    #ffffff;
+      }
 
       /* Blob Animation */
       @keyframes blob {
@@ -246,6 +251,17 @@
         background-size: 1000px 100%;
       }
 
+      /* Labs button */
+      @keyframes pulse-bg {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .labs-button-gradient {
+        background: linear-gradient(90deg, #d8b4fe, #a5b4fc, #818cf8);
+        background-size: 200% 200%;
+        animation: pulse-bg 5s ease-in-out infinite;
+      }
 
       /* Design Engine Backgrounds */
       .design-bg-white { background-color: #ffffff; }
