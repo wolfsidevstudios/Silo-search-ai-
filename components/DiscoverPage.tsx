@@ -3,18 +3,16 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { fetchTopHeadlines, searchNews } from '../services/newsService';
 import { fetchStockQuotes, fetchStockQuote } from '../services/stockService';
-import { fetchTrendingProducts } from '../services/productHuntService';
-import { fetchYouTubeVideos, fetchTrendingYouTubeVideos, fetchYouTubeNewsVideos } from '../services/youtubeService';
-import { fetchTrendingTikTokVideos } from '../services/tiktokService';
-import type { NewsArticle, StockQuote, UserProfile, ProductHuntPost, YouTubeVideo, TikTokVideo, QuickLink } from '../types';
+import { fetchTrendingYouTubeVideos, fetchYouTubeNewsVideos, fetchTrendingYouTubeShorts } from '../services/youtubeService';
+import { fetchWordOfTheDay } from '../services/wordService';
+import { fetchDailyJoke } from '../services/jokeService';
+import { fetchSportsScores } from '../services/sportsService';
+import type { NewsArticle, StockQuote, UserProfile, YouTubeVideo, TikTokVideo } from '../types';
 import { LogoIcon } from './icons/LogoIcon';
-import { ProductHuntIcon } from './icons/ProductHuntIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
-import { fetchNewsSummary, generateSuggestedQuestions } from '../services/geminiService';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { LinkIcon } from './icons/LinkIcon';
-import { LightbulbIcon } from './icons/LightbulbIcon';
+import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
+import { ArrowRightIcon } from './icons/ArrowRightIcon';
 
 interface DiscoverPageProps {
   navigate: (path: string) => void;
@@ -29,30 +27,17 @@ interface DiscoverPageProps {
   onOpenVideoPlayer: (videoId: string, playlist: YouTubeVideo[]) => void;
 }
 
-const StockCard: React.FC<{ stock: StockQuote }> = ({ stock }) => {
-    const symbol = stock['01. symbol'];
-    const price = parseFloat(stock['05. price']).toFixed(2);
-    const change = parseFloat(stock['09. change']);
-    const changePercent = parseFloat(stock['10. change percent']).toFixed(2);
-    const isPositive = change >= 0;
-
-    return (
-        <div className="bg-white p-4 rounded-xl border border-gray-200">
-            <div className="flex justify-between items-baseline">
-                <span className="font-bold text-lg">{symbol}</span>
-                <span className={`font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                    {isPositive ? '+' : ''}{change.toFixed(2)}
-                </span>
-            </div>
-            <div className="flex justify-between items-baseline mt-1">
-                <span className="font-semibold text-2xl">${price}</span>
-                <span className={`px-2 py-0.5 rounded-md text-sm font-semibold ${isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {isPositive ? '▲' : '▼'} {changePercent}%
-                </span>
-            </div>
-        </div>
-    );
-};
+interface WordData {
+  word: string;
+  definition: string;
+}
+interface SportsData {
+  home_team: { full_name: string };
+  visitor_team: { full_name: string };
+  home_team_score: number;
+  visitor_team_score: number;
+  status: string;
+}
 
 const NewsCard: React.FC<{ article: NewsArticle }> = ({ article }) => (
     <a href={article.url} target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl border border-gray-200 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow">
@@ -68,21 +53,10 @@ const NewsCard: React.FC<{ article: NewsArticle }> = ({ article }) => (
     </a>
 );
 
-const ProductHuntCard: React.FC<{ product: ProductHuntPost }> = ({ product }) => (
-    <a href={product.url} target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-xl border border-gray-200 group flex items-start space-x-4 hover:shadow-md transition-shadow">
-        <img src={product.thumbnail.url} alt={product.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
-        <div className="flex-grow min-w-0">
-            <h4 className="font-bold text-gray-800 truncate group-hover:text-black">{product.name}</h4>
-            <p className="text-sm text-gray-600 truncate mt-1">{product.tagline}</p>
-            <p className="text-xs font-semibold text-gray-500 mt-2">▲ {product.votesCount}</p>
-        </div>
-    </a>
-);
-
-const YouTubeVideoCard: React.FC<{ video: YouTubeVideo; onClick: () => void; }> = ({ video, onClick }) => (
+const YouTubeVideoCard: React.FC<{ video: YouTubeVideo; onClick: () => void; isShort?: boolean }> = ({ video, onClick, isShort }) => (
     <button onClick={onClick} className="bg-white rounded-xl border border-gray-200 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow text-left">
         <div className="relative">
-            <img src={video.thumbnailUrl} alt={video.title} className="aspect-video w-full object-cover" />
+            <img src={video.thumbnailUrl} alt={video.title} className={`${isShort ? 'aspect-[9/16]' : 'aspect-video'} w-full object-cover`} />
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path></svg>
             </div>
@@ -94,340 +68,199 @@ const YouTubeVideoCard: React.FC<{ video: YouTubeVideo; onClick: () => void; }> 
     </button>
 );
 
-const TikTokVideoCard: React.FC<{ video: TikTokVideo }> = ({ video }) => (
-    <a href={video.webVideoUrl} target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl border border-gray-200 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow">
-        <div className="relative">
-            <img src={video.coverUrl} alt={video.text} className="aspect-[9/16] w-full object-cover" />
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path></svg>
+const WeatherWidget: React.FC<{ temperatureUnit: 'celsius' | 'fahrenheit' }> = ({ temperatureUnit }) => {
+    const [weather, setWeather] = useState<any>(null);
+    useEffect(() => {
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&temperature_unit=${temperatureUnit}`)
+                .then(res => res.json())
+                .then(data => setWeather(data));
+        });
+    }, [temperatureUnit]);
+
+    const getWeatherIcon = (code: number) => {
+        if (code === 0) return 'clear_day';
+        if (code <= 2) return 'partly_cloudy_day';
+        if (code === 3) return 'cloud';
+        if (code >= 51 && code <= 67) return 'rainy';
+        if (code >= 71 && code <= 77) return 'weather_snowy';
+        if (code >= 95) return 'thunderstorm';
+        return 'cloud';
+    }
+
+    if (!weather) return <div className="discover-weather-card"><LogoIcon className="w-8 h-8 animate-spin" /></div>;
+
+    return (
+        <div className="discover-weather-card">
+            <h3 className="font-bold text-lg">Weather</h3>
+            <div className="flex items-center space-x-4 mt-4">
+                <span className="material-icons-outlined text-5xl text-yellow-500">{getWeatherIcon(weather.current.weather_code)}</span>
+                <div>
+                    <p className="text-5xl font-bold">{Math.round(weather.current.temperature_2m)}°</p>
+                    <p className="text-gray-500">Mexticacán</p>
+                </div>
+            </div>
+            <div className="mt-6 grid grid-cols-4 gap-2 text-center">
+                {weather.daily.time.slice(1, 5).map((time: string, i: number) => (
+                    <div key={time}>
+                        <p className="text-xs font-bold text-gray-500">{new Date(time).toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p>
+                        <span className="material-icons-outlined text-3xl my-1">{getWeatherIcon(weather.daily.weather_code[i+1])}</span>
+                        <p className="text-sm font-semibold">{Math.round(weather.daily.temperature_2m_max[i+1])}°</p>
+                        <p className="text-xs text-gray-400">{Math.round(weather.daily.temperature_2m_min[i+1])}°</p>
+                    </div>
+                ))}
             </div>
         </div>
-        <div className="p-4 flex flex-col flex-grow">
-            <p className="text-xs text-gray-600 line-clamp-2">{video.text}</p>
-            <p className="text-xs font-semibold text-gray-800 mt-auto pt-2">@{video.authorNickname}</p>
-        </div>
-    </a>
-);
+    );
+};
 
 export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLegalPage, apiKeys, onOpenVideoPlayer, ...headerProps }) => {
-    const [activeTab, setActiveTab] = useState<'news-brief' | 'finance' | 'videos'>('news-brief');
+    const [activeTab, setActiveTab] = useState<'home' | 'news' | 'finance' | 'videos'>('home');
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [stocks, setStocks] = useState<StockQuote[]>([]);
-    const [trendingProducts, setTrendingProducts] = useState<ProductHuntPost[]>([]);
-    const [newsSummary, setNewsSummary] = useState<string | null>(null);
-    const [newsSummarySources, setNewsSummarySources] = useState<QuickLink[]>([]);
-    const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+    const [currentStockIndex, setCurrentStockIndex] = useState(0);
+    const [word, setWord] = useState<WordData | null>(null);
+    const [joke, setJoke] = useState<string | null>(null);
+    const [sports, setSports] = useState<SportsData[]>([]);
     const [newsVideos, setNewsVideos] = useState<YouTubeVideo[]>([]);
-    const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
-    
-    const [youtubeSearchQuery, setYoutubeSearchQuery] = useState('');
-    const [displayedVideos, setDisplayedVideos] = useState<YouTubeVideo[]>([]);
-    const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
-    const [tikTokVideos, setTikTokVideos] = useState<TikTokVideo[]>([]);
-    const [isTikTokLoading, setIsTikTokLoading] = useState(false);
-    const [tikTokError, setTikTokError] = useState<string | null>(null);
-    const [newsSearchQuery, setNewsSearchQuery] = useState('');
-    const [isNewsSearch, setIsNewsSearch] = useState(false);
-    const [financeSearchQuery, setFinanceSearchQuery] = useState('');
-    const [isStockLoading, setIsStockLoading] = useState(false);
-
+    const [trendingVideos, setTrendingVideos] = useState<YouTubeVideo[]>([]);
+    const [trendingShorts, setTrendingShorts] = useState<YouTubeVideo[]>([]);
+    const [carouselIndex, setCarouselIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const loadDataAndSummary = async () => {
+        const loadAllData = async () => {
             setIsLoading(true);
-            setIsSummaryLoading(true);
-
-            const [
-                newsResult,
-                stockResult,
-                productsResult,
-                trendingVideosResult,
-                summaryResult
-            ] = await Promise.allSettled([
+            const [newsRes, stocksRes, wordRes, jokeRes, sportsRes, newsVideosRes, trendingVideosRes, trendingShortsRes] = await Promise.allSettled([
                 fetchTopHeadlines(),
                 fetchStockQuotes(),
-                fetchTrendingProducts(),
+                fetchWordOfTheDay(),
+                fetchDailyJoke(),
+                fetchSportsScores(),
+                fetchYouTubeNewsVideos(apiKeys.youtube),
                 fetchTrendingYouTubeVideos(apiKeys.youtube),
-                apiKeys.gemini ? fetchNewsSummary(apiKeys.gemini) : Promise.reject("Gemini API key not set"),
+                fetchTrendingYouTubeShorts(apiKeys.youtube)
             ]);
-
-            if (newsResult.status === 'fulfilled') setNews(newsResult.value.filter(a => a.urlToImage));
-            if (stockResult.status === 'fulfilled') setStocks(stockResult.value);
-            if (productsResult.status === 'fulfilled') setTrendingProducts(productsResult.value);
-            if (trendingVideosResult.status === 'fulfilled') setDisplayedVideos(trendingVideosResult.value);
-
-            if (summaryResult.status === 'fulfilled') {
-                setNewsSummary(summaryResult.value.summary);
-                setNewsSummarySources(summaryResult.value.sources);
-                if (apiKeys.gemini) {
-                    generateSuggestedQuestions(summaryResult.value.summary, apiKeys.gemini).then(setSuggestedQuestions);
-                }
-                if (apiKeys.youtube) {
-                    fetchYouTubeNewsVideos(apiKeys.youtube).then(videos => setNewsVideos(videos.slice(0,4)));
-                }
-            } else {
-                setNewsSummary("AI news summary could not be loaded. Please check your Gemini API key in settings.");
-                setNewsSummarySources([]);
-            }
-            
-            setIsSummaryLoading(false);
+            if (newsRes.status === 'fulfilled') setNews(newsRes.value.filter(a => a.urlToImage));
+            if (stocksRes.status === 'fulfilled') setStocks(stocksRes.value);
+            if (wordRes.status === 'fulfilled') setWord(wordRes.value);
+            if (jokeRes.status === 'fulfilled') setJoke(jokeRes.value);
+            if (sportsRes.status === 'fulfilled') setSports(sportsRes.value);
+            if (newsVideosRes.status === 'fulfilled') setNewsVideos(newsVideosRes.value.slice(0, 15));
+            if (trendingVideosRes.status === 'fulfilled') setTrendingVideos(trendingVideosRes.value);
+            if (trendingShortsRes.status === 'fulfilled') setTrendingShorts(trendingShortsRes.value);
             setIsLoading(false);
         };
+        loadAllData();
+    }, [apiKeys.youtube]);
 
-        const loadTikTokData = async () => {
-            if (!apiKeys.apify) {
-                setTikTokError("Please add your Apify API key in settings to see TikTok videos.");
-                return;
-            }
-            setIsTikTokLoading(true);
-            setTikTokError(null);
-            try {
-                const videos = await fetchTrendingTikTokVideos(apiKeys.apify);
-                setTikTokVideos(videos);
-            } catch (error) {
-                console.error(error);
-                setTikTokError("Could not load TikTok videos. The Apify actor may take a moment. Please refresh or try again later.");
-            } finally {
-                setIsTikTokLoading(false);
-            }
-        };
-
-        loadDataAndSummary();
-        loadTikTokData();
-    }, [apiKeys.gemini, apiKeys.youtube, apiKeys.apify]);
-
-    const handleYoutubeSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!youtubeSearchQuery.trim()) {
-            setIsYoutubeLoading(true);
-            const trendingVideosData = await fetchTrendingYouTubeVideos(apiKeys.youtube);
-            setDisplayedVideos(trendingVideosData);
-            setIsYoutubeLoading(false);
-            return;
+    useEffect(() => {
+        if (stocks.length > 0) {
+            const interval = setInterval(() => {
+                setCurrentStockIndex(prev => (prev + 1) % stocks.length);
+            }, 5000);
+            return () => clearInterval(interval);
         }
-        setIsYoutubeLoading(true);
-        const searchResults = await fetchYouTubeVideos(youtubeSearchQuery, apiKeys.youtube);
-        setDisplayedVideos(searchResults);
-        setIsYoutubeLoading(false);
-    };
+    }, [stocks]);
 
-    const handleNewsSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const query = newsSearchQuery.trim();
-        setIsLoading(true);
-        if (!query) {
-            const newsResult = await fetchTopHeadlines();
-            setNews(newsResult.filter(a => a.urlToImage));
-            setIsNewsSearch(false);
-        } else {
-            setIsNewsSearch(true);
-            const searchResults = await searchNews(query);
-            setNews(searchResults.filter(a => a.urlToImage));
+     useEffect(() => {
+        if (newsVideos.length > 0) {
+            const interval = setInterval(() => {
+                setCarouselIndex(prev => (prev + 1) % newsVideos.length);
+            }, 5000);
+            return () => clearInterval(interval);
         }
-        setIsLoading(false);
-    };
+    }, [newsVideos]);
 
-    const handleStockSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const symbol = financeSearchQuery.trim().toUpperCase();
-        if (!symbol) return;
-
-        if (stocks.some(stock => stock['01. symbol'] === symbol)) {
-            setFinanceSearchQuery('');
-            alert(`${symbol} is already in the list.`);
-            return;
-        }
-
-        setIsStockLoading(true);
-        const newStock = await fetchStockQuote(symbol);
-        if (newStock) {
-            setStocks(prevStocks => [newStock, ...prevStocks]);
-        } else {
-            alert(`Could not find stock symbol: ${symbol}`);
-        }
-        setFinanceSearchQuery('');
-        setIsStockLoading(false);
-    };
+    const currentStock = stocks[currentStockIndex];
     
-    const TabButton: React.FC<{ label: string; tabId: 'news-brief' | 'finance' | 'videos' }> = ({ label, tabId }) => (
-      <button
-          onClick={() => setActiveTab(tabId)}
-          className={`py-3 px-4 font-semibold border-b-2 transition-colors text-lg ${activeTab === tabId ? 'text-black border-black' : 'text-gray-500 border-transparent hover:text-black'}`}
-      >
+    const TabButton: React.FC<{ label: string; tabId: typeof activeTab }> = ({ label, tabId }) => (
+      <button onClick={() => setActiveTab(tabId)} className={`py-3 px-4 font-semibold border-b-2 transition-colors text-lg ${activeTab === tabId ? 'text-black border-black' : 'text-gray-500 border-transparent hover:text-black'}`}>
           {label}
       </button>
     );
 
-    const renderContent = () => {
-        if (isLoading) {
-            return (
-                <div className="flex flex-col items-center justify-center flex-grow py-20">
-                    <LogoIcon className="w-16 h-16 animate-spin" />
-                    <p className="mt-4 text-gray-600">Discovering what's new...</p>
+    const renderHome = () => (
+        <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="discover-info-card">{word ? <> <p className="text-xs font-bold text-gray-500 uppercase">Word of the Day</p><h4 className="text-lg font-bold capitalize">{word.word}</h4><p className="text-xs text-gray-500 line-clamp-2">{word.definition}</p> </> : <div className="shimmer h-16 rounded-md"></div>}</div>
+                <div className="discover-info-card">{joke ? <> <p className="text-xs font-bold text-gray-500 uppercase">Daily Joke</p><p className="text-sm">{joke}</p> </> : <div className="shimmer h-16 rounded-md"></div>}</div>
+                <div className="discover-info-card">{currentStock ? <><p className="text-xs font-bold text-gray-500 uppercase">Stock Market</p><div className="flex justify-between items-baseline"><span className="font-bold text-lg">{currentStock['01. symbol']}</span><span className={`font-semibold text-sm ${parseFloat(currentStock['09. change']) >= 0 ? 'text-green-600' : 'text-red-600'}`}>{parseFloat(currentStock['09. change']) >= 0 ? '+' : ''}{parseFloat(currentStock['09. change']).toFixed(2)}</span></div><span className="font-semibold text-xl">${parseFloat(currentStock['05. price']).toFixed(2)}</span></> : <div className="shimmer h-16 rounded-md"></div>}</div>
+                <div className="discover-info-card">{sports.length > 0 ? <> <p className="text-xs font-bold text-gray-500 uppercase">NBA</p><div className="text-xs"><p className="font-semibold truncate">{sports[0].home_team.full_name}</p><p className="font-semibold truncate">{sports[0].visitor_team.full_name}</p></div><div className="text-sm font-bold">{sports[0].home_team_score} - {sports[0].visitor_team_score}</div><p className="text-xs text-gray-500">{sports[0].status}</p> </> : <div className="shimmer h-16 rounded-md"></div>}</div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="lg:col-span-2 discover-video-carousel">
+                    {newsVideos.map((video, index) => (
+                        <div key={video.id} className={`carousel-item ${index === carouselIndex ? 'active' : ''}`} onClick={() => onOpenVideoPlayer(video.id, newsVideos)}>
+                            <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover"/>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                            <div className="absolute bottom-0 left-0 p-6 text-white">
+                                <h3 className="text-2xl font-bold line-clamp-2">{video.title}</h3>
+                                <p className="text-sm mt-1">{video.channelTitle}</p>
+                            </div>
+                        </div>
+                    ))}
+                    <div className="absolute bottom-4 left-4 z-10 flex space-x-2">
+                        <button onClick={() => setCarouselIndex(i => (i - 1 + newsVideos.length) % newsVideos.length)} className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center"><ArrowLeftIcon/></button>
+                        <button onClick={() => setCarouselIndex(i => (i + 1) % newsVideos.length)} className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center"><ArrowRightIcon/></button>
+                    </div>
                 </div>
-            );
-        }
+                <WeatherWidget temperatureUnit="fahrenheit" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {news.slice(0, 3).map((article, index) => <NewsCard key={index} article={article} />)}
+            </div>
+
+            <div className="sponsored-ad-card mb-8">
+                <img src="https://cdn.brandfetch.io/idH9OjyiUq/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1748239860810" alt="Lovable.dev Logo" className="w-16 h-16 rounded-lg"/>
+                <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Sponsored</p>
+                    <h4 className="font-bold text-lg mt-1">Lovable.dev</h4>
+                    <p className="text-sm text-gray-300 mt-1">The AI platform for building and deploying intelligent applications with ease.</p>
+                </div>
+                <a href="https://lovable.dev/invite/K9A6723" target="_blank" rel="noopener noreferrer" className="ml-auto flex-shrink-0 px-4 py-2 text-sm font-semibold bg-white text-black rounded-full hover:bg-gray-200 transition-colors">
+                    Get Started
+                </a>
+            </div>
+
+            <section className="mb-12">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Trending on YouTube</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    {trendingVideos.slice(0, 5).map(video => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, trendingVideos)} />)}
+                </div>
+            </section>
+            
+            <section>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Trending Shorts</h2>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                    {trendingShorts.slice(0, 6).map(video => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, trendingShorts)} isShort />)}
+                </div>
+            </section>
+        </>
+    );
+
+    const renderContent = () => {
+        if (isLoading) return <div className="flex justify-center py-20"><LogoIcon className="w-16 h-16 animate-spin" /></div>;
 
         switch (activeTab) {
-            case 'news-brief':
-                return (
-                    <>
-                        <section className="mb-12">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                                <SparklesIcon className="w-6 h-6" />
-                                <span>AI News Briefing</span>
-                            </h2>
-                            {isSummaryLoading ? (
-                                <div className="bg-white p-6 rounded-xl border border-gray-200">
-                                    <div className="h-4 bg-gray-200 rounded-full w-3/4 mb-4 animate-pulse"></div>
-                                    <div className="h-4 bg-gray-200 rounded-full w-full mb-2 animate-pulse"></div>
-                                    <div className="h-4 bg-gray-200 rounded-full w-5/6 animate-pulse"></div>
-                                </div>
-                            ) : (
-                                <div className="bg-white p-6 rounded-xl border border-gray-200">
-                                    <p className="text-gray-700">{newsSummary}</p>
-                                    {newsSummarySources.length > 0 && (
-                                        <div className="mt-4 pt-4 border-t">
-                                            <h4 className="text-sm font-semibold text-gray-600 mb-2 flex items-center space-x-1.5"><LinkIcon className="w-4 h-4" /><span>Sources</span></h4>
-                                            <div className="flex flex-wrap gap-2">
-                                                {newsSummarySources.map((source, index) => (
-                                                    <a key={index} href={source.uri} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200">
-                                                        {source.title}
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </section>
-
-                        {suggestedQuestions.length > 0 && (
-                            <section className="mb-12">
-                                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2"><LightbulbIcon className="w-6 h-6" /><span>Ask AI</span></h2>
-                                <div className="flex flex-wrap gap-3">
-                                    {suggestedQuestions.map((q, i) => (
-                                        <button key={i} onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)} className="bg-white text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-gray-100 transition-colors border">{q}</button>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {newsVideos.length > 0 && (
-                            <section className="mb-12">
-                                <h2 className="text-2xl font-bold text-gray-800 mb-4">News Videos</h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {newsVideos.map((video) => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, newsVideos)} />)}
-                                </div>
-                            </section>
-                        )}
-                        
-                        <section>
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    {isNewsSearch ? `Results for "${newsSearchQuery}"` : 'Top Headlines'}
-                                </h2>
-                                <form onSubmit={handleNewsSearch} className="w-full max-w-sm">
-                                    <div className="relative">
-                                        <input
-                                            type="search"
-                                            value={newsSearchQuery}
-                                            onChange={(e) => setNewsSearchQuery(e.target.value)}
-                                            placeholder="Search news..."
-                                            className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-black focus:outline-none text-sm"
-                                        />
-                                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    </div>
-                                </form>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {news.slice(0, 12).map((article, index) => <NewsCard key={index} article={article} />)}
-                            </div>
-                        </section>
-                    </>
-                );
-            case 'finance':
-                 return (
-                    <section>
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-2xl font-bold text-gray-800">Market Snapshot</h2>
-                             <form onSubmit={handleStockSearch} className="w-full max-w-xs">
-                                <div className="relative">
-                                    <input
-                                        type="search"
-                                        value={financeSearchQuery}
-                                        onChange={(e) => setFinanceSearchQuery(e.target.value)}
-                                        placeholder="Add stock symbol (e.g., NVDA)"
-                                        className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-black focus:outline-none text-sm"
-                                    />
-                                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                </div>
-                            </form>
-                        </div>
-                        {isStockLoading && <p className="text-center text-gray-500 mb-4">Fetching stock data...</p>}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                            {stocks.map(stock => <StockCard key={stock['01. symbol']} stock={stock} />)}
-                        </div>
-                    </section>
-                 );
-            case 'videos':
-                 return (
-                     <section>
-                        <form onSubmit={handleYoutubeSearch} className="mb-8 max-w-lg mx-auto">
-                            <div className="relative">
-                                <input
-                                    type="search"
-                                    value={youtubeSearchQuery}
-                                    onChange={(e) => setYoutubeSearchQuery(e.target.value)}
-                                    placeholder="Search YouTube..."
-                                    className="w-full pl-10 pr-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-black focus:outline-none"
-                                />
-                                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            </div>
-                        </form>
-
-                        {isYoutubeLoading ? (
-                             <div className="flex items-center justify-center py-10"><LogoIcon className="w-12 h-12 animate-spin" /></div>
-                        ) : (
-                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {displayedVideos.map((video) => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, displayedVideos)} />)}
-                             </div>
-                        )}
-
-                        <div className="mt-12">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                                <TikTokIcon className="w-6 h-6" />
-                                <span>Trending on TikTok</span>
-                            </h2>
-                            {isTikTokLoading ? (
-                                <div className="flex items-center justify-center py-10"><LogoIcon className="w-12 h-12 animate-spin" /></div>
-                            ) : tikTokError ? (
-                                <div className="text-center py-10 px-4 bg-gray-100 rounded-lg">
-                                    <p className="text-gray-600">{tikTokError}</p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {tikTokVideos.map((video) => <TikTokVideoCard key={video.id} video={video} />)}
-                                </div>
-                            )}
-                        </div>
-                     </section>
-                 );
+            case 'home': return renderHome();
+            case 'news': return <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">{news.slice(0, 20).map((article, index) => <NewsCard key={index} article={article} />)}</div>;
+            case 'finance': return <p className="text-center">Finance tab coming soon.</p>;
+            case 'videos': return <p className="text-center">Videos tab coming soon.</p>;
         }
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
-            <Header 
-                {...headerProps}
-                activeTab="discover"
-                onNavigate={navigate}
-            />
+        <div className="flex flex-col min-h-screen discover-page-bg">
+            <Header {...headerProps} activeTab="discover" onNavigate={navigate}/>
             <main className="flex-grow flex flex-col items-center px-4 pt-8 pb-12">
                 <div className="w-full max-w-7xl">
                     <div className="flex justify-center space-x-4 sm:space-x-8 border-b mb-8">
-                        <TabButton label="News Brief" tabId="news-brief" />
+                        <TabButton label="Home" tabId="home" />
+                        <TabButton label="News" tabId="news" />
                         <TabButton label="Finance" tabId="finance" />
                         <TabButton label="Videos" tabId="videos" />
                     </div>

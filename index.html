@@ -12,6 +12,7 @@
     <meta name="theme-color" content="#ffffff"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://accounts.google.com/gsi/client" async></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Bungee&family=Caveat&family=Dancing+Script&family=Fredoka+One&family=Lobster&family=Orbitron&family=Oswald&family=Pacifico&family=Playfair+Display&family=Press+Start+2P&family=Roboto+Mono&family=Roboto+Slab&family=Satisfy&family=Special+Elite&family=VT323&display=swap');
       @keyframes animated-gradient {
@@ -220,12 +221,49 @@
         filter: blur(60px);
         border-radius: 50%;
       }
-      .stock-card-graph {
-        animation: shimmer 2s linear infinite;
-        background: linear-gradient(to right, #f0f2f5 4%, #e6e8eb 25%, #f0f2f5 36%);
-        background-size: 1000px 100%;
+      
+      /* Discover Page */
+      .discover-page-bg { background-color: #f8f9fa; }
+      .discover-info-card {
+        background-color: white;
+        border-radius: 1rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       }
-
+      .discover-weather-card {
+        background-color: white;
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+      }
+      .discover-video-carousel {
+        position: relative;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+      }
+      .carousel-item {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        z-index: 1;
+      }
+      .carousel-item.active {
+        opacity: 1;
+        z-index: 2;
+      }
+      .sponsored-ad-card {
+        background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+        color: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      
       /* Labs button */
       @keyframes pulse-bg {
         0% { background-position: 0% 50%; }
