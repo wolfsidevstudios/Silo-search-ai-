@@ -192,31 +192,6 @@
       .feature-card { transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; }
       .feature-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.08), 0 10px 10px -5px rgba(124, 58, 237, 0.04); background-color: white; }
       
-      /* AI Labs background */
-      .ai-labs-background {
-        background-color: #ffffff;
-        position: relative;
-        overflow: hidden;
-      }
-      .labs-bg-gradient {
-        background: radial-gradient(circle at 10% 20%, rgba(192, 132, 252, 0.1), transparent 40%),
-                    radial-gradient(circle at 80% 90%, rgba(147, 197, 253, 0.1), transparent 40%),
-                    #ffffff;
-      }
-
-      /* Blob Animation */
-      @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
-      }
-      .animate-blob {
-        animation: blob 8s infinite ease-in-out;
-      }
-      .animation-delay-2000 {
-        animation-delay: 2s;
-      }
       .loading-blob {
         position: absolute;
         border-radius: 50%;
@@ -262,55 +237,68 @@
         background-size: 200% 200%;
         animation: pulse-bg 5s ease-in-out infinite;
       }
-
-      /* Wavy Gradient for TTS Avatars */
-      @keyframes wavy-gradient {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-      }
-      .wavy-gradient {
-        background: linear-gradient(-45deg, #a5b4fc, #d8b4fe, #818cf8, #fbcfe8);
-        background-size: 300% 300%;
-        animation: wavy-gradient 8s ease infinite;
-      }
-
-      /* Featured Card Image Generation Animation */
-      @keyframes prompt-to-image {
-        0%, 15% { opacity: 1; /* Prompt visible */ }
-        20%, 30% { opacity: 0; /* Fade out prompt */ }
-        35% { opacity: 0; /* Shimmer starts */ }
-        35.1%, 75% { opacity: 1; /* Shimmer visible */ }
-        80% { opacity: 0; /* Fade out shimmer */ }
-        85%, 100% { opacity: 1; /* Image visible */ }
-      }
-      @keyframes shimmer-bg {
-        0% { background-position: -200px 0; }
-        100% { background-position: 200px 0; }
-      }
-      .image-gen-animation .prompt,
-      .image-gen-animation .shimmer-bar,
-      .image-gen-animation .image-placeholder {
-        position: absolute;
-        inset: 0;
+      
+      /* AI Labs Card Redesign */
+      .lab-tool-card {
         display: flex;
-        align-items: center;
+        background-color: #ffffff; /* Card background */
+        border-radius: 1.5rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb; /* Subtle border */
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+      }
+      .lab-tool-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
+      }
+      .lab-card-image-container {
+        width: 220px;
+        flex-shrink: 0;
+        border-radius: 1rem;
+        overflow: hidden;
+      }
+      .lab-card-image {
+        width: 100%;
+        height: 100%;
+        min-height: 160px;
+      }
+      .lab-card-content {
+        flex-grow: 1;
+        padding: 0.5rem 1rem 0.5rem 2rem;
+        display: flex;
+        flex-direction: column;
         justify-content: center;
-        opacity: 0;
-        animation: prompt-to-image 8s infinite;
-        transition: opacity 0.3s ease-in-out;
       }
-      .image-gen-animation .shimmer-bar {
-        animation-delay: 2.8s; /* 35% of 8s */
-        background: linear-gradient(to right, #e2e8f0 4%, #f1f5f9 25%, #e2e8f0 36%);
-        background-size: 200px 100%;
-        animation-name: prompt-to-image, shimmer-bg;
-        animation-duration: 8s, 1.2s;
-        animation-iteration-count: infinite, infinite;
+      .try-now-button {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 0.5rem 1.25rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #374151;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
       }
-      .image-gen-animation .image-placeholder {
-        animation-delay: 6.8s; /* 85% of 8s */
+      .lab-tool-card:hover .try-now-button {
+        background-color: #f9fafb;
+        border-color: #9ca3af;
       }
+
+      /* Placeholder image gradients */
+      .lab-image-tts { background: linear-gradient(135deg, #fecaca, #fcd34d); }
+      .lab-image-stt { background: linear-gradient(135deg, #bfdbfe, #93c5fd); }
+      .lab-image-voice-clone { background: linear-gradient(135deg, #ddd6fe, #c4b5fd); }
+      .lab-image-dubbing { background: linear-gradient(135deg, #bbf7d0, #86efac); }
+      .lab-image-sts { background: linear-gradient(135deg, #fbcfe8, #f9a8d4); }
+      .lab-image-voice-changer { background: linear-gradient(135deg, #fed7aa, #fdba74); }
+      .lab-image-voice-isolator { background: linear-gradient(135deg, #e5e7eb, #d1d5db); }
+      .lab-image-sound-effects { background: linear-gradient(135deg, #a5b4fc, #818cf8); }
+      .lab-image-music { background: linear-gradient(135deg, #fca5a5, #f87171); }
+      .lab-image-image-generation { background: linear-gradient(135deg, #a78bfa, #f472b6, #fb923c, #3b82f6); background-size: 400% 400%; animation: animated-gradient 12s ease infinite;}
+
 
       /* Design Engine Backgrounds */
       .design-bg-white { background-color: #ffffff; }
