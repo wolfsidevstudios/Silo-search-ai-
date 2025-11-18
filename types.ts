@@ -30,6 +30,7 @@ export interface SearchResult {
   isStudyQuery?: boolean;
   flashcards?: Flashcard[];
   quiz?: QuizItem[];
+  suggestedQuestions?: string[];
 }
 
 export interface HistoryRecord extends SearchResult {

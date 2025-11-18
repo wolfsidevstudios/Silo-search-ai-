@@ -12,6 +12,7 @@ import { FlashcardView } from './FlashcardView';
 import { QuizView } from './QuizView';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { AiSparkleIcon } from './icons/AiSparkleIcon';
+import { LightbulbIcon } from './icons/LightbulbIcon';
 
 interface ResultsPageProps {
   result: SearchResult;
@@ -33,11 +34,12 @@ interface ResultsPageProps {
   onOpenSummarizeSourceSelector: () => void;
   onClearSummarizationSource: () => void;
   onOpenVideoPlayer: (videoId: string, playlist: YouTubeVideo[]) => void;
+  geminiApiKey: string;
 }
 
 type ResultTab = 'summary' | 'videos' | 'flashcards' | 'quiz';
 
-export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, onOpenVideoPlayer }) => {
+export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery, onSearch, onHome, onEnterChatMode, isTemporaryMode, onToggleSidebar, onToggleTemporaryMode, onOpenSettings, userProfile, onLogout, searchInputSettings, speechLanguage, onOpenComingSoonModal, onOpenLegalPage, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, onOpenVideoPlayer, geminiApiKey }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isStudyMode, setIsStudyMode] = useState(result.isStudyQuery || false);
   const [activeTab, setActiveTab] = useState<ResultTab>('summary');
@@ -113,6 +115,25 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
         <button onClick={handleToggleSpeech} className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors" aria-label={isSpeaking ? 'Stop reading aloud' : 'Read summary aloud'}>{isSpeaking ? <VolumeXIcon /> : <VolumeUpIcon />}<span>{isSpeaking ? 'Stop' : 'Listen'}</span></button>
         <button onClick={handleReSearch} className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors"><RedoIcon /><span>Re-search</span></button>
       </div>
+      {result.suggestedQuestions && result.suggestedQuestions.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-gray-200/60">
+          <h3 className="text-center font-semibold text-gray-600 mb-4 flex items-center justify-center space-x-2">
+            <LightbulbIcon className="w-5 h-5" />
+            <span>Suggested questions</span>
+          </h3>
+          <div className="flex flex-wrap justify-center gap-3">
+            {result.suggestedQuestions.map((q, i) => (
+              <button 
+                key={i} 
+                onClick={() => onSearch(q, {})} 
+                className="bg-white/50 text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-white transition-colors border"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {result.quickLinks && result.quickLinks.length > 0 && (
         <div className="flex flex-wrap justify-center gap-3 mt-12">
           {result.quickLinks.slice(0, 5).map((link, index) => (
@@ -198,7 +219,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ result, originalQuery,
 
       <footer className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-transparent">
         <div className="max-w-xl mx-auto">
-          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={onOpenSummarizeSourceSelector} onClearSummarizationSource={onClearSummarizationSource} showModes={false} />
+          <SearchInput onSearch={(query, options) => onSearch(query, { studyMode: isStudyMode, ...options })} isLarge={isMobile ? false : searchInputSettings.isLarge} isGlossy={searchInputSettings.isGlossy} speechLanguage={speechLanguage} onOpenComingSoonModal={onOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={onOpenSummarizeSourceSelector} onClearSummarizationSource={onClearSummarizationSource} showModes={false} geminiApiKey={geminiApiKey} />
           <Footer onOpenLegalPage={onOpenLegalPage} className="p-0 pt-2 text-xs" />
         </div>
       </footer>

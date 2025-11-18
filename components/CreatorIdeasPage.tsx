@@ -107,8 +107,7 @@ export const CreatorIdeasPage: React.FC<CreatorIdeasPageProps> = ({ result, gemi
         )}
         <footer className="sticky bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm z-20">
             <div className="max-w-xl mx-auto">
-                {/* Fix: Replaced outdated props `onFileSelect`, `selectedFile`, `onClearFile` with the correct ones for summarization source handling. */}
-                <SearchInput onSearch={onSearch} isLarge={false} speechLanguage="en-US" onOpenComingSoonModal={() => {}} isStudyMode={false} setIsStudyMode={() => {}} summarizationSource={null} onOpenSummarizeSourceSelector={()=>{}} onClearSummarizationSource={()=>{}} />
+                <SearchInput onSearch={onSearch} isLarge={false} speechLanguage="en-US" onOpenComingSoonModal={() => {}} isStudyMode={false} setIsStudyMode={() => {}} summarizationSource={null} onOpenSummarizeSourceSelector={()=>{}} onClearSummarizationSource={()=>{}} geminiApiKey={geminiApiKey} />
                 <Footer onOpenLegalPage={headerProps.onOpenLegalPage} className="p-0 pt-2 text-xs" />
             </div>
       </footer>

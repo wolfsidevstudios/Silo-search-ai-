@@ -19,9 +19,10 @@ interface MobileAppProps {
     summarizationSource: SummarizationSource | null;
     onOpenSummarizeSourceSelector: () => void;
     onClearSummarizationSource: () => void;
+    geminiApiKey: string;
 }
 
-export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, ...props }) => {
+export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, geminiApiKey, ...props }) => {
     const renderContent = () => {
         switch (currentPath) {
             case '/history':
@@ -43,6 +44,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({ currentPath, navigate, ...
                             summarizationSource={props.summarizationSource}
                             onOpenSummarizeSourceSelector={props.onOpenSummarizeSourceSelector}
                             onClearSummarizationSource={props.onClearSummarizationSource}
+                            geminiApiKey={geminiApiKey}
                         />;
         }
     };

@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import type { UserProfile, PexelsResult, PexelsMedia } from '../types';
 import { Header } from './Header';
@@ -20,6 +18,7 @@ interface PexelsPageProps {
   onOpenSettings: (section?: string) => void;
   userProfile: UserProfile | null;
   onLogout: () => void;
+  geminiApiKey: string;
 }
 
 const MediaCard: React.FC<{ media: PexelsMedia }> = ({ media }) => {
@@ -53,14 +52,13 @@ const MediaCard: React.FC<{ media: PexelsMedia }> = ({ media }) => {
   );
 };
 
-export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQuery, onSearch, onHome, ...headerProps }) => {
+export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQuery, onSearch, onHome, geminiApiKey, ...headerProps }) => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Header {...headerProps} onHome={onHome} showHomeButton={true} />
       <main className="flex-grow flex flex-col">
         <div className="w-full p-4 border-b border-gray-200 bg-gray-50">
             <div className="max-w-2xl mx-auto">
-                {/* Fix: Replaced outdated props `onFileSelect`, `selectedFile`, `onClearFile` with the correct ones for summarization source handling. */}
                 <SearchInput 
                     onSearch={onSearch} 
                     initialValue={originalQuery}
@@ -72,6 +70,7 @@ export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQ
                     summarizationSource={null}
                     onOpenSummarizeSourceSelector={() => {}}
                     onClearSummarizationSource={() => {}}
+                    geminiApiKey={geminiApiKey}
                 />
             </div>
         </div>

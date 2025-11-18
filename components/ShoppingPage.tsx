@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import type { UserProfile, ShoppingResult } from '../types';
 import { Header } from './Header';
@@ -16,6 +14,7 @@ interface ShoppingPageProps {
   onOpenSettings: (section?: string) => void;
   userProfile: UserProfile | null;
   onLogout: () => void;
+  geminiApiKey: string;
 }
 
 const ProductCard: React.FC<{ product: ShoppingResult['products'][0] }> = ({ product }) => (
@@ -36,7 +35,7 @@ const ProductCard: React.FC<{ product: ShoppingResult['products'][0] }> = ({ pro
   </div>
 );
 
-export const ShoppingPage: React.FC<ShoppingPageProps> = ({ initialResult, originalQuery, onSearch, onHome, ...headerProps }) => {
+export const ShoppingPage: React.FC<ShoppingPageProps> = ({ initialResult, originalQuery, onSearch, onHome, geminiApiKey, ...headerProps }) => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Header {...headerProps} onHome={onHome} showHomeButton={true} />
@@ -44,7 +43,6 @@ export const ShoppingPage: React.FC<ShoppingPageProps> = ({ initialResult, origi
         {/* Left Panel */}
         <div className="w-full lg:w-1/3 xl:w-1/4 h-1/2 lg:h-auto flex flex-col border-r border-gray-200">
           <div className="p-4 border-b">
-            {/* Fix: Replaced outdated props `onFileSelect`, `selectedFile`, `onClearFile` with the correct ones for summarization source handling. */}
             <SearchInput 
               onSearch={onSearch} 
               initialValue={originalQuery}
@@ -56,6 +54,7 @@ export const ShoppingPage: React.FC<ShoppingPageProps> = ({ initialResult, origi
               summarizationSource={null}
               onOpenSummarizeSourceSelector={()=>{}}
               onClearSummarizationSource={()=>{}}
+              geminiApiKey={geminiApiKey}
             />
           </div>
           <div className="flex-grow overflow-y-auto p-6">

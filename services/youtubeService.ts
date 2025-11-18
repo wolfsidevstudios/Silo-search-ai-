@@ -112,3 +112,7 @@ export async function fetchYouTubeVideoDetails(videoId: string, apiKey: string):
     return null;
   }
 }
+
+export async function fetchYouTubeNewsVideos(apiKey: string): Promise<YouTubeVideo[]> {
+    return fetchYouTubeVideos("latest news headlines", apiKey);
+}

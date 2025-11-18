@@ -11,6 +11,7 @@ interface MobileSearchPageProps {
   summarizationSource: SummarizationSource | null;
   onOpenSummarizeSourceSelector: () => void;
   onClearSummarizationSource: () => void;
+  geminiApiKey: string;
 }
 
 export const MobileSearchPage: React.FC<MobileSearchPageProps> = (props) => {
@@ -31,6 +32,7 @@ export const MobileSearchPage: React.FC<MobileSearchPageProps> = (props) => {
             summarizationSource={props.summarizationSource}
             onOpenSummarizeSourceSelector={props.onOpenSummarizeSourceSelector}
             onClearSummarizationSource={props.onClearSummarizationSource}
+            geminiApiKey={props.geminiApiKey}
           />
         </div>
       </main>

@@ -19,9 +19,10 @@ interface DeepResearchPageProps {
   userProfile: UserProfile | null;
   onLogout: () => void;
   onOpenLegalPage: (page: 'privacy' | 'terms' | 'about') => void;
+  geminiApiKey: string;
 }
 
-export const DeepResearchPage: React.FC<DeepResearchPageProps> = ({ result, onSearch, onHome, ...headerProps }) => {
+export const DeepResearchPage: React.FC<DeepResearchPageProps> = ({ result, onSearch, onHome, geminiApiKey, ...headerProps }) => {
 
   const generateReportText = () => {
     let text = `Report: ${result.title}\n\n`;
@@ -107,7 +108,6 @@ export const DeepResearchPage: React.FC<DeepResearchPageProps> = ({ result, onSe
       </main>
       <footer className="sticky bottom-0 left-0 right-0 p-2 sm:p-4 bg-white/80 backdrop-blur-sm z-20">
         <div className="max-w-xl mx-auto">
-          {/* Fix: Replaced outdated props `onFileSelect`, `selectedFile`, `onClearFile` with the correct ones for summarization source handling. */}
           <SearchInput 
             onSearch={onSearch} 
             isLarge={false} 
@@ -118,6 +118,7 @@ export const DeepResearchPage: React.FC<DeepResearchPageProps> = ({ result, onSe
             summarizationSource={null}
             onOpenSummarizeSourceSelector={() => {}}
             onClearSummarizationSource={() => {}}
+            geminiApiKey={geminiApiKey}
           />
           <Footer onOpenLegalPage={headerProps.onOpenLegalPage} className="p-0 pt-2 text-xs" />
         </div>

@@ -39,6 +39,7 @@ interface SearchPageProps {
   onOpenSummarizeSourceSelector: () => void;
   onClearSummarizationSource: () => void;
   navigate: (path: string) => void;
+  geminiApiKey: string;
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -71,6 +72,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   onOpenSummarizeSourceSelector,
   onClearSummarizationSource,
   navigate,
+  geminiApiKey,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -164,6 +166,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
               summarizationSource={summarizationSource}
               onOpenSummarizeSourceSelector={onOpenSummarizeSourceSelector}
               onClearSummarizationSource={onClearSummarizationSource}
+              geminiApiKey={geminiApiKey}
             />
           </div>
         </main>

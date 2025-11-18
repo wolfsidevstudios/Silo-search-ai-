@@ -51,6 +51,28 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
     
     const baseResult: SearchResult = { summary, quickLinks, isStudyQuery: isStudyMode && !fileContent };
 
+    if (!fileContent) { // Don't generate questions for file summaries
+        try {
+            const suggestedQuestionsPrompt = `Based on the following summary, generate 3 short and insightful follow-up questions a user might ask.
+            Summary: "${summary}"
+            Return as a JSON array of strings. For example: ["What is X?", "How does Y work?", "Why is Z important?"]`;
+            const questionsSchema = { type: Type.ARRAY, items: { type: Type.STRING } };
+            
+            const questionsResponse = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: suggestedQuestionsPrompt,
+                config: { responseMimeType: "application/json", responseSchema: questionsSchema },
+            });
+    
+            const questions = JSON.parse(questionsResponse.text);
+            baseResult.suggestedQuestions = questions;
+            completionTokens += questionsResponse.text.length / 4;
+        } catch (e) {
+            console.error("Failed to parse or fetch suggested questions:", e);
+            baseResult.suggestedQuestions = [];
+        }
+    }
+
     if (isStudyMode && !fileContent) {
       const flashcardPrompt = `Based on the user's query "${query}", generate 5 flashcards for studying. Each flashcard should have a 'question' and an 'answer'.`;
       const quizPrompt = `Based on the user's query "${query}", generate a 3-question multiple-choice quiz. Each question should have a 'question', an array of 4 'options', and the 'correctAnswer' (which must be one of the options).`;
@@ -528,6 +550,55 @@ export async function fetchNewsSummary(apiKey: string): Promise<{ summary: strin
     console.error("Error fetching news summary from Gemini API:", error);
     throw new Error("Failed to get a valid news summary from the AI model.");
   }
+}
+
+export async function generateSuggestedQuestions(summary: string, apiKey: string): Promise<string[]> {
+    if (!apiKey || !summary) {
+      return [];
+    }
+    const ai = new GoogleGenAI({ apiKey });
+    const prompt = `Based on the following news summary, generate 3 short, insightful follow-up questions a user might be interested in asking.
+    Summary: "${summary}"
+    Return as a JSON array of strings.`;
+    const schema = {
+      type: Type.ARRAY,
+      items: { type: Type.STRING }
+    };
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: { responseMimeType: "application/json", responseSchema: schema },
+      });
+      return JSON.parse(response.text);
+    } catch (error) {
+      console.error("Error generating suggested questions:", error);
+      return [];
+    }
+}
+
+export async function fetchSearchSuggestions(query: string, apiKey: string): Promise<string[]> {
+    if (!apiKey || !query.trim()) {
+      return [];
+    }
+    const ai = new GoogleGenAI({ apiKey });
+    const prompt = `Based on the user's partial search query "${query}", generate 3 concise and relevant search suggestions they might be interested in. The suggestions should be completions or related queries.
+    Return as a JSON array of strings.`;
+    const schema = {
+      type: Type.ARRAY,
+      items: { type: Type.STRING }
+    };
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: { responseMimeType: "application/json", responseSchema: schema },
+      });
+      return JSON.parse(response.text);
+    } catch (error) {
+      console.error("Error fetching search suggestions:", error);
+      return [];
+    }
 }
 
 // Fix: Added missing function `fetchSpaceSearchResult`.

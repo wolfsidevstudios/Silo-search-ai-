@@ -4,16 +4,17 @@ import { Footer } from './Footer';
 import { fetchTopHeadlines, searchNews } from '../services/newsService';
 import { fetchStockQuotes, fetchStockQuote } from '../services/stockService';
 import { fetchTrendingProducts } from '../services/productHuntService';
-import { fetchYouTubeVideos, fetchTrendingYouTubeVideos } from '../services/youtubeService';
+import { fetchYouTubeVideos, fetchTrendingYouTubeVideos, fetchYouTubeNewsVideos } from '../services/youtubeService';
 import { fetchTrendingTikTokVideos } from '../services/tiktokService';
 import type { NewsArticle, StockQuote, UserProfile, ProductHuntPost, YouTubeVideo, TikTokVideo, QuickLink } from '../types';
 import { LogoIcon } from './icons/LogoIcon';
 import { ProductHuntIcon } from './icons/ProductHuntIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
-import { fetchNewsSummary } from '../services/geminiService';
+import { fetchNewsSummary, generateSuggestedQuestions } from '../services/geminiService';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { LinkIcon } from './icons/LinkIcon';
+import { LightbulbIcon } from './icons/LightbulbIcon';
 
 interface DiscoverPageProps {
   navigate: (path: string) => void;
@@ -109,13 +110,15 @@ const TikTokVideoCard: React.FC<{ video: TikTokVideo }> = ({ video }) => (
 );
 
 export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLegalPage, apiKeys, onOpenVideoPlayer, ...headerProps }) => {
-    const [activeTab, setActiveTab] = useState<'news' | 'finance' | 'videos'>('news');
+    const [activeTab, setActiveTab] = useState<'news-brief' | 'finance' | 'videos'>('news-brief');
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [stocks, setStocks] = useState<StockQuote[]>([]);
     const [trendingProducts, setTrendingProducts] = useState<ProductHuntPost[]>([]);
     const [newsSummary, setNewsSummary] = useState<string | null>(null);
     const [newsSummarySources, setNewsSummarySources] = useState<QuickLink[]>([]);
     const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+    const [newsVideos, setNewsVideos] = useState<YouTubeVideo[]>([]);
+    const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
     
     const [youtubeSearchQuery, setYoutubeSearchQuery] = useState('');
     const [displayedVideos, setDisplayedVideos] = useState<YouTubeVideo[]>([]);
@@ -157,6 +160,12 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
             if (summaryResult.status === 'fulfilled') {
                 setNewsSummary(summaryResult.value.summary);
                 setNewsSummarySources(summaryResult.value.sources);
+                if (apiKeys.gemini) {
+                    generateSuggestedQuestions(summaryResult.value.summary, apiKeys.gemini).then(setSuggestedQuestions);
+                }
+                if (apiKeys.youtube) {
+                    fetchYouTubeNewsVideos(apiKeys.youtube).then(videos => setNewsVideos(videos.slice(0,4)));
+                }
             } else {
                 setNewsSummary("AI news summary could not be loaded. Please check your Gemini API key in settings.");
                 setNewsSummarySources([]);
@@ -241,7 +250,7 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
         setIsStockLoading(false);
     };
     
-    const TabButton: React.FC<{ label: string; tabId: 'news' | 'finance' | 'videos' }> = ({ label, tabId }) => (
+    const TabButton: React.FC<{ label: string; tabId: 'news-brief' | 'finance' | 'videos' }> = ({ label, tabId }) => (
       <button
           onClick={() => setActiveTab(tabId)}
           className={`py-3 px-4 font-semibold border-b-2 transition-colors text-lg ${activeTab === tabId ? 'text-black border-black' : 'text-gray-500 border-transparent hover:text-black'}`}
@@ -261,7 +270,7 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
         }
 
         switch (activeTab) {
-            case 'news':
+            case 'news-brief':
                 return (
                     <>
                         <section className="mb-12">
@@ -294,7 +303,27 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                             )}
                         </section>
 
-                        <section className="mb-12">
+                        {suggestedQuestions.length > 0 && (
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2"><LightbulbIcon className="w-6 h-6" /><span>Ask AI</span></h2>
+                                <div className="flex flex-wrap gap-3">
+                                    {suggestedQuestions.map((q, i) => (
+                                        <button key={i} onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)} className="bg-white text-gray-700 rounded-full px-4 py-2 text-sm hover:bg-gray-100 transition-colors border">{q}</button>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {newsVideos.length > 0 && (
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-4">News Videos</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {newsVideos.map((video) => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, newsVideos)} />)}
+                                </div>
+                            </section>
+                        )}
+                        
+                        <section>
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-2xl font-bold text-gray-800">
                                     {isNewsSearch ? `Results for "${newsSearchQuery}"` : 'Top Headlines'}
@@ -314,15 +343,6 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {news.slice(0, 12).map((article, index) => <NewsCard key={index} article={article} />)}
-                            </div>
-                        </section>
-                        <section>
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                                <ProductHuntIcon className="w-6 h-6" />
-                                <span>Trending on Product Hunt</span>
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {trendingProducts.map(product => <ProductHuntCard key={product.id} product={product} />)}
                             </div>
                         </section>
                     </>
@@ -407,7 +427,7 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
             <main className="flex-grow flex flex-col items-center px-4 pt-8 pb-12">
                 <div className="w-full max-w-7xl">
                     <div className="flex justify-center space-x-4 sm:space-x-8 border-b mb-8">
-                        <TabButton label="News" tabId="news" />
+                        <TabButton label="News Brief" tabId="news-brief" />
                         <TabButton label="Finance" tabId="finance" />
                         <TabButton label="Videos" tabId="videos" />
                     </div>
