@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -27,9 +20,11 @@ import { LightbulbIcon } from './icons/LightbulbIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
 import { InstagramIcon } from './icons/InstagramIcon';
 import { FileTextIcon } from './icons/FileTextIcon';
-import type { SummarizationSource } from '../types';
+import type { SummarizationSource, FileRecord, NoteRecord } from '../types';
 import { CodeIcon } from './icons/CodeIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
+import { LogoIcon } from './icons/LogoIcon';
+import { FileIcon } from './icons/FileIcon';
 
 // The custom `CustomWindow` interface was removed as it was causing type conflicts
 // with native browser definitions for SpeechRecognition, leading to errors.
@@ -48,13 +43,15 @@ interface SearchInputProps {
   setIsStudyMode?: (isStudyMode: boolean) => void;
   variant?: 'home' | 'create';
   summarizationSource: SummarizationSource | null;
-  onOpenSummarizeSourceSelector: () => void;
+  onSelectSummarizationSource: (source: SummarizationSource) => void;
   onClearSummarizationSource: () => void;
   showModes?: boolean;
+  files: FileRecord[];
+  notes: NoteRecord[];
 }
 
 // Fix: Updated default `setIsStudyMode` to accept an argument, resolving type errors.
-export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode = false, setIsStudyMode = (_isStudyMode: boolean) => {}, variant, summarizationSource, onOpenSummarizeSourceSelector, onClearSummarizationSource, showModes = true }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode = false, setIsStudyMode = (_isStudyMode: boolean) => {}, variant, summarizationSource, onSelectSummarizationSource, onClearSummarizationSource, showModes = true, files, notes }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -64,6 +61,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
   const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'pexels' | 'agent' | 'creator' | 'research' | 'design' | 'docs' | 'code'>('default');
   const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
+  const [isContextSelectorOpen, setContextSelectorOpen] = useState(false);
 
   useEffect(() => {
     if (summarizationSource) {
@@ -144,7 +142,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         codeSearch: activeMode === 'code',
     };
 
-    if ([...Object.keys(options)].some(key => options[key as keyof typeof options]) && !query.trim()) {
+    if ([...Object.keys(options)].some(key => options[key as keyof typeof options]) && !query.trim() && !summarizationSource) {
         alert(`Please enter a query to use this mode.`);
         return;
     }
@@ -192,26 +190,24 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             {summarizationSource && (
                 <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
                     <FileTextIcon className="w-4 h-4" />
-                    <span className="truncate max-w-xs">Summarizing: {summarizationSource.name}</span>
+                    <span className="truncate max-w-xs">Context: {summarizationSource.name}</span>
                     <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
                 </div>
             )}
             <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={variant === 'create' ? "Generate a design, document, or code..." : "Ask anything or summarize a file..."}
+                placeholder={variant === 'create' ? "Generate a design, document, or code..." : "Ask anything or use Search Pilot to select a file..."}
                 className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg placeholder:text-gray-500"
             />
 
             <div className="flex items-center justify-between mt-auto pt-4">
                 {/* Left side toolbar */}
                 <div className="flex items-center space-x-1">
-                    <button type="button" title="Search" className="p-2 rounded-lg bg-gray-100 text-black ring-1 ring-gray-300">
-                        <SearchIcon className="w-5 h-5" />
-                    </button>
                     {variant !== 'create' && (
-                        <button type="button" title="Summarize from source" onClick={() => onOpenSummarizeSourceSelector()} className={`p-2 rounded-lg text-gray-500 ${summarizationSource ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
-                            <FileTextIcon className="w-5 h-5" />
+                        <button type="button" title="Search with context" onClick={() => setContextSelectorOpen(p => !p)} className={`p-2 rounded-lg flex items-center space-x-2 transition-colors ${isContextSelectorOpen ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
+                            <LogoIcon className="w-5 h-5" />
+                            <span className="text-sm font-medium">Search Pilot</span>
                         </button>
                     )}
                 </div>
@@ -229,6 +225,40 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                 </div>
             </div>
         </form>
+         {isContextSelectorOpen && (
+            <div className="mt-4 w-full max-w-2xl mx-auto search-pilot-container">
+                <div className="flex items-center space-x-3 pb-2">
+                    {files.length === 0 && notes.length === 0 ? (
+                        <div className="text-center w-full text-sm text-gray-500 py-4">
+                            No context files found. Upload files in Settings &gt; Context.
+                        </div>
+                    ) : (
+                        <>
+                            {files.map(file => (
+                                <button 
+                                    key={`file-${file.id}`} 
+                                    onClick={() => { onSelectSummarizationSource({id: file.id, name: file.name, type: 'file'}); setContextSelectorOpen(false); }}
+                                    className="context-file-card flex-shrink-0 w-40 p-3 bg-white border rounded-lg flex flex-col items-center text-center"
+                                >
+                                    <FileIcon className="w-8 h-8 text-gray-500 mb-2" />
+                                    <span className="text-xs font-medium text-gray-700 line-clamp-2">{file.name}</span>
+                                </button>
+                            ))}
+                            {notes.map(note => (
+                                <button 
+                                    key={`note-${note.id}`} 
+                                    onClick={() => { onSelectSummarizationSource({id: note.id, name: note.title, type: 'note'}); setContextSelectorOpen(false); }}
+                                    className="context-file-card flex-shrink-0 w-40 p-3 bg-white border rounded-lg flex flex-col items-center text-center"
+                                >
+                                    <FileTextIcon className="w-8 h-8 text-gray-500 mb-2" />
+                                    <span className="text-xs font-medium text-gray-700 line-clamp-2">{note.title}</span>
+                                </button>
+                            ))}
+                        </>
+                    )}
+                </div>
+            </div>
+         )}
          {showModes && variant === 'home' && (
             <>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
@@ -307,8 +337,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             </div>
         )}
         <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
-        <button type="button" onClick={() => onOpenSummarizeSourceSelector()} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
-            <FileTextIcon className={isGlossy && !summarizationSource ? 'text-white/80' : ''} />
+        <button type="button" onClick={() => setContextSelectorOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
+            <LogoIcon className={isGlossy && !summarizationSource ? 'text-white/80' : ''} />
         </button>
         {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
         
@@ -348,6 +378,40 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
         <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
       </form>
+      {isContextSelectorOpen && (
+        <div className="mt-2 w-full search-pilot-container">
+            <div className="flex items-center space-x-3 pb-2">
+                {files.length === 0 && notes.length === 0 ? (
+                    <div className="text-center w-full text-sm text-gray-500 py-4">
+                        No context files found. Upload files in Settings &gt; Context.
+                    </div>
+                ) : (
+                    <>
+                        {files.map(file => (
+                            <button 
+                                key={`file-${file.id}`} 
+                                onClick={() => { onSelectSummarizationSource({id: file.id, name: file.name, type: 'file'}); setContextSelectorOpen(false); }}
+                                className="context-file-card flex-shrink-0 w-32 p-3 bg-white border rounded-lg flex flex-col items-center text-center"
+                            >
+                                <FileIcon className="w-6 h-6 text-gray-500 mb-2" />
+                                <span className="text-xs font-medium text-gray-700 line-clamp-2">{file.name}</span>
+                            </button>
+                        ))}
+                        {notes.map(note => (
+                            <button 
+                                key={`note-${note.id}`} 
+                                onClick={() => { onSelectSummarizationSource({id: note.id, name: note.title, type: 'note'}); setContextSelectorOpen(false); }}
+                                className="context-file-card flex-shrink-0 w-32 p-3 bg-white border rounded-lg flex flex-col items-center text-center"
+                            >
+                                <FileTextIcon className="w-6 h-6 text-gray-500 mb-2" />
+                                <span className="text-xs font-medium text-gray-700 line-clamp-2">{note.title}</span>
+                            </button>
+                        ))}
+                    </>
+                )}
+            </div>
+        </div>
+        )}
       {showModes && variant === 'home' && (
         <>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">

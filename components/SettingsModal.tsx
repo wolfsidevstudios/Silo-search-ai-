@@ -12,7 +12,7 @@ import { KeyIcon } from './icons/KeyIcon';
 import { AlertTriangleIcon } from './icons/AlertTriangleIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
-import type { UserProfile, ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings, StickerInstance, WidgetInstance, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings } from '../types';
+import type { UserProfile, ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings, StickerInstance, WidgetInstance, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, FileRecord } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
 import { FileTextIcon } from './icons/FileTextIcon';
 import { UploadCloudIcon } from './icons/UploadCloudIcon';
@@ -47,6 +47,7 @@ import { BarChartIcon } from './icons/BarChartIcon';
 import { ApifyIcon } from './icons/ApifyIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
 import { ElevenLabsIcon } from './icons/ElevenLabsIcon';
+import { FileIcon } from './icons/FileIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -78,6 +79,9 @@ interface SettingsPageProps {
   onExportData: () => void;
   tokenUsage: { [key: string]: { tokens: number } };
   onTokenUsageChange: (usage: { [key: string]: { tokens: number } }) => void;
+  files: FileRecord[];
+  onFileUpload: (file: File) => void;
+  onDeleteFile: (id: number) => void;
 }
 
 const AI_PROVIDERS = [
@@ -105,6 +109,7 @@ const navItems = [
     ]},
     { category: 'AI & Search', items: [
         { id: 'api-keys', name: 'API Keys', Icon: KeyIcon },
+        { id: 'context', name: 'Context', Icon: DatabaseIcon },
         { id: 'api-usage', name: 'API Usage', Icon: BarChartIcon },
         { id: 'search-settings', name: 'Search Settings', Icon: ChipIcon },
         { id: 'search-modes', name: 'Search Modes', Icon: LayersIcon },
@@ -142,13 +147,23 @@ const SettingsCard: React.FC<{title: string, description: string, children: Reac
     </div>
 );
 
+const formatBytes = (bytes: number, decimals = 2) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+};
 
-export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData, tokenUsage, onTokenUsageChange }) => {
+
+export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData, tokenUsage, onTokenUsageChange, files, onFileUpload, onDeleteFile }) => {
   const [activeSection, setActiveSection] = useState(initialSection || 'appearance');
   const [stickerSearch, setStickerSearch] = useState('');
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
   const wallpaperFileInputRef = useRef<HTMLInputElement>(null);
   const importFileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const [mobileView, setMobileView] = useState<'nav' | 'content'>('nav');
 
@@ -228,6 +243,12 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
     };
     reader.readAsText(file);
     event.target.value = '';
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+        Array.from(event.target.files).forEach(onFileUpload);
+    }
   };
   
   const ProFeatureWrapper: React.FC<{featureId: string, children: React.ReactNode}> = ({ featureId, children }) => {
@@ -328,6 +349,29 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                 </div>
             </div>
         );
+        case 'context': return (
+            <div className="space-y-6">
+                <SettingsCard title="Manage Context" description="Upload files for the AI to use as a knowledge base. You can select these files using the 'Search Pilot' button on the home page.">
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple className="hidden" accept="image/*, .pdf, .txt, .md, .csv, .json, .html, .xml, .doc, .docx, .xls, .xlsx, .ppt, .pptx" />
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-black text-white rounded-full font-medium text-sm hover:bg-gray-800"><UploadCloudIcon className="w-5 h-5" /><span>Upload Files</span></button>
+                    <div className="mt-6 space-y-2">
+                        <h4 className="text-sm font-semibold text-gray-600">Uploaded Files</h4>
+                        {files.length > 0 ? files.map(file => (
+                            <div key={file.id} className="group flex items-center justify-between p-3 bg-gray-100 rounded-lg">
+                                <div className="flex items-center space-x-3 min-w-0">
+                                    <FileIcon className="w-6 h-6 text-gray-500 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="font-medium text-gray-800 truncate">{file.name}</p>
+                                        <p className="text-xs text-gray-500">{formatBytes(file.size)}</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => onDeleteFile(file.id)} className="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"><TrashIcon /></button>
+                            </div>
+                        )) : <p className="text-center text-gray-500 py-8">No files uploaded yet.</p>}
+                    </div>
+                </SettingsCard>
+            </div>
+        );
         case 'api-usage':
             const geminiTokens = tokenUsage.gemini?.tokens || 0;
             const geminiCost = (geminiTokens / 1_000_000) * 0.30;
@@ -380,16 +424,16 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
             );
         case 'search-settings': return (
             <div className="space-y-6">
-                <SettingsCard title="Primary AI Model" description={searchSettings.model === 's1-mini' ? "The S1 Mini model is optimized for fast, web-grounded summaries. It always uses Google Search to provide concise answers based on current information." : "Select the model used for search summaries and chat."}>
-                    <select value={searchSettings.model} onChange={(e) => onSearchSettingsChange({ ...searchSettings, model: e.target.value as 'gemini-2.5-flash' | 's1-mini' })} className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm">
-                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended)</option>
-                        <option value="s1-mini">S1 Mini</option>
+                <SettingsCard title="Primary AI Model" description={searchSettings.model === 'gemini-2.5-pro' ? "The Gemini 2.5 Pro model provides the highest quality, most coherent, and creative responses, ideal for complex reasoning tasks." : "The Gemini 2.5 Flash model is optimized for fast, web-grounded summaries. It always uses Google Search to provide concise answers based on current information."}>
+                    <select value={searchSettings.model} onChange={(e) => onSearchSettingsChange({ ...searchSettings, model: e.target.value as 'gemini-2.5-flash' | 'gemini-2.5-pro' })} className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm">
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast & Efficient)</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Advanced Reasoning)</option>
                     </select>
                 </SettingsCard>
                  <SettingsCard title="Web Search" description="Allows the AI to access up-to-date information from Google Search.">
-                    <div className={`flex items-center justify-between transition-opacity ${searchSettings.model === 's1-mini' ? 'opacity-50' : ''}`}>
+                    <div className={`flex items-center justify-between transition-opacity ${searchSettings.model === 'gemini-2.5-pro' ? 'opacity-50' : ''}`}>
                         <label htmlFor="web-search-toggle" className="font-medium text-gray-700">Enable Web Search</label>
-                        <button id="web-search-toggle" role="switch" aria-checked={searchSettings.useWebSearch || searchSettings.model === 's1-mini'} onClick={() => onSearchSettingsChange({ ...searchSettings, useWebSearch: !searchSettings.useWebSearch })} disabled={searchSettings.model === 's1-mini'} className={`${(searchSettings.useWebSearch || searchSettings.model === 's1-mini') ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:cursor-not-allowed`}><span className={`${(searchSettings.useWebSearch || searchSettings.model === 's1-mini') ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
+                        <button id="web-search-toggle" role="switch" aria-checked={searchSettings.useWebSearch || searchSettings.model === 'gemini-2.5-pro'} onClick={() => onSearchSettingsChange({ ...searchSettings, useWebSearch: !searchSettings.useWebSearch })} disabled={searchSettings.model === 'gemini-2.5-pro'} className={`${(searchSettings.useWebSearch || searchSettings.model === 'gemini-2.5-pro') ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:cursor-not-allowed`}><span className={`${(searchSettings.useWebSearch || searchSettings.model === 'gemini-2.5-pro') ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
                     </div>
                  </SettingsCard>
                  <SettingsCard title="Search Modes" description="Activate different modes from the search bar to tailor your experience.">

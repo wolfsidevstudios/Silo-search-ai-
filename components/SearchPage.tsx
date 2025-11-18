@@ -6,7 +6,7 @@ import { Clock } from './Clock';
 import { DraggableSticker } from './DraggableSticker';
 import { DraggableWidget } from './DraggableWidget';
 import { NoteWidget, WeatherWidget } from './widgets/Widgets';
-import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, TemperatureUnit, SearchInputSettings, SummarizationSource } from '../types';
+import type { ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, TemperatureUnit, SearchInputSettings, SummarizationSource, FileRecord, NoteRecord } from '../types';
 import { Footer } from './Footer';
 
 interface SearchPageProps {
@@ -36,10 +36,12 @@ interface SearchPageProps {
   isStudyMode: boolean;
   setIsStudyMode: (isStudyMode: boolean) => void;
   summarizationSource: SummarizationSource | null;
-  onOpenSummarizeSourceSelector: () => void;
+  onSelectSummarizationSource: (source: SummarizationSource) => void;
   onClearSummarizationSource: () => void;
   navigate: (path: string) => void;
   geminiApiKey: string;
+  files: FileRecord[];
+  notes: NoteRecord[];
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
@@ -69,10 +71,12 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   isStudyMode,
   setIsStudyMode,
   summarizationSource,
-  onOpenSummarizeSourceSelector,
+  onSelectSummarizationSource,
   onClearSummarizationSource,
   navigate,
   geminiApiKey,
+  files,
+  notes
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -164,9 +168,11 @@ export const SearchPage: React.FC<SearchPageProps> = ({
               isStudyMode={isStudyMode}
               setIsStudyMode={setIsStudyMode}
               summarizationSource={summarizationSource}
-              onOpenSummarizeSourceSelector={onOpenSummarizeSourceSelector}
+              onSelectSummarizationSource={onSelectSummarizationSource}
               onClearSummarizationSource={onClearSummarizationSource}
               geminiApiKey={geminiApiKey}
+              files={files}
+              notes={notes}
             />
           </div>
         </main>
