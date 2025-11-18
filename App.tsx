@@ -34,6 +34,7 @@ import { DeepResearchPage } from './components/DeepResearchPage';
 import { HistoryPage } from './components/HistoryPage';
 import * as db from './utils/db';
 import { FileSelectorModal } from './components/FileSelectorModal';
+import { KyndraLivePage } from './components/KyndraLivePage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -479,6 +480,7 @@ const App: React.FC = () => {
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
         apify: '',
         streamline: 'ScPULhBXlEmGJGXa.da9b9d9c4a3309b8dff9d29751949e46',
+        elevenlabs: '',
         ...parsed,
       };
     } catch (error) {
@@ -488,6 +490,7 @@ const App: React.FC = () => {
         pexels: '8Mh8jDK5VAgGnnmNYO2k0LqdaLL8lbIR4ou5Vnd8Zod0cETWahEx1MKf',
         apify: '',
         streamline: 'ScPULhBXlEmGJGXa.da9b9d9c4a3309b8dff9d29751949e46',
+        elevenlabs: '',
       };
     }
   });
@@ -771,7 +774,7 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; pexelsMediaType?: 'photo' | 'video', agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => {
     if (!query.trim()) return;
     if (!apiKeys.gemini) {
       alert('Please set your Gemini API key in settings or complete the onboarding process.');
@@ -855,7 +858,10 @@ const App: React.FC = () => {
                 throw new Error("Pexels API key is missing. Please add it in settings.");
             }
             const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
-            const pexelsParams = await processPexelsQuery(query, apiKeys.gemini);
+            const pexelsParams = options.pexelsMediaType 
+              ? { searchTerm: query, mediaType: options.pexelsMediaType }
+              : await processPexelsQuery(query, apiKeys.gemini);
+              
             const { media, mediaType } = await fetchPexelsMedia(pexelsParams.searchTerm, apiKeys.pexels, pexelsParams.mediaType);
             
             const summaryResponse = await ai.models.generateContent({
@@ -1214,37 +1220,40 @@ const App: React.FC = () => {
       onOpenSettings: handleOpenSettingsPage,
       userProfile: userProfile,
       onLogout: handleLogout,
+      navigate: navigate,
     };
     
     if (isMobile) {
         switch(path) {
-            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery}/>;
-            case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
+            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} {...commonProps} /> : <LoadingState query={currentQuery}/>;
+            case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={researchQuery} />;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-            case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
-            case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
+            case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={travelQuery} />;
+            case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
             case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
             case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
+            case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
             case '/search':
             case '/history':
-            default: return <MobileApp currentPath={path} navigate={navigate} onSearch={handleSearch} history={history} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} />;
+            default: return <MobileApp currentPath={path} onSearch={handleSearch} history={history} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} geminiApiKey={apiKeys.gemini} {...commonProps} />;
         }
     }
 
     // Desktop view
     switch(path) {
-      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} /> : <LoadingState query={currentQuery} />;
-      case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={researchQuery} />;
+      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onOpenSummarizeSourceSelector={() => setFileSelectorOpen(true)} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} {...commonProps} /> : <LoadingState query={currentQuery} />;
+      case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={researchQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-      case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} /> : <LoadingState query={travelQuery} />;
-      case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
+      case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={travelQuery} />;
+      case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
       case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
-      case '/discover': return <DiscoverPage navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
-      case '/history': return <HistoryPage history={history} onSearch={(q) => handleSearch(q, {})} onOpenVideoPlayer={handleOpenVideoPlayer} navigate={navigate} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/discover': return <DiscoverPage onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
+      case '/history': return <HistoryPage history={history} onSearch={(q) => handleSearch(q, {})} onOpenVideoPlayer={handleOpenVideoPlayer} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
+      case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
       default:
         const desktopSearchPageProps = {
-          onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onOpenSummarizeSourceSelector: () => setFileSelectorOpen(true), onClearSummarizationSource: () => setSummarizationSource(null), navigate, ...commonProps
+          onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onOpenSummarizeSourceSelector: () => setFileSelectorOpen(true), onClearSummarizationSource: () => setSummarizationSource(null), geminiApiKey: apiKeys.gemini, ...commonProps
         };
         return <SearchPage {...desktopSearchPageProps} />;
     }

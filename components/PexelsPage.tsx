@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { UserProfile, PexelsResult, PexelsMedia } from '../types';
 import { Header } from './Header';
 import { SearchInput } from './SearchInput';
@@ -10,7 +10,7 @@ import { CameraIcon } from './icons/CameraIcon';
 interface PexelsPageProps {
   initialResult: PexelsResult;
   originalQuery: string;
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; shoppingSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; researchSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { pexelsSearch?: boolean; pexelsMediaType?: 'photo' | 'video' }) => void;
   onHome: () => void;
   isTemporaryMode: boolean;
   onToggleSidebar: () => void;
@@ -53,6 +53,12 @@ const MediaCard: React.FC<{ media: PexelsMedia }> = ({ media }) => {
 };
 
 export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQuery, onSearch, onHome, geminiApiKey, ...headerProps }) => {
+  const [mediaType, setMediaType] = useState<'photo' | 'video'>(initialResult.mediaType);
+
+  const handleSearch = (query: string, options: any) => {
+    onSearch(query, { ...options, pexelsSearch: true, pexelsMediaType: mediaType });
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Header {...headerProps} onHome={onHome} showHomeButton={true} />
@@ -60,7 +66,7 @@ export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQ
         <div className="w-full p-4 border-b border-gray-200 bg-gray-50">
             <div className="max-w-2xl mx-auto">
                 <SearchInput 
-                    onSearch={onSearch} 
+                    onSearch={handleSearch} 
                     initialValue={originalQuery}
                     isLarge={false}
                     speechLanguage="en-US" 
@@ -71,6 +77,9 @@ export const PexelsPage: React.FC<PexelsPageProps> = ({ initialResult, originalQ
                     onOpenSummarizeSourceSelector={() => {}}
                     onClearSummarizationSource={() => {}}
                     geminiApiKey={geminiApiKey}
+                    showMediaToggle={true}
+                    mediaType={mediaType}
+                    onMediaTypeChange={setMediaType}
                 />
             </div>
         </div>

@@ -7,6 +7,7 @@ import { MenuIcon } from './icons/MenuIcon';
 import { IncognitoIcon } from './icons/IncognitoIcon';
 import type { UserProfile } from '../types';
 import { NavigationTabs } from './NavigationTabs';
+import { VoiceIcon } from './icons/VoiceIcon';
 
 interface HeaderProps {
   isTemporaryMode: boolean;
@@ -59,6 +60,14 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
       )}
 
       <div className="flex items-center space-x-4">
+        {onNavigate && (
+          <>
+            <div className="w-px h-6 bg-gray-200"></div>
+            <button onClick={() => onNavigate('/live')} className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow border hover:bg-gray-100 transition-colors" aria-label="Open Kyndra Live">
+              <VoiceIcon className="w-5 h-5" />
+            </button>
+          </>
+        )}
         <button onClick={onToggleTemporaryMode} className={`p-2 rounded-full transition-colors ${isTemporaryMode ? 'bg-gray-800 text-white' : 'hover:bg-black/10'}`} aria-label="Toggle temporary mode">
           <IncognitoIcon />
         </button>
