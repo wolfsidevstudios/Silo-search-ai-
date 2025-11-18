@@ -5,6 +5,7 @@ import { Footer } from '../Footer';
 import type { UserProfile } from '../../types';
 import { ArrowUpIcon } from '../icons/ArrowUpIcon';
 import { LogoIcon } from '../icons/LogoIcon';
+import { fetchTTSAudio } from '../../services/elevenLabsService';
 
 // Audio decoding functions
 function decode(base64: string): Uint8Array {
@@ -57,7 +58,15 @@ const toolDetails: { [key: string]: { name: string, placeholder: string } } = {
     'sound-effects': { name: 'Sound Effects', placeholder: 'Describe a sound effect to generate...' },
 };
 
-const VOICES = ['Kore', 'Puck', 'Zephyr', 'Charon', 'Fenrir'];
+const ELEVENLABS_VOICES: { [key: string]: string } = {
+    'Rachel': '21m00Tcm4TlvDq8ikWAM',
+    'Adam': 'pNInz6obpgDQGcFmaJgB',
+    'Antoni': 'ErXwobaYiN019PkySvjV',
+    'Bella': 'EXAVITQu4vr4xnSDxMaL',
+    'Elli': 'MF3mGyEYCl7XYWbV9V6O',
+};
+
+const VOICES = Object.keys(ELEVENLABS_VOICES);
 
 export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigate, ...headerProps }) => {
     const [prompt, setPrompt] = useState('');
@@ -66,19 +75,17 @@ export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigat
     const [resultUrl, setResultUrl] = useState<string | null>(null);
 
     // TTS specific state
-    const [selectedVoice, setSelectedVoice] = useState('Kore');
+    const [selectedVoice, setSelectedVoice] = useState('Rachel');
     // Music specific state
     const [musicMode, setMusicMode] = useState<'lyrics' | 'instrumental'>('instrumental');
 
-    const audioContextRef = useRef<AudioContext | null>(null);
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        }
         return () => {
-            audioContextRef.current?.close().catch(console.error);
+            if (resultUrl) {
+                URL.revokeObjectURL(resultUrl);
+            }
         }
-    }, []);
+    }, [resultUrl]);
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -88,35 +95,17 @@ export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigat
         setError(null);
         setResultUrl(null);
 
-        if (!apiKeys.gemini) {
-            setError('Please set your Gemini API key in settings.');
-            setIsLoading(false);
-            return;
-        }
-
         try {
             if (toolId === 'tts') {
-                const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
-                const response = await ai.models.generateContent({
-                    model: "gemini-2.5-flash-preview-tts",
-                    contents: [{ parts: [{ text: prompt }] }],
-                    config: {
-                        responseModalities: [Modality.AUDIO],
-                        speechConfig: {
-                            voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } },
-                        },
-                    },
-                });
-
-                const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-                if (base64Audio && audioContextRef.current) {
-                    const audioBytes = decode(base64Audio);
-                    const audioBlob = new Blob([audioBytes]);
-                    const url = URL.createObjectURL(audioBlob);
-                    setResultUrl(url);
-                } else {
-                    throw new Error("No audio data received from API.");
+                if (!apiKeys.elevenlabs) {
+                    setError('Please set your ElevenLabs API key in settings.');
+                    setIsLoading(false);
+                    return;
                 }
+                const voiceId = ELEVENLABS_VOICES[selectedVoice];
+                const audioBlob = await fetchTTSAudio(prompt, apiKeys.elevenlabs, voiceId);
+                const url = URL.createObjectURL(audioBlob);
+                setResultUrl(url);
             } else {
                 await new Promise(res => setTimeout(res, 1500));
                 setError(`Tool "${toolDetails[toolId]?.name || toolId}" is not yet implemented.`);

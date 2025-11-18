@@ -1,12 +1,13 @@
 
-const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM'; // Voice ID for "Rachel"
 
-export async function fetchTTSAudio(text: string, apiKey: string): Promise<Blob> {
+const BASE_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
+
+export async function fetchTTSAudio(text: string, apiKey: string, voiceId: string): Promise<Blob> {
   if (!apiKey) {
     throw new Error("ElevenLabs API key is missing.");
   }
   
-  const response = await fetch(ELEVENLABS_API_URL, {
+  const response = await fetch(`${BASE_URL}/${voiceId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
