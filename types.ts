@@ -87,6 +87,13 @@ export interface UserProfile {
   provider?: string;
 }
 
+export interface GithubProfile {
+  login: string;
+  avatar_url: string;
+  name: string;
+  email: string;
+}
+
 export interface SearchInputSettings {
   isLarge: boolean;
   isGlossy: boolean;
