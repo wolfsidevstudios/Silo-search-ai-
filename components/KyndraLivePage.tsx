@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
-import { LogoIcon } from './icons/LogoIcon';
 import { VoiceIcon } from './icons/VoiceIcon';
+import { PauseIcon } from './icons/PauseIcon';
 
 interface KyndraLivePageProps {
   geminiApiKey: string;
@@ -46,12 +46,17 @@ function encode(bytes: Uint8Array): string {
 export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, onExit }) => {
   const [session, setSession] = useState<LiveSession | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'listening' | 'speaking' | 'error' | 'ended'>('idle');
-  const [isHolding, setIsHolding] = useState(false);
+  const [isHoldingToSpeak, setIsHoldingToSpeak] = useState(false);
+  const [isAiOnHold, setIsAiOnHold] = useState(false);
   
-  const isHoldingRef = useRef(isHolding);
-  isHoldingRef.current = isHolding;
+  const isHoldingToSpeakRef = useRef(isHoldingToSpeak);
+  isHoldingToSpeakRef.current = isHoldingToSpeak;
 
   const audioCleanupRef = useRef<() => void>(() => {});
+  const outputAudioContext = useRef<AudioContext | null>(null);
+  const outputNode = useRef<GainNode | null>(null);
+  const sources = useRef(new Set<AudioBufferSourceNode>());
+  const nextStartTime = useRef(0);
 
   useEffect(() => {
     if (!geminiApiKey) {
@@ -63,9 +68,10 @@ export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, on
     setStatus('connecting');
     const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
-    let nextStartTime = 0;
-    const sources = new Set<AudioBufferSourceNode>();
-
+    outputAudioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    outputNode.current = outputAudioContext.current.createGain();
+    outputNode.current.connect(outputAudioContext.current.destination);
+    
     const sessionPromise = ai.live.connect({
       model: 'gemini-2.5-flash-native-audio-preview-09-2025',
       callbacks: {
@@ -77,7 +83,7 @@ export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, on
           const scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
           
           scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
-            if (isHoldingRef.current) {
+            if (isHoldingToSpeakRef.current) {
               const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
               const l = inputData.length;
               const int16 = new Int16Array(l);
@@ -98,7 +104,7 @@ export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, on
           audioCleanupRef.current = () => {
               scriptProcessor.disconnect();
               source.disconnect();
-              inputAudioContext.close();
+              inputAudioContext.close().catch(console.error);
               stream.getTracks().forEach(track => track.stop());
           };
         },
@@ -106,15 +112,34 @@ export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, on
           const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
           if (base64EncodedAudioString) {
             setStatus('speaking');
-            const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-            const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), outputAudioContext, 24000, 1);
-            const source = outputAudioContext.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(outputAudioContext.destination);
-            source.start();
+            const ctx = outputAudioContext.current;
+            const node = outputNode.current;
+            if (ctx && node) {
+              nextStartTime.current = Math.max(nextStartTime.current, ctx.currentTime);
+              const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), ctx, 24000, 1);
+              const source = ctx.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(node);
+              source.addEventListener('ended', () => {
+                sources.current.delete(source);
+                if (sources.current.size === 0 && status !== 'ended') {
+                    setStatus('connected');
+                }
+              });
+              source.start(nextStartTime.current);
+              nextStartTime.current += audioBuffer.duration;
+              sources.current.add(source);
+            }
+          }
+          if (message.serverContent?.interrupted) {
+            for (const source of sources.current.values()) {
+              source.stop();
+              sources.current.delete(source);
+            }
+            nextStartTime.current = 0;
           }
           if (message.serverContent?.turnComplete) {
-              if (status !== 'ended') setStatus('connected');
+              if (status !== 'ended' && sources.current.size === 0) setStatus('connected');
           }
         },
         onerror: (e: ErrorEvent) => {
@@ -135,8 +160,15 @@ export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, on
     return () => {
         sessionPromise.then(s => s.close());
         audioCleanupRef.current();
+        outputAudioContext.current?.close().catch(console.error);
     };
   }, [geminiApiKey]);
+
+  useEffect(() => {
+    if (outputAudioContext.current && outputNode.current) {
+        outputNode.current.gain.setValueAtTime(isAiOnHold ? 0 : 1, outputAudioContext.current.currentTime);
+    }
+  }, [isAiOnHold]);
   
   const handleEndCall = () => {
     setStatus('ended');
@@ -145,13 +177,13 @@ export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, on
     onExit();
   };
 
-  const handleHold = () => {
-    setIsHolding(true);
+  const handleHoldToSpeak = () => {
+    setIsHoldingToSpeak(true);
     setStatus('listening');
   };
 
-  const handleRelease = () => {
-    setIsHolding(false);
+  const handleReleaseToSpeak = () => {
+    setIsHoldingToSpeak(false);
     if (status === 'listening') setStatus('connected');
   };
 
@@ -159,40 +191,51 @@ export const KyndraLivePage: React.FC<KyndraLivePageProps> = ({ geminiApiKey, on
     <div className="kyndra-live-bg fixed inset-0 flex flex-col items-center justify-between text-white p-8 overflow-hidden">
       <div className="live-wave-gradient"></div>
       
-      <div className="relative z-10 text-center">
+      <div className="relative z-10 text-center pt-8">
         <h1 className="text-3xl font-bold flex items-center space-x-2">
           <VoiceIcon className="w-8 h-8"/>
           <span>Kyndra Live</span>
         </h1>
-        <p className="mt-4 text-gray-300">
+        <p className="mt-4 text-gray-300 h-6">
             {status === 'connecting' && 'Connecting...'}
-            {status === 'connected' && 'Hold to speak'}
+            {status === 'connected' && 'Hold the button to speak'}
             {status === 'listening' && 'Listening...'}
             {status === 'speaking' && '...'}
             {status === 'error' && 'Connection error. Please try again.'}
         </p>
       </div>
 
-      <div className="relative z-10 w-full max-w-xs flex items-center justify-center gap-12">
+      <div className="relative z-10 w-full max-w-sm flex items-center justify-center gap-12">
+        <div className="flex flex-col items-center">
+            <button
+                onClick={() => setIsAiOnHold(!isAiOnHold)}
+                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 ${isAiOnHold ? 'bg-yellow-400 text-black' : 'bg-white/20 text-white'}`}
+                aria-label={isAiOnHold ? "Resume AI" : "Put AI on hold"}
+            >
+                <PauseIcon className={`w-8 h-8`} />
+            </button>
+            <span className="mt-3 font-medium text-gray-300">Hold</span>
+        </div>
+        
         <div className="flex flex-col items-center">
           <button 
-            onMouseDown={handleHold}
-            onMouseUp={handleRelease}
-            onTouchStart={(e) => { e.preventDefault(); handleHold(); }}
-            onTouchEnd={handleRelease}
+            onMouseDown={handleHoldToSpeak}
+            onMouseUp={handleReleaseToSpeak}
+            onTouchStart={(e) => { e.preventDefault(); handleHoldToSpeak(); }}
+            onTouchEnd={handleReleaseToSpeak}
             disabled={status !== 'connected' && status !== 'listening'}
-            className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-200 ${isHolding ? 'bg-white scale-110' : 'bg-white/80'}`}
+            className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-200 ${isHoldingToSpeak ? 'bg-white scale-110' : 'bg-white/80'}`}
             aria-label="Hold to speak"
           >
-            <VoiceIcon className={`w-10 h-10 transition-colors ${isHolding ? 'text-black' : 'text-gray-700'}`} />
+            <VoiceIcon className={`w-10 h-10 transition-colors ${isHoldingToSpeak ? 'text-black' : 'text-gray-700'}`} />
           </button>
-          <span className="mt-3 font-medium text-gray-300">Hold</span>
+          <span className="mt-3 font-medium text-gray-300">Speak</span>
         </div>
 
         <div className="flex flex-col items-center">
           <button onClick={handleEndCall} className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition-colors" aria-label="End call">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M2.969 5.469a.5.5 0 0 1 .707 0l2.353 2.354 2.354-2.354a.5.5 0 1 1 .707.707L8.744 8.53l2.354 2.354a.5.5 0 1 1-.707.707L8.037 9.237 5.683 11.59a.5.5 0 0 1-.707-.707L7.323 8.53 4.969 6.176a.5.5 0 0 1 0-.707z"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.25-3.77-6.6-6.6l1.97-1.57c.27-.27.36-.66.24-1.01-.36-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.72 21 20.01 21c.75 0 .99-.65.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
             </svg>
           </button>
           <span className="mt-3 font-medium text-gray-300">End</span>
