@@ -46,6 +46,7 @@ import { GoogleIcon } from './icons/GoogleIcon';
 import { BarChartIcon } from './icons/BarChartIcon';
 import { ApifyIcon } from './icons/ApifyIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
+import { ElevenLabsIcon } from './icons/ElevenLabsIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -81,6 +82,7 @@ interface SettingsPageProps {
 
 const AI_PROVIDERS = [
     { id: 'gemini', name: 'Google Gemini', Icon: GoogleIcon, description: 'The core model powering Kyndra AI. Get your key from Google AI Studio.', placeholder: 'Enter your Google Gemini API key', getLink: 'https://aistudio.google.com/app/apikey' },
+    { id: 'elevenlabs', name: 'ElevenLabs', Icon: ElevenLabsIcon, description: 'High-quality text-to-speech voices for AI Labs. Get your key from your ElevenLabs profile.', placeholder: 'Enter your ElevenLabs API key', getLink: 'https://elevenlabs.io' },
     { id: 'youtube', name: 'YouTube Data API', Icon: YouTubeIcon, description: 'Required for the video search feature. Get your key from the Google Cloud Console.', placeholder: 'Enter your YouTube Data v3 API key', getLink: 'https://console.cloud.google.com/apis/library/youtube.googleapis.com' },
     { id: 'pexels', name: 'Pexels API', Icon: ImageIcon, description: 'Required for the media search feature. Get a free key from the Pexels website.', placeholder: 'Enter your Pexels API key', getLink: 'https://www.pexels.com/api/' },
     { id: 'apify', name: 'Apify', Icon: ApifyIcon, description: 'Required for TikTok video integration. Get your token from your Apify account settings.', placeholder: 'Enter your Apify API token', getLink: 'https://console.apify.com/account/integrations' },
@@ -128,10 +130,10 @@ const wallpapers = {
 const clockThemes = [{ id: 'classic', name: 'Classic', darkClass: 'bg-[#006A4E]', lightClass: 'bg-[#7FFFD4]' },{ id: 'mint', name: 'Mint', darkClass: 'bg-emerald-700', lightClass: 'bg-green-300' },{ id: 'peach', name: 'Peach', darkClass: 'bg-orange-600', lightClass: 'bg-amber-300' },{ id: 'mono', name: 'Mono', darkClass: 'bg-black', lightClass: 'bg-gray-400' },{ id: 'ocean', name: 'Ocean', darkClass: 'bg-blue-800', lightClass: 'bg-sky-400' },{ id: 'sunset', name: 'Sunset', darkClass: 'bg-purple-800', lightClass: 'bg-orange-400' },{ id: 'forest', name: 'Forest', darkClass: 'bg-green-900', lightClass: 'bg-lime-500' },{ id: 'neon', name: 'Neon', darkClass: 'bg-pink-500', lightClass: 'bg-cyan-300' },{ id: 'candy', name: 'Candy', darkClass: 'bg-red-500', lightClass: 'bg-yellow-300' },{ id: 'liquid-glass', name: 'Liquid Glass', darkClass: 'bg-gray-400/30 border border-white/20', lightClass: 'bg-gray-100/30 border border-white/20' },{ id: 'espresso', name: 'Espresso', darkClass: 'bg-[#4a2c2a]', lightClass: 'bg-[#f5e8d7]' },{ id: 'cherry', name: 'Cherry', darkClass: 'bg-[#b24a69]', lightClass: 'bg-[#ffd1e2]' },{ id: 'lavender', name: 'Lavender', darkClass: 'bg-[#6a5acd]', lightClass: 'bg-[#e6e6fa]' },{ id: 'gold', name: 'Gold', darkClass: 'bg-[#b1740f]', lightClass: 'bg-[#fde488]' },{ id: 'ruby', name: 'Ruby', darkClass: 'bg-[#8b0000]', lightClass: 'bg-[#ffc0cb]' },{ id: 'sapphire', name: 'Sapphire', darkClass: 'bg-[#0f52ba]', lightClass: 'bg-[#add8e6]' },{ id: 'emerald', name: 'Emerald', darkClass: 'bg-[#006400]', lightClass: 'bg-[#98ff98]' },{ id: 'graphite', name: 'Graphite', darkClass: 'bg-[#36454f]', lightClass: 'bg-[#d3d3d3]' },{ id: 'coral', name: 'Coral', darkClass: 'bg-[#ff4500]', lightClass: 'bg-[#ffdab9]' },{ id: 'sky', name: 'Sky', darkClass: 'bg-[#55a0d3]', lightClass: 'bg-[#c6f1ff]' },];
 const clockFonts = [{ id: 'fredoka', name: 'Bubbly', className: "font-['Fredoka_One']" },{ id: 'serif', name: 'Serif', className: "font-['Roboto_Slab']" },{ id: 'mono', name: 'Mono', className: "font-['Roboto_Mono']" },{ id: 'pacifico', name: 'Script', className: "font-['Pacifico']" },{ id: 'bungee', name: 'Blocky', className: "font-['Bungee']" },{ id: 'press-start', name: 'Pixel', className: "font-['Press_Start_2P'] text-xs" },{ id: 'caveat', name: 'Handwriting', className: "font-['Caveat'] text-2xl" },{ id: 'lobster', name: 'Lobster', className: "font-['Lobster']" },{ id: 'anton', name: 'Anton', className: "font-['Anton']" },{ id: 'oswald', name: 'Oswald', className: "font-['Oswald']" },{ id: 'playfair', name: 'Playfair', className: "font-['Playfair_Display']" },{ id: 'orbitron', name: 'Orbitron', className: "font-['Orbitron']" },{ id: 'vt323', name: 'VT323', className: "font-['VT323'] text-2xl" },{ id: 'bebas', name: 'Bebas', className: "font-['Bebas_Neue']" },{ id: 'dancing', name: 'Dancing', className: "font-['Dancing_Script'] text-2xl" },{ id: 'satisfy', name: 'Satisfy', className: "font-['Satisfy'] text-xl" },{ id: 'elite', name: 'Typewriter', className: "font-['Special_Elite'] text-lg" },];
 const WallpaperSwatch: React.FC<{ themeClass: string; isSelected: boolean; onClick: () => void; }> = ({ themeClass, isSelected, onClick }) => ( <button onClick={onClick} className={`w-full h-16 rounded-lg border-2 transition-all ${isSelected ? 'border-black scale-105' : 'border-transparent hover:border-gray-300'}`} aria-label={`Select theme: ${themeClass}`}> <div className={`w-full h-full rounded-md flex items-center justify-center ${themeClass}`}> {isSelected && ( <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"> <CheckIcon /> </div> )} </div> </button> );
-const ClockThemeSwatch: React.FC<{ theme: { id: string, name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => ( <button onClick={onClick} className={`p-2 rounded-lg border-2 w-full text-left ${isSelected ? 'border-black' : 'border-gray-200 hover:border-gray-300'}`}> <div className="flex items-center space-x-2"> <div className={`w-6 h-6 rounded-full ${theme.darkClass}`}></div> <div className={`w-6 h-6 rounded-full ${theme.lightClass}`}></div> <span className="text-sm font-medium text-gray-800">{theme.name}</span> </div> </button> );
+const ClockThemeSwatch: React.FC<{ theme: { id: string, name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => ( <button onClick={onClick} className={`p-2 rounded-xl border-2 w-full text-left ${isSelected ? 'border-black' : 'border-gray-200 hover:border-gray-300'}`}> <div className="flex items-center space-x-2"> <div className={`w-6 h-6 rounded-full ${theme.darkClass}`}></div> <div className={`w-6 h-6 rounded-full ${theme.lightClass}`}></div> <span className="text-sm font-medium text-gray-800">{theme.name}</span> </div> </button> );
 
 const SettingsCard: React.FC<{title: string, description: string, children: React.ReactNode}> = ({title, description, children}) => (
-    <div className="bg-white border border-gray-200 rounded-lg">
+    <div className="bg-white border border-gray-200 rounded-2xl">
         <div className="p-6 border-b">
             <h4 className="text-lg font-semibold">{title}</h4>
             <p className="text-sm text-gray-500 mt-1">{description}</p>
@@ -253,15 +255,15 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                 <SettingsCard title="Custom Wallpaper" description="Upload your own image to use as a background.">
                     <div className="grid grid-cols-2 gap-4">
                         <ProFeatureWrapper featureId="upload-custom-wallpaper">
-                            <button onClick={handleUploadWallpaperClick} className="w-full h-20 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex flex-col items-center justify-center transition-colors">
+                            <button onClick={handleUploadWallpaperClick} className="w-full h-20 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex flex-col items-center justify-center transition-colors">
                                 <UploadCloudIcon className="w-6 h-6 mb-1" /> <span className="text-xs font-semibold">Upload Your Own</span>
                             </button>
                         </ProFeatureWrapper>
                         {customWallpaper && (
                             <div className="relative">
-                                <button className="w-full h-20 rounded-lg border-2 border-black">
-                                    <div className="w-full h-full rounded-md bg-cover bg-center" style={{ backgroundImage: `url(${customWallpaper})` }}>
-                                        <div className="w-full h-full rounded-md flex items-center justify-center bg-black/20"> <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"> <CheckIcon /> </div> </div>
+                                <button className="w-full h-20 rounded-xl border-2 border-black">
+                                    <div className="w-full h-full rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${customWallpaper})` }}>
+                                        <div className="w-full h-full rounded-lg flex items-center justify-center bg-black/20"> <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"> <CheckIcon /> </div> </div>
                                     </div>
                                 </button>
                                 <button onClick={() => onCustomWallpaperChange(null)} className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600" aria-label="Remove custom wallpaper"><TrashIcon /></button>
@@ -293,35 +295,37 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         <button id="clock-toggle" role="switch" aria-checked={isClockVisible} onClick={() => onIsClockVisibleChange(!isClockVisible)} className={`${isClockVisible ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors`}><span className={`${isClockVisible ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
                     </div>
                     <div className="bg-gray-800 rounded-xl p-8 my-6 flex items-center justify-center min-h-[200px] overflow-hidden"><Clock settings={clockSettings} temperatureUnit={temperatureUnit} /></div>
-                    <h4 className="font-medium text-gray-800 mb-3">Style</h4> <div className="grid grid-cols-3 gap-4"> <button onClick={() => onClockSettingsChange({ ...clockSettings, style: 'horizontal' })} className={`p-4 border rounded-lg text-center transition-colors ${clockSettings.style === 'horizontal' ? 'bg-black text-white' : 'bg-white hover:bg-gray-50'}`}> Horizontal </button> <button onClick={() => onClockSettingsChange({ ...clockSettings, style: 'stacked' })} className={`p-4 border rounded-lg text-center transition-colors ${clockSettings.style === 'stacked' ? 'bg-black text-white' : 'bg-white hover:bg-gray-50'}`}> Stacked </button> <button onClick={() => onClockSettingsChange({ ...clockSettings, style: 'diagonal' })} className={`p-4 border rounded-lg text-center transition-colors ${clockSettings.style === 'diagonal' ? 'bg-black text-white' : 'bg-white hover:bg-gray-50'}`}> Diagonal </button> </div>
+                    <h4 className="font-medium text-gray-800 mb-3">Style</h4> <div className="grid grid-cols-3 gap-4"> <button onClick={() => onClockSettingsChange({ ...clockSettings, style: 'horizontal' })} className={`p-4 border rounded-full text-center transition-colors ${clockSettings.style === 'horizontal' ? 'bg-black text-white' : 'bg-white hover:bg-gray-50'}`}> Horizontal </button> <button onClick={() => onClockSettingsChange({ ...clockSettings, style: 'stacked' })} className={`p-4 border rounded-full text-center transition-colors ${clockSettings.style === 'stacked' ? 'bg-black text-white' : 'bg-white hover:bg-gray-50'}`}> Stacked </button> <button onClick={() => onClockSettingsChange({ ...clockSettings, style: 'diagonal' })} className={`p-4 border rounded-full text-center transition-colors ${clockSettings.style === 'diagonal' ? 'bg-black text-white' : 'bg-white hover:bg-gray-50'}`}> Diagonal </button> </div>
                     <h4 className="font-medium text-gray-800 mb-3 mt-4">Theme</h4> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"> {clockThemes.map(theme => { const isPro = PRO_FEATURES_COSTS[theme.id] !== undefined; const swatch = <ClockThemeSwatch key={theme.id} theme={theme} isSelected={clockSettings.theme === theme.id} onClick={() => onClockSettingsChange({ ...clockSettings, theme: theme.id as ClockSettings['theme'] })} />; return isPro ? <ProFeatureWrapper key={theme.id} featureId={theme.id}>{swatch}</ProFeatureWrapper> : swatch; })} </div>
                 </SettingsCard>
                 <SettingsCard title="Stickers" description="Add some flair to your home screen! Click a sticker to add it, or upload your own.">
                     <div className="flex space-x-2 mb-4">
-                        <button onClick={onEnterStickerEditMode} className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200"> Arrange Stickers </button>
-                        <ProFeatureWrapper featureId="upload-custom-sticker"><button onClick={handleUploadStickerClick} className="w-full px-4 py-3 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800"> Upload Your Own </button></ProFeatureWrapper>
+                        <button onClick={onEnterStickerEditMode} className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full hover:bg-gray-200"> Arrange Stickers </button>
+                        <ProFeatureWrapper featureId="upload-custom-sticker"><button onClick={handleUploadStickerClick} className="w-full px-4 py-3 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800"> Upload Your Own </button></ProFeatureWrapper>
                     </div>
                     <div className="grid grid-cols-4 md:grid-cols-5 gap-2">{STICKERS.map(sticker => ( <button key={sticker.id} onClick={() => handleAddStickerAndEdit(sticker.id)} className="p-2 bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-1 hover:bg-gray-200 transition-colors aspect-square" title={`Add ${sticker.name} sticker`}> <span className="text-4xl">{sticker.id}</span> <span className="text-xs text-gray-600 truncate">{sticker.name}</span> </button> ))}</div>
-                    <button onClick={onClearStickers} className="mt-4 w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"> Clear All Stickers </button>
+                    <button onClick={onClearStickers} className="mt-4 w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-full hover:bg-red-100"> Clear All Stickers </button>
                 </SettingsCard>
             </div>
         );
         case 'api-keys': return (
             <div className="space-y-6">
-                <SettingsCard title="API Keys" description="Connect your accounts from various AI providers. Your keys are stored securely in your browser's local storage.">
-                    <div className="space-y-6">
-                        {AI_PROVIDERS.map(provider => (
-                            <div key={provider.id}>
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center space-x-3"> <provider.Icon className="w-6 h-6" /> <h4 className="font-bold text-gray-800">{provider.name}</h4> </div>
-                                    <a href={provider.getLink} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">Get key</a>
+                <p className="text-sm text-gray-600 text-center bg-gray-100 p-4 rounded-xl">Your keys are stored securely in your browser's local storage and are never sent to our servers.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {AI_PROVIDERS.map(provider => (
+                        <div key={provider.id} className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-3">
+                                    <provider.Icon className="w-6 h-6" />
+                                    <h4 className="font-bold text-gray-800">{provider.name}</h4>
                                 </div>
-                                <p className="text-sm text-gray-600 mb-4">{provider.description}</p>
-                                <input type="password" value={apiKeys[provider.id] || ''} onChange={(e) => onApiKeysChange({ ...apiKeys, [provider.id]: e.target.value })} placeholder={provider.placeholder} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm" />
+                                <a href={provider.getLink} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">Get key &rarr;</a>
                             </div>
-                        ))}
-                    </div>
-                </SettingsCard>
+                            <p className="text-xs text-gray-500 mb-4 flex-grow">{provider.description}</p>
+                            <input type="password" value={apiKeys[provider.id] || ''} onChange={(e) => onApiKeysChange({ ...apiKeys, [provider.id]: e.target.value })} placeholder={provider.placeholder} className="w-full px-4 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm" />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
         case 'api-usage':
@@ -338,7 +342,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                                 <GoogleIcon className="w-6 h-6" />
                                 <h4 className="font-bold text-gray-800">Google Gemini</h4>
                             </div>
-                            <div className="bg-gray-100 p-4 rounded-lg space-y-3">
+                            <div className="bg-gray-100 p-4 rounded-xl space-y-3">
                                 <div>
                                     <div className="flex justify-between text-sm font-medium text-gray-600">
                                         <span>Tokens Used</span>
@@ -377,7 +381,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
         case 'search-settings': return (
             <div className="space-y-6">
                 <SettingsCard title="Primary AI Model" description={searchSettings.model === 's1-mini' ? "The S1 Mini model is optimized for fast, web-grounded summaries. It always uses Google Search to provide concise answers based on current information." : "Select the model used for search summaries and chat."}>
-                    <select value={searchSettings.model} onChange={(e) => onSearchSettingsChange({ ...searchSettings, model: e.target.value as 'gemini-2.5-flash' | 's1-mini' })} className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm">
+                    <select value={searchSettings.model} onChange={(e) => onSearchSettingsChange({ ...searchSettings, model: e.target.value as 'gemini-2.5-flash' | 's1-mini' })} className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm">
                         <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended)</option>
                         <option value="s1-mini">S1 Mini</option>
                     </select>
@@ -440,7 +444,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
             <div className="space-y-6">
                 <SettingsCard title="Powerful Search Modes" description="Activate specialized modes for more complex tasks.">
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                             <div className="flex items-center space-x-4">
                                 <LayersIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
                                 <div>
@@ -452,7 +456,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                                 Activate
                             </button>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                             <div className="flex items-center space-x-4">
                                 <BookOpenIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
                                 <div>
@@ -476,7 +480,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                             { Icon: StoreIcon, name: 'Shopping Assistant', description: 'Helps find products, compare prices, and read reviews.' },
                             { Icon: NewspaperIcon, name: 'News Analyst', description: 'Summarizes news from various sources with multiple perspectives.' },
                         ].map(mode => (
-                            <div key={mode.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg opacity-60">
+                            <div key={mode.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl opacity-60">
                                 <div className="flex items-center space-x-4">
                                     <mode.Icon className="w-8 h-8 text-gray-500 flex-shrink-0" />
                                     <div>
@@ -503,7 +507,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                             { Icon: SlackIcon, name: 'Slack', description: 'Search through conversations and shared files.' },
                             { Icon: GitHubIcon, name: 'GitHub', description: 'Find code snippets, issues, and pull requests.' },
                         ].map(app => (
-                            <div key={app.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div key={app.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                                 <div className="flex items-center space-x-4">
                                     <app.Icon className="w-8 h-8 text-gray-500" />
                                     <div>
@@ -541,8 +545,8 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                 <input type="file" ref={importFileInputRef} onChange={handleImportFileChange} accept=".json" className="hidden" aria-hidden="true" />
                 <SettingsCard title="Import / Export Data" description="Export your settings for backup or import them to a new device.">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button onClick={onExportData} className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">Export Data</button>
-                        <button onClick={handleImportClick} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Import Data</button>
+                        <button onClick={onExportData} className="px-4 py-2 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">Export Data</button>
+                        <button onClick={handleImportClick} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-gray-300">Import Data</button>
                     </div>
                 </SettingsCard>
                 <SettingsCard title="Usage Analytics" description="Help us improve Kyndra AI by sharing anonymous usage data.">
@@ -551,17 +555,17 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         <button id="analytics-toggle" role="switch" aria-checked={analyticsSettings.enabled} onClick={() => onAnalyticsSettingsChange({ ...analyticsSettings, enabled: !analyticsSettings.enabled })} className={`${analyticsSettings.enabled ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors`}><span className={`${analyticsSettings.enabled ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
                     </div>
                 </SettingsCard>
-                 <div className="p-6 border border-red-300 bg-red-50 rounded-lg">
+                 <div className="p-6 border border-red-300 bg-red-50 rounded-2xl">
                     <h4 className="font-bold text-red-800">Danger Zone</h4>
                     <p className="mt-1 text-sm text-red-700"> This will permanently delete all your settings, API keys, recent searches, stickers, and widgets from your browser's storage. </p>
-                    <button onClick={onDeleteAllData} className="mt-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"> Delete All Data </button>
+                    <button onClick={onDeleteAllData} className="mt-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700"> Delete All Data </button>
                 </div>
             </div>
         )
         case 'legal': return (
             <div className="space-y-4">
-                <button onClick={() => onOpenLegalPage('terms')} className="w-full text-left p-4 bg-white border rounded-lg hover:bg-gray-50">Terms of Service</button>
-                <button onClick={() => onOpenLegalPage('privacy')} className="w-full text-left p-4 bg-white border rounded-lg hover:bg-gray-50">Privacy Policy</button>
+                <button onClick={() => onOpenLegalPage('terms')} className="w-full text-left p-4 bg-white border rounded-full hover:bg-gray-50">Terms of Service</button>
+                <button onClick={() => onOpenLegalPage('privacy')} className="w-full text-left p-4 bg-white border rounded-full hover:bg-gray-50">Privacy Policy</button>
             </div>
         );
         case 'about-kyndra-ai': return (
@@ -597,7 +601,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{category}</p>
                         <div className="mt-2 space-y-1">
                             {items.map(item => (
-                                <button key={item.id} onClick={() => handleNavClick(item.id)} className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left text-sm font-medium transition-colors ${ activeSection === item.id ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100/50' }`}>
+                                <button key={item.id} onClick={() => handleNavClick(item.id)} className={`w-full flex items-center space-x-3 p-3 rounded-xl text-left text-sm font-medium transition-colors ${ activeSection === item.id ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100/50' }`}>
                                     <item.Icon className="w-5 h-5 flex-shrink-0" />
                                     <span>{item.name}</span>
                                 </button>
@@ -632,7 +636,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                     )}
                     <h2 className="text-xl font-semibold">{headerTitle}</h2>
                 </div>
-                <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">Done</button>
+                <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">Done</button>
             </header>
             <main className="flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-3xl mx-auto">

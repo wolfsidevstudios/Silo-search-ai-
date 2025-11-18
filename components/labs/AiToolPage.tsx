@@ -1,36 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { Header } from '../Header';
 import { Footer } from '../Footer';
 import type { UserProfile } from '../../types';
 import { ArrowUpIcon } from '../icons/ArrowUpIcon';
 import { LogoIcon } from '../icons/LogoIcon';
 import { fetchTTSAudio } from '../../services/elevenLabsService';
-
-// Audio decoding functions
-function decode(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
-
-async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-    }
-  }
-  return buffer;
-}
-
 
 interface AiToolPageProps {
   toolId: string;
@@ -48,6 +23,7 @@ interface AiToolPageProps {
 
 const toolDetails: { [key: string]: { name: string, placeholder: string } } = {
     'tts': { name: 'Text-to-Speech', placeholder: 'Enter text to convert to speech...' },
+    'image-generation': { name: 'Image Generation', placeholder: 'A robot holding a red skateboard...' },
     'music': { name: 'Music Generation', placeholder: 'Describe the music you want to create...' },
     'stt': { name: 'Speech-to-Text', placeholder: 'This tool will transcribe audio files.' },
     'voice-clone': { name: 'Voice Cloning & Design', placeholder: 'This tool will clone or design voices.' },
@@ -73,6 +49,7 @@ export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigat
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [resultUrl, setResultUrl] = useState<string | null>(null);
+    const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
     // TTS specific state
     const [selectedVoice, setSelectedVoice] = useState('Rachel');
@@ -81,9 +58,7 @@ export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigat
 
     useEffect(() => {
         return () => {
-            if (resultUrl) {
-                URL.revokeObjectURL(resultUrl);
-            }
+            if (resultUrl) URL.revokeObjectURL(resultUrl);
         }
     }, [resultUrl]);
 
@@ -94,18 +69,30 @@ export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigat
         setIsLoading(true);
         setError(null);
         setResultUrl(null);
+        setGeneratedImage(null);
 
         try {
             if (toolId === 'tts') {
                 if (!apiKeys.elevenlabs) {
-                    setError('Please set your ElevenLabs API key in settings.');
-                    setIsLoading(false);
-                    return;
+                    throw new Error('Please set your ElevenLabs API key in settings.');
                 }
                 const voiceId = ELEVENLABS_VOICES[selectedVoice];
                 const audioBlob = await fetchTTSAudio(prompt, apiKeys.elevenlabs, voiceId);
                 const url = URL.createObjectURL(audioBlob);
                 setResultUrl(url);
+            } else if (toolId === 'image-generation') {
+                if (!apiKeys.gemini) {
+                    throw new Error('Please set your Google Gemini API key in settings.');
+                }
+                const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
+                const response = await ai.models.generateImages({
+                    model: 'imagen-4.0-generate-001',
+                    prompt: prompt,
+                    config: { numberOfImages: 1 },
+                });
+                const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
+                const imageUrl = `data:image/png;base64,${base64ImageBytes}`;
+                setGeneratedImage(imageUrl);
             } else {
                 await new Promise(res => setTimeout(res, 1500));
                 setError(`Tool "${toolDetails[toolId]?.name || toolId}" is not yet implemented.`);
@@ -142,11 +129,11 @@ export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigat
                     {toolId === 'tts' && (
                         <div className="mt-6">
                             <p className="text-sm font-medium text-gray-600 mb-2">Select a Voice</p>
-                            <div className="flex flex-wrap justify-center gap-2">
+                            <div className="flex flex-wrap justify-center gap-3">
                                 {VOICES.map(voice => (
                                     <button key={voice} onClick={() => setSelectedVoice(voice)} className={`px-4 py-2 text-sm font-semibold rounded-full border-2 transition-colors ${selectedVoice === voice ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-200 hover:border-black'}`}>
-                                        <div className="flex items-center space-x-2">
-                                            <div className={`w-3 h-3 rounded-full ${selectedVoice === voice ? 'bg-white' : 'bg-gray-400'}`}></div>
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-8 h-8 rounded-full wavy-gradient flex-shrink-0"></div>
                                             <span>{voice}</span>
                                         </div>
                                     </button>
@@ -168,13 +155,20 @@ export const AiToolPage: React.FC<AiToolPageProps> = ({ toolId, apiKeys, navigat
                     <div className="mt-8">
                         {error && <p className="text-red-600">{error}</p>}
                         {resultUrl && toolId === 'tts' && (
-                            <div>
-                                <h2 className="font-semibold mb-2">Result</h2>
+                            <div className="space-y-2">
+                                <h2 className="font-semibold">Result</h2>
                                 <audio controls src={resultUrl} className="w-full max-w-md mx-auto"></audio>
                             </div>
                         )}
+                        {generatedImage && toolId === 'image-generation' && (
+                             <div className="space-y-4">
+                                <h2 className="font-semibold">Result</h2>
+                                <div className="max-w-md mx-auto aspect-square bg-gray-100 rounded-xl overflow-hidden shadow-lg">
+                                    <img src={generatedImage} alt={prompt} className="w-full h-full object-contain" />
+                                </div>
+                            </div>
+                        )}
                     </div>
-
                 </div>
             </main>
             <Footer onOpenLegalPage={headerProps.onOpenLegalPage} />
