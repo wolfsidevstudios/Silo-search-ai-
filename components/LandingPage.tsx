@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
@@ -334,10 +335,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                         <div className="text-4xl font-bold mb-8">$0 <span className="text-lg font-normal text-gray-500">/mo</span></div>
                         
                         <ul className="space-y-4 mb-8 flex-grow">
-                            <li className="flex items-center gap-3 text-sm text-gray-700"><CheckIcon className="w-5 h-5 text-black" /> Unlimited standard searches</li>
-                            <li className="flex items-center gap-3 text-sm text-gray-700"><CheckIcon className="w-5 h-5 text-black" /> Gemini 2.5 Flash access</li>
-                            <li className="flex items-center gap-3 text-sm text-gray-700"><CheckIcon className="w-5 h-5 text-black" /> Travel & Shopping modes</li>
+                            <li className="flex items-center gap-3 text-sm text-gray-700"><CheckIcon className="w-5 h-5 text-black" /> 5 Credits per Day (Resets Daily)</li>
+                            <li className="flex items-center gap-3 text-sm text-gray-700"><CheckIcon className="w-5 h-5 text-black" /> Access to all AI tools & models</li>
                             <li className="flex items-center gap-3 text-sm text-gray-700"><CheckIcon className="w-5 h-5 text-black" /> Local history storage</li>
+                            <li className="flex items-center gap-3 text-sm text-gray-700"><CheckIcon className="w-5 h-5 text-black" /> Standard Support</li>
                         </ul>
                         
                         <button onClick={onNavigateToLogin} className="w-full py-4 rounded-full border-2 border-gray-100 font-bold hover:border-black transition-colors">
@@ -349,19 +350,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                     <div className="p-8 rounded-[2rem] bg-black text-white flex flex-col relative overflow-hidden scroll-animate shadow-2xl">
                         <div className="absolute top-0 right-0 bg-gradient-to-bl from-purple-600 to-transparent w-48 h-48 opacity-30 rounded-bl-full blur-2xl"></div>
                         <h3 className="text-2xl font-bold mb-2">Pro</h3>
-                        <p className="text-gray-400 mb-6">Power features for power users.</p>
-                        <div className="text-4xl font-bold mb-8">Coming Soon</div>
+                        <p className="text-gray-400 mb-6">Unlimited power for power users.</p>
+                        <div className="text-4xl font-bold mb-8">$10 <span className="text-lg font-normal text-gray-400">/mo</span></div>
                         
                         <ul className="space-y-4 mb-8 flex-grow relative z-10">
-                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> <strong>Gemini 3.0</strong> priority access</li>
-                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> Advanced Cloud Sync</li>
-                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> Custom AI Agents</li>
-                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> Early access to new labs</li>
+                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> <strong>Unlimited</strong> Credits & Searches</li>
+                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> <strong>Unlimited</strong> GitHub Connected App</li>
+                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> Unlimited Search Modes (Travel, Map, etc.)</li>
+                             <li className="flex items-center gap-3 text-sm text-gray-300"><CheckIcon className="w-5 h-5 text-purple-400" /> Early access to new labs features</li>
                         </ul>
                         
-                        <button disabled className="w-full py-4 rounded-full bg-white text-black font-bold hover:bg-gray-200 transition-colors cursor-not-allowed opacity-90 relative z-10">
-                            Join Waitlist
-                        </button>
+                        <a href="https://buy.polar.sh/polar_cl_PgUSah1HN8TPbImrWmo79oksFVegpUlMayl0y1Eqb7" target="_blank" rel="noopener noreferrer" className="w-full py-4 rounded-full bg-white text-black font-bold hover:bg-gray-200 transition-colors relative z-10 text-center block">
+                            Upgrade Now
+                        </a>
                     </div>
                 </div>
              </div>
@@ -374,15 +375,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                 <div className="space-y-8 scroll-animate">
                     <div>
                         <h3 className="font-bold text-lg mb-2">Is Kyndra AI free to use?</h3>
-                        <p className="text-gray-600">Yes! We offer a generous free tier. Because we use a "Bring Your Own Key" model for advanced features, you only pay the AI providers directly if you exceed their free tiers.</p>
+                        <p className="text-gray-600">Yes! We offer a Free plan that gives you 5 credits every day to use across all tools. Credits reset daily.</p>
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg mb-2">What do I get with Pro?</h3>
+                        <p className="text-gray-600">Pro gives you unlimited access to everything. No daily credit limits on searches, GitHub agent, travel planning, or media generation.</p>
                     </div>
                     <div>
                         <h3 className="font-bold text-lg mb-2">Is my data safe?</h3>
                         <p className="text-gray-600">Absolutely. Kyndra AI is built with a privacy-first architecture. Your API keys, search history, and notes are stored locally on your device. We do not have servers that read or store your personal data.</p>
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg mb-2">Which AI models can I use?</h3>
-                        <p className="text-gray-600">We primarily support Google's Gemini models (including the new 3.0). We are actively working on integrations for OpenAI (GPT-4) and Anthropic (Claude 3).</p>
                     </div>
                 </div>
             </div>

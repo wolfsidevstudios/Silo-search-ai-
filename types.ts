@@ -1,3 +1,4 @@
+
 export interface QuickLink {
   title: string;
   uri: string;
@@ -85,6 +86,7 @@ export interface UserProfile {
   email: string;
   picture: string;
   provider?: string;
+  isPro?: boolean;
 }
 
 export interface SearchInputSettings {

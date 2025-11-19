@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchPage } from './components/SearchPage';
 import { ResultsPage } from './components/ResultsPage';
@@ -39,6 +40,7 @@ import { GithubTokenModal } from './components/GithubTokenModal';
 import { GithubPage } from './components/GithubPage';
 import { fetchUserProfile } from './services/githubService';
 import { Gemini3Modal } from './components/Gemini3Modal';
+import { ProSuccessPage } from './components/ProSuccessPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -81,6 +83,7 @@ const ComingSoonModal: React.FC<ComingSoonModalProps> = ({ isOpen, onClose }) =>
 };
 
 const MAX_RECENT_SEARCHES = 20;
+const DAILY_CREDIT_LIMIT = 5;
 
 const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -134,6 +137,44 @@ const App: React.FC = () => {
     } catch(e) { /* ignore */ }
     return null;
   });
+
+  const [dailyCredits, setDailyCredits] = useState<number>(() => {
+      const today = new Date().toDateString();
+      const lastReset = window.localStorage.getItem('lastCreditReset');
+      if (lastReset !== today) {
+          window.localStorage.setItem('lastCreditReset', today);
+          return DAILY_CREDIT_LIMIT;
+      }
+      const storedCredits = window.localStorage.getItem('dailyCredits');
+      return storedCredits ? parseInt(storedCredits, 10) : DAILY_CREDIT_LIMIT;
+  });
+
+  useEffect(() => {
+      const today = new Date().toDateString();
+      const lastReset = window.localStorage.getItem('lastCreditReset');
+      if (lastReset !== today) {
+          setDailyCredits(DAILY_CREDIT_LIMIT);
+          window.localStorage.setItem('lastCreditReset', today);
+      }
+  }, []);
+
+  useEffect(() => {
+      window.localStorage.setItem('dailyCredits', dailyCredits.toString());
+  }, [dailyCredits]);
+
+  const useCredit = () => {
+      if (userProfile?.isPro) return true;
+      if (dailyCredits > 0) {
+          setDailyCredits(prev => prev - 1);
+          return true;
+      }
+      return false;
+  };
+
+  const hasCredits = () => {
+      return userProfile?.isPro || dailyCredits > 0;
+  };
+
 
   const [tokenUsage, setTokenUsage] = useState<{ [key: string]: { tokens: number } }>(() => {
     try {
@@ -326,6 +367,7 @@ const App: React.FC = () => {
                 email: session.user.user_metadata.email || session.user.email || 'No email',
                 picture: session.user.user_metadata.avatar_url || session.user.user_metadata.picture || '',
                 provider: session.user.app_metadata.provider,
+                isPro: JSON.parse(window.localStorage.getItem('userProfile') || '{}').isPro || false // Maintain pro status if set
             });
              if (['/', '/login'].includes(currentPath)) {
                 navigate('/search', { replace: true });
@@ -346,6 +388,7 @@ const App: React.FC = () => {
                 email: session.user.user_metadata.email || session.user.email || 'No email',
                 picture: session.user.user_metadata.avatar_url || session.user.user_metadata.picture || '',
                 provider: session.user.app_metadata.provider,
+                isPro: JSON.parse(window.localStorage.getItem('userProfile') || '{}').isPro || false
             });
              if (['/', '/login'].includes(window.location.pathname)) {
                 navigate('/search', { replace: true });
@@ -391,6 +434,7 @@ const App: React.FC = () => {
   });
 
   const [proCredits, setProCredits] = useState<number>(() => {
+    // Legacy credits, mostly for unlocking cosmetic features now.
     try {
       const item = window.localStorage.getItem('proCredits');
       return item ? JSON.parse(item) : 50;
@@ -810,6 +854,15 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
+  const handleActivatePro = () => {
+    if (userProfile) {
+        const updatedProfile = { ...userProfile, isPro: true };
+        setUserProfile(updatedProfile);
+        // Ensure navigate is called slightly after to allow render cycle if needed, though here it's synchronous state update
+        setTimeout(() => navigate('/search', { replace: true }), 100);
+    }
+  };
+
   const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; pexelsMediaType?: 'photo' | 'video', agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; githubSearch?: boolean; }) => {
     if (!query.trim()) return;
     if (!apiKeys.gemini) {
@@ -818,6 +871,13 @@ const App: React.FC = () => {
       return;
     }
     
+    // Credit Check
+    if (!hasCredits()) {
+        alert("You have reached your daily limit of 5 free credits. Upgrade to Pro for unlimited searches.");
+        handleOpenSettingsPage('rewards-store');
+        return;
+    }
+
     setLoadingQuery(query);
     setLastSearchOptions(options);
     setSidebarOpen(false);
@@ -828,6 +888,9 @@ const App: React.FC = () => {
             setShowGithubTokenModal(true);
             return;
         }
+        // For GitHub, we only deduct credit upon interaction, or search here?
+        // Let's deduct for opening the specialized search
+        useCredit();
         navigate('/github');
         return;
     }
@@ -841,6 +904,7 @@ const App: React.FC = () => {
           });
         }
     } else if (options.creatorSearch && options.creatorPlatform) {
+        if (!useCredit()) return;
         setIsLoading(true);
         setCreatorQuery(query);
         if (!isTemporaryMode) {
@@ -863,6 +927,7 @@ const App: React.FC = () => {
         }
         return;
     } else if (options.pexelsSearch) {
+        if (!useCredit()) return;
         setIsLoading(true);
         setPexelsQuery(query);
         if (!isTemporaryMode) {
@@ -900,6 +965,7 @@ const App: React.FC = () => {
         }
         return;
     } else if (options.travelSearch) {
+        if (!useCredit()) return;
         setIsLoading(true);
         setTravelQuery(query);
         if (!isTemporaryMode) {
@@ -922,6 +988,7 @@ const App: React.FC = () => {
         }
         return;
     } else if (options.mapSearch) {
+        if (!useCredit()) return;
         setMapQuery(query);
         sessionStorage.setItem('mapQuery', query);
         navigate('/map');
@@ -940,6 +1007,8 @@ const App: React.FC = () => {
           });
         }
     }
+
+    if (!useCredit()) return;
 
     const studyMode = summarizationSource ? false : (options.studyMode ?? isStudyMode);
 
@@ -1000,7 +1069,7 @@ const App: React.FC = () => {
       navigate('/results');
 
       if (!isTemporaryMode) {
-        setProCredits(c => c + 1);
+        // setProCredits(c => c + 1); // Removed legacy credit accumulation
         if (estimatedTokens) {
             setTokenUsage(prev => ({
                 ...prev,
@@ -1023,7 +1092,7 @@ const App: React.FC = () => {
     } finally {
         setIsLoading(false);
     }
-  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, summarizationSource, setTokenUsage, githubToken]);
+  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, summarizationSource, setTokenUsage, githubToken, dailyCredits, userProfile]);
 
   const handleGoHome = () => navigate('/search');
   const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
@@ -1254,6 +1323,7 @@ const App: React.FC = () => {
             case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
             case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
             case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
+            case '/pro-success': return <ProSuccessPage onGoHome={handleGoHome} onActivatePro={handleActivatePro} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} onSearch={handleSearch} history={history} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} geminiApiKey={apiKeys.gemini} files={files} notes={notes} {...commonProps} />;
@@ -1271,6 +1341,7 @@ const App: React.FC = () => {
       case '/history': return <HistoryPage history={history} onSearch={(q) => handleSearch(q, {})} onOpenVideoPlayer={handleOpenVideoPlayer} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
       case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
+      case '/pro-success': return <ProSuccessPage onGoHome={handleGoHome} onActivatePro={handleActivatePro} />;
       default:
         const desktopSearchPageProps = {
           onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onSelectSummarizationSource: handleSelectSummarizationSource, onClearSummarizationSource: () => setSummarizationSource(null), geminiApiKey: apiKeys.gemini, files, notes, ...commonProps
@@ -1311,7 +1382,7 @@ const App: React.FC = () => {
         case '/about': return <AboutPage onClose={() => window.history.back()} />;
         case '/settings': return (
             <div className={appClasses} style={appStyle}>
-                 <SettingsModal onClose={() => navigate('/search')} initialSection={initialSettingsSection} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onApiKeysChange={setApiKeys} currentTheme={theme} onThemeChange={setTheme} customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper} isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible} clockSettings={clockSettings} onClockSettingsChange={setClockSettings} temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit} speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage} stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode} customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker} widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode} searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings} searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings} accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings} languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings} notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings} developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings} analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings} proCredits={proCredits} unlockedProFeatures={unlockedProFeatures} onUnlockFeature={handleUnlockFeature} userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData} onExportData={handleExportData} tokenUsage={tokenUsage} onTokenUsageChange={setTokenUsage} files={files} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} githubProfile={githubProfile} onDisconnectGithub={handleDisconnectGithub} onOpenGithubTokenModal={() => setShowGithubTokenModal(true)} />
+                 <SettingsModal onClose={() => navigate('/search')} initialSection={initialSettingsSection} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onApiKeysChange={setApiKeys} currentTheme={theme} onThemeChange={setTheme} customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper} isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible} clockSettings={clockSettings} onClockSettingsChange={setClockSettings} temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit} speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage} stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode} customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker} widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode} searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings} searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings} accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings} languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings} notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings} developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings} analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings} proCredits={proCredits} unlockedProFeatures={unlockedProFeatures} onUnlockFeature={handleUnlockFeature} userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData} onExportData={handleExportData} tokenUsage={tokenUsage} onTokenUsageChange={setTokenUsage} files={files} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} githubProfile={githubProfile} onDisconnectGithub={handleDisconnectGithub} onOpenGithubTokenModal={() => setShowGithubTokenModal(true)} dailyCredits={dailyCredits} />
             </div>
         );
         default:

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { OpenAIIcon } from './icons/OpenAIIcon';
@@ -44,6 +45,8 @@ import { ApifyIcon } from './icons/ApifyIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
 import { ElevenLabsIcon } from './icons/ElevenLabsIcon';
 import { FileIcon } from './icons/FileIcon';
+import { SparklesIcon } from './icons/SparklesIcon';
+import { LogoIcon } from './icons/LogoIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -81,6 +84,7 @@ interface SettingsPageProps {
   githubProfile: GithubProfile | null;
   onDisconnectGithub: () => void;
   onOpenGithubTokenModal: () => void;
+  dailyCredits: number;
 }
 
 const AI_PROVIDERS = [
@@ -154,7 +158,7 @@ const formatBytes = (bytes: number, decimals = 2) => {
 };
 
 
-export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData, tokenUsage, onTokenUsageChange, files, onFileUpload, onDeleteFile, githubProfile, onDisconnectGithub, onOpenGithubTokenModal }) => {
+export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData, tokenUsage, onTokenUsageChange, files, onFileUpload, onDeleteFile, githubProfile, onDisconnectGithub, onOpenGithubTokenModal, dailyCredits }) => {
   const [activeSection, setActiveSection] = useState(initialSection || 'appearance');
   const [stickerSearch, setStickerSearch] = useState('');
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
@@ -268,6 +272,83 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
 
   const renderContent = () => {
     switch(activeSection) {
+        case 'rewards-store': return (
+             <div className="space-y-8">
+                <div className="relative w-full max-w-md mx-auto aspect-[1.6/1] rounded-2xl overflow-hidden shadow-2xl transition-transform hover:scale-[1.02]">
+                    {userProfile?.isPro ? (
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6 text-white flex flex-col justify-between">
+                             <div className="flex justify-between items-start">
+                                <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md border border-white/20">
+                                        <LogoIcon className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="font-bold tracking-tight text-lg">Kyndra AI</span>
+                                </div>
+                                <span className="px-3 py-1 bg-white text-black text-xs font-bold uppercase tracking-wider rounded-full">PRO</span>
+                            </div>
+                            <div>
+                                <div className="flex items-center space-x-2 mb-1">
+                                    <div className="w-8 h-5 bg-yellow-500/20 rounded flex items-center justify-center border border-yellow-500/50">
+                                        <div className="w-5 h-3 border-2 border-yellow-500 rounded-sm"></div>
+                                    </div>
+                                    <span className="font-mono text-lg tracking-widest opacity-80">•••• ••••</span>
+                                </div>
+                                <p className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400">UNLIMITED</p>
+                                <p className="text-xs text-gray-400 mt-1">Credits Remaining</p>
+                            </div>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-0.5">Card Holder</p>
+                                    <p className="font-medium tracking-wide">{userProfile?.name || 'User'}</p>
+                                </div>
+                                <SparklesIcon className="w-6 h-6 text-purple-400" />
+                            </div>
+                             {/* Shine effect */}
+                            <div className="absolute top-0 -inset-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine" />
+                        </div>
+                    ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-700 p-6 text-white flex flex-col justify-between">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md border border-white/20">
+                                        <LogoIcon className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="font-bold tracking-tight text-lg">Kyndra AI</span>
+                                </div>
+                                <span className="px-3 py-1 bg-white/20 text-white text-xs font-bold uppercase tracking-wider rounded-full border border-white/30">Free</span>
+                            </div>
+                             <div>
+                                <div className="flex items-center space-x-2 mb-1">
+                                    <div className="w-8 h-5 bg-white/20 rounded flex items-center justify-center border border-white/30">
+                                        <div className="w-5 h-3 border-2 border-white/50 rounded-sm"></div>
+                                    </div>
+                                    <span className="font-mono text-lg tracking-widest opacity-80">•••• ••••</span>
+                                </div>
+                                <p className="text-4xl font-bold">{dailyCredits}</p>
+                                <p className="text-xs text-blue-100 mt-1">Daily Credits Remaining (Resets daily)</p>
+                            </div>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-[10px] text-blue-200 uppercase tracking-widest mb-0.5">Card Holder</p>
+                                    <p className="font-medium tracking-wide">{userProfile?.name || 'User'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {!userProfile?.isPro && (
+                    <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Upgrade to Pro</h3>
+                        <p className="text-gray-500 mb-8 max-w-md mx-auto">Unlock unlimited searches, GitHub integration, and all search modes without daily limits.</p>
+                        <a href="https://buy.polar.sh/polar_cl_PgUSah1HN8TPbImrWmo79oksFVegpUlMayl0y1Eqb7" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-black rounded-full hover:bg-gray-800 hover:scale-105 transition-all shadow-lg">
+                            Get Pro for $10/mo
+                        </a>
+                        <p className="text-xs text-gray-400 mt-4">Secure payment via Polar.sh</p>
+                    </div>
+                )}
+             </div>
+        );
         case 'appearance': return (
             <div className="space-y-6">
                 <SettingsCard title="Custom Wallpaper" description="Upload your own image to use as a background.">
