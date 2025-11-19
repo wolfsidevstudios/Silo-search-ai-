@@ -4,7 +4,7 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { fetchTopHeadlines, searchNews } from '../services/newsService';
 import { fetchStockQuotes, fetchStockQuote } from '../services/stockService';
-import { fetchTrendingYouTubeVideos, fetchYouTubeNewsVideos, fetchTrendingYouTubeShorts } from '../services/youtubeService';
+import { fetchTrendingYouTubeVideos, fetchYouTubeNewsVideos, fetchTrendingYouTubeShorts, fetchYouTubeVideos } from '../services/youtubeService';
 import { fetchWordOfTheDay } from '../services/wordService';
 import { fetchDailyJoke } from '../services/jokeService';
 import { fetchSportsScores } from '../services/sportsService';
@@ -18,6 +18,7 @@ import { VideoIcon } from './icons/VideoIcon';
 import { NewspaperIcon } from './icons/NewspaperIcon';
 import { BarChartIcon } from './icons/BarChartIcon';
 import { HomeIcon } from './icons/HomeIcon';
+import { ArrowUpIcon } from './icons/ArrowUpIcon';
 
 interface DiscoverPageProps {
   navigate: (path: string) => void;
@@ -83,6 +84,30 @@ const YouTubeVideoCard: React.FC<{ video: YouTubeVideo; onClick: () => void; isS
         </div>
     </button>
 );
+
+const StockCard: React.FC<{ stock: StockQuote }> = ({ stock }) => {
+    const change = parseFloat(stock['09. change']);
+    const changePercent = parseFloat(stock['10. change percent'].replace('%', ''));
+    const isPositive = change >= 0;
+
+    return (
+        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group">
+            <div className="flex justify-between items-start mb-4">
+                <div className="bg-gray-50 p-2.5 rounded-2xl group-hover:bg-gray-100 transition-colors">
+                     <BarChartIcon className="w-6 h-6 text-gray-500 group-hover:text-gray-900" />
+                </div>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${isPositive ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                    <ArrowUpIcon className={`w-3 h-3 ${isPositive ? '' : 'transform rotate-180'}`} />
+                    {Math.abs(changePercent).toFixed(2)}%
+                </span>
+            </div>
+            <div>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{stock['01. symbol']}</h4>
+                <p className="text-2xl font-bold text-gray-900 tracking-tight">${parseFloat(stock['05. price']).toFixed(2)}</p>
+            </div>
+        </div>
+    );
+};
 
 const WeatherWidget: React.FC<{ temperatureUnit: 'celsius' | 'fahrenheit' }> = ({ temperatureUnit }) => {
     const [weather, setWeather] = useState<any>(null);
@@ -162,13 +187,24 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
     const [newsVideos, setNewsVideos] = useState<YouTubeVideo[]>([]);
     const [trendingVideos, setTrendingVideos] = useState<YouTubeVideo[]>([]);
     const [trendingShorts, setTrendingShorts] = useState<YouTubeVideo[]>([]);
+    const [financeVideos, setFinanceVideos] = useState<YouTubeVideo[]>([]);
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const loadAllData = async () => {
             setIsLoading(true);
-            const [newsRes, stocksRes, wordRes, jokeRes, sportsRes, newsVideosRes, trendingVideosRes, trendingShortsRes] = await Promise.allSettled([
+            const [
+                newsRes, 
+                stocksRes, 
+                wordRes, 
+                jokeRes, 
+                sportsRes, 
+                newsVideosRes, 
+                trendingVideosRes, 
+                trendingShortsRes,
+                financeVideosRes
+            ] = await Promise.allSettled([
                 fetchTopHeadlines(),
                 fetchStockQuotes(),
                 fetchWordOfTheDay(),
@@ -176,8 +212,10 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                 fetchSportsScores(),
                 fetchYouTubeNewsVideos(apiKeys.youtube),
                 fetchTrendingYouTubeVideos(apiKeys.youtube),
-                fetchTrendingYouTubeShorts(apiKeys.youtube)
+                fetchTrendingYouTubeShorts(apiKeys.youtube),
+                fetchYouTubeVideos("stock market investing news analysis", apiKeys.youtube)
             ]);
+
             if (newsRes.status === 'fulfilled') setNews(newsRes.value.filter(a => a.urlToImage));
             if (stocksRes.status === 'fulfilled') setStocks(stocksRes.value);
             if (wordRes.status === 'fulfilled') setWord(wordRes.value);
@@ -186,6 +224,8 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
             if (newsVideosRes.status === 'fulfilled') setNewsVideos(newsVideosRes.value.slice(0, 15));
             if (trendingVideosRes.status === 'fulfilled') setTrendingVideos(trendingVideosRes.value);
             if (trendingShortsRes.status === 'fulfilled') setTrendingShorts(trendingShortsRes.value);
+            if (financeVideosRes.status === 'fulfilled') setFinanceVideos(financeVideosRes.value);
+            
             setIsLoading(false);
         };
         loadAllData();
@@ -398,21 +438,40 @@ export const DiscoverPage: React.FC<DiscoverPageProps> = ({ navigate, onOpenLega
                 </div>
             );
             case 'finance': return (
-                 <div className="flex flex-col items-center justify-center py-24 text-center animate-[fadeIn_0.5s_ease-out]">
-                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                        <BarChartIcon className="w-10 h-10 text-gray-400" />
+                <div className="space-y-10 animate-[fadeIn_0.5s_ease-out]">
+                    <div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">Market Watch</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            {stocks.map(stock => <StockCard key={stock['01. symbol']} stock={stock} />)}
+                        </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">Finance Dashboard</h3>
-                    <p className="text-gray-500 mt-2 max-w-xs mx-auto">Deep market insights and portfolio tracking are coming in the next update.</p>
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">Financial Insights</h2>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {financeVideos.map(video => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, financeVideos)} />)}
+                        </div>
+                    </div>
                 </div>
             );
             case 'videos': return (
-                <div className="flex flex-col items-center justify-center py-24 text-center animate-[fadeIn_0.5s_ease-out]">
-                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                        <VideoIcon className="w-10 h-10 text-gray-400" />
+                <div className="space-y-12 animate-[fadeIn_0.5s_ease-out]">
+                    <div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">Trending Now</h2>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {trendingVideos.map(video => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, trendingVideos)} />)}
+                        </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">Video Hub</h3>
-                    <p className="text-gray-500 mt-2 max-w-xs mx-auto">A dedicated space for trending videos and creator content is coming soon.</p>
+                     <div>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-black text-white rounded-full">
+                                <TikTokIcon className="w-5 h-5" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Viral Shorts</h2>
+                        </div>
+                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {trendingShorts.map(video => <YouTubeVideoCard key={video.id} video={video} onClick={() => onOpenVideoPlayer(video.id, trendingShorts)} isShort />)}
+                        </div>
+                    </div>
                 </div>
             );
         }

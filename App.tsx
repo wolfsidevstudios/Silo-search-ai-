@@ -859,6 +859,7 @@ const App: React.FC = () => {
     if (userProfile) {
         const updatedProfile = { ...userProfile, isPro: true };
         setUserProfile(updatedProfile);
+        // Ensure navigate is called slightly after to allow render cycle if needed, though here it's synchronous state update
         setTimeout(() => navigate('/search', { replace: true }), 100);
     }
   };
@@ -871,6 +872,7 @@ const App: React.FC = () => {
       return;
     }
     
+    // Credit Check
     if (!hasCredits()) {
         alert("You have reached your daily limit of 5 free credits. Upgrade to Pro for unlimited searches.");
         handleOpenSettingsPage('rewards-store');
@@ -887,6 +889,8 @@ const App: React.FC = () => {
             setShowGithubTokenModal(true);
             return;
         }
+        // For GitHub, we only deduct credit upon interaction, or search here?
+        // Let's deduct for opening the specialized search
         useCredit();
         navigate('/github');
         return;
@@ -1032,6 +1036,7 @@ const App: React.FC = () => {
       }
     }
 
+
     try {
       const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode, fileContent);
       const youtubePromise = (summarizationSource || !apiKeys.youtube)
@@ -1065,6 +1070,7 @@ const App: React.FC = () => {
       navigate('/results');
 
       if (!isTemporaryMode) {
+        // setProCredits(c => c + 1); // Removed legacy credit accumulation
         if (estimatedTokens) {
             setTokenUsage(prev => ({
                 ...prev,
@@ -1083,7 +1089,7 @@ const App: React.FC = () => {
     } catch (err) {
       console.error(err);
       setError('Sorry, something went wrong. Please check your API key(s) and try again.');
-      setCurrentQuery(query); 
+      setCurrentQuery(query); // Keep query for retry
     } finally {
         setIsLoading(false);
     }
