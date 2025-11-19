@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
@@ -7,15 +8,12 @@ import { PlaneIcon } from './icons/PlaneIcon';
 import { ShoppingCartIcon } from './icons/ShoppingCartIcon';
 import { LockIcon } from './icons/LockIcon';
 import { KeyIcon } from './icons/KeyIcon';
-import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { StarIcon } from './icons/StarIcon';
 import { OpenAIIcon } from './icons/OpenAIIcon';
 import { AnthropicIcon } from './icons/AnthropicIcon';
 import { GitHubIcon } from './icons/GitHubIcon';
-import { ArrowRightIcon } from './icons/ArrowRightIcon';
 import { BrowserIcon } from './icons/BrowserIcon';
-import { ChipIcon } from './icons/ChipIcon';
 
 interface LandingPageProps {
   onNavigateToLogin: () => void;
@@ -53,22 +51,22 @@ const testimonials = [
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onOpenLegalPage }) => {
   return (
     <div className="min-h-screen bg-[#FAFAFA] text-gray-900 font-sans selection:bg-black selection:text-white">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#FAFAFA]/80 backdrop-blur-md border-b border-gray-200/50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-                <LogoIcon className="w-8 h-8" />
-                <span className="text-xl font-bold tracking-tight">Kyndra AI</span>
+      <header className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
+        <nav className="w-full max-w-4xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-lg rounded-full px-6 h-14 flex items-center justify-between transition-all hover:shadow-xl hover:bg-white/90">
+            <div className="flex items-center space-x-2">
+                <LogoIcon className="w-6 h-6" />
+                <span className="text-lg font-bold tracking-tight">Kyndra AI</span>
             </div>
             <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
                 <a href="#features" className="hover:text-black transition-colors">Features</a>
                 <a href="#pricing" className="hover:text-black transition-colors">Pricing</a>
                 <a href="#testimonials" className="hover:text-black transition-colors">Testimonials</a>
             </div>
-            <div className="flex items-center space-x-4">
-                <button onClick={onNavigateToLogin} className="text-sm font-medium hover:text-gray-600 transition-colors hidden sm:block">Sign In</button>
-                <button onClick={onNavigateToLogin} className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-all hover:scale-105">Get Started</button>
+            <div className="flex items-center space-x-3">
+                <button onClick={onNavigateToLogin} className="text-xs font-medium hover:text-gray-600 transition-colors hidden sm:block px-2">Sign In</button>
+                <button onClick={onNavigateToLogin} className="bg-black text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-gray-800 transition-all hover:scale-105 shadow-md">Get Started</button>
             </div>
-        </div>
+        </nav>
       </header>
 
       <main className="pt-32">
@@ -93,16 +91,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onO
                     View Demo
                 </button>
             </div>
-            
-            <div className="mt-20 relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 aspect-[16/9] bg-gray-900">
-                 {/* Placeholder for App Screenshot/Demo */}
-                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-black">
-                    <div className="text-center">
-                        <LogoIcon className="w-24 h-24 mx-auto text-white/20 mb-4" />
-                        <p className="text-white/40 font-medium">App Interface Preview</p>
-                    </div>
-                 </div>
-            </div>
+            {/* App Preview Removed */}
         </section>
 
         {/* Partners / Models */}
