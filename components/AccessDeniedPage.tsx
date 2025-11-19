@@ -11,25 +11,29 @@ interface AccessDeniedPageProps {
 
 export const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({ onDownloadData, onRemoveData }) => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center p-4">
-      <div className="bg-white p-8 md:p-12 rounded-2xl shadow-lg max-w-lg">
-        <LogoIcon className="w-16 h-16 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-gray-800">Access Denied</h1>
-        <p className="mt-2 text-gray-600">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAFAFA] text-center p-6">
+      <div className="bg-white p-10 md:p-14 rounded-[2.5rem] shadow-xl shadow-gray-100 border border-gray-100 max-w-md w-full">
+        <div className="w-20 h-20 bg-black rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+            <LogoIcon className="w-10 h-10 text-white" />
+        </div>
+        
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Access Restricted</h1>
+        <p className="mt-3 text-gray-500 leading-relaxed">
           You must agree to the Terms of Service to use Kyndra AI.
-          You can download your existing data or remove it completely.
+          Your data remains yours—download it or remove it completely.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 mt-8">
+
+        <div className="flex flex-col gap-3 mt-10">
             <button
                 onClick={onDownloadData}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 text-sm font-bold text-gray-900 bg-gray-50 border border-gray-200 rounded-full hover:bg-gray-100 transition-all hover:scale-[1.02]"
             >
                 <DownloadIcon />
                 <span>Download My Data</span>
             </button>
             <button
                 onClick={onRemoveData}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 text-sm font-bold text-red-600 bg-red-50 border border-transparent rounded-full hover:bg-red-100 transition-all hover:scale-[1.02]"
             >
                 <TrashIcon />
                 <span>Remove App Data</span>
