@@ -6,15 +6,11 @@ import { InfoIcon } from './icons/InfoIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { WallpaperIcon } from './icons/WallpaperIcon';
-import { StickerIcon } from './icons/StickerIcon';
-import { WidgetIcon } from './icons/WidgetIcon';
 import { KeyIcon } from './icons/KeyIcon';
-import { AlertTriangleIcon } from './icons/AlertTriangleIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
 import type { UserProfile, ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings, StickerInstance, WidgetInstance, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, FileRecord, GithubProfile } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
-import { FileTextIcon } from './icons/FileTextIcon';
 import { UploadCloudIcon } from './icons/UploadCloudIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { LanguagesIcon } from './icons/LanguagesIcon';
@@ -115,7 +111,6 @@ const navItems = [
         { id: 'context', name: 'Context', Icon: DatabaseIcon },
         { id: 'api-usage', name: 'API Usage', Icon: BarChartIcon },
         { id: 'search-settings', name: 'Search Settings', Icon: ChipIcon },
-        { id: 'search-modes', name: 'Search Modes', Icon: LayersIcon },
         { id: 'connected-apps', name: 'Connected Apps', Icon: LinkIcon },
         { id: 'speech-language', name: 'Speech & Language', Icon: LanguagesIcon },
     ]},
@@ -126,17 +121,16 @@ const navItems = [
     ]},
     { category: 'About', items: [
         { id: 'about-kyndra-ai', name: 'About Kyndra AI', Icon: InfoIcon },
-        { id: 'legal', name: 'Terms & Privacy', Icon: FileTextIcon },
+        { id: 'legal', name: 'Terms & Privacy', Icon: FileIcon },
     ]}
 ];
 
 const wallpapers = {
-  Default: [{ name: 'White', class: 'bg-white' },{ name: 'Light Gray', class: 'bg-gray-100' },],
+  Default: [{ name: 'Cream', class: 'bg-cream-gradient' }, { name: 'White', class: 'bg-white' }, { name: 'Light Gray', class: 'bg-gray-100' }],
   Gradients: [{ name: 'Peachy', class: 'theme-gradient-2' },{ name: 'Lavender', class: 'theme-gradient-1' },{ name: 'Minty', class: 'theme-gradient-3' },{ name: 'Ocean', class: 'theme-gradient-4' },{ name: 'Sunset', class: 'theme-gradient-5' },{ name: 'Azure', class: 'theme-gradient-6' },{ name: 'Sundance', class: 'theme-gradient-7' },{ name: 'Spearmint', class: 'theme-gradient-8' },{ name: 'Sorbet', class: 'theme-gradient-9' },{ name: 'Meadow', class: 'theme-gradient-10' },{ name: 'Graphite', class: 'theme-gradient-11' },{ name: 'Sky', class: 'theme-gradient-12' },{ name: 'Citrus', class: 'theme-gradient-13' },{ name: 'Amethyst', class: 'theme-gradient-14' },{ name: 'Lullaby', class: 'theme-gradient-15' },],
   Animated: [{ name: 'Aurora', class: 'theme-animated-1' },{ name: 'Nebula', class: 'theme-animated-2' },{ name: 'Vaporwave', class: 'theme-animated-3' },{ name: 'Lemonade', class: 'theme-animated-4' },{ name: 'Instagram', class: 'theme-animated-5' },{ name: 'Night Sky', class: 'theme-animated-6' },{ name: 'Blush', class: 'theme-animated-7' },{ name: 'Flare', class: 'theme-animated-8' },{ name: 'Rose', class: 'theme-animated-9' },{ name: 'Cloudy Sky', class: 'theme-animated-10' },{ name: 'Morning', class: 'theme-animated-11' },{ name: 'Jungle', class: 'theme-animated-12' },]
 };
 const clockThemes = [{ id: 'classic', name: 'Classic', darkClass: 'bg-[#006A4E]', lightClass: 'bg-[#7FFFD4]' },{ id: 'mint', name: 'Mint', darkClass: 'bg-emerald-700', lightClass: 'bg-green-300' },{ id: 'peach', name: 'Peach', darkClass: 'bg-orange-600', lightClass: 'bg-amber-300' },{ id: 'mono', name: 'Mono', darkClass: 'bg-black', lightClass: 'bg-gray-400' },{ id: 'ocean', name: 'Ocean', darkClass: 'bg-blue-800', lightClass: 'bg-sky-400' },{ id: 'sunset', name: 'Sunset', darkClass: 'bg-purple-800', lightClass: 'bg-orange-400' },{ id: 'forest', name: 'Forest', darkClass: 'bg-green-900', lightClass: 'bg-lime-500' },{ id: 'neon', name: 'Neon', darkClass: 'bg-pink-500', lightClass: 'bg-cyan-300' },{ id: 'candy', name: 'Candy', darkClass: 'bg-red-500', lightClass: 'bg-yellow-300' },{ id: 'liquid-glass', name: 'Liquid Glass', darkClass: 'bg-gray-400/30 border border-white/20', lightClass: 'bg-gray-100/30 border border-white/20' },{ id: 'espresso', name: 'Espresso', darkClass: 'bg-[#4a2c2a]', lightClass: 'bg-[#f5e8d7]' },{ id: 'cherry', name: 'Cherry', darkClass: 'bg-[#b24a69]', lightClass: 'bg-[#ffd1e2]' },{ id: 'lavender', name: 'Lavender', darkClass: 'bg-[#6a5acd]', lightClass: 'bg-[#e6e6fa]' },{ id: 'gold', name: 'Gold', darkClass: 'bg-[#b1740f]', lightClass: 'bg-[#fde488]' },{ id: 'ruby', name: 'Ruby', darkClass: 'bg-[#8b0000]', lightClass: 'bg-[#ffc0cb]' },{ id: 'sapphire', name: 'Sapphire', darkClass: 'bg-[#0f52ba]', lightClass: 'bg-[#add8e6]' },{ id: 'emerald', name: 'Emerald', darkClass: 'bg-[#006400]', lightClass: 'bg-[#98ff98]' },{ id: 'graphite', name: 'Graphite', darkClass: 'bg-[#36454f]', lightClass: 'bg-[#d3d3d3]' },{ id: 'coral', name: 'Coral', darkClass: 'bg-[#ff4500]', lightClass: 'bg-[#ffdab9]' },{ id: 'sky', name: 'Sky', darkClass: 'bg-[#55a0d3]', lightClass: 'bg-[#c6f1ff]' },];
-const clockFonts = [{ id: 'fredoka', name: 'Bubbly', className: "font-['Fredoka_One']" },{ id: 'serif', name: 'Serif', className: "font-['Roboto_Slab']" },{ id: 'mono', name: 'Mono', className: "font-['Roboto_Mono']" },{ id: 'pacifico', name: 'Script', className: "font-['Pacifico']" },{ id: 'bungee', name: 'Blocky', className: "font-['Bungee']" },{ id: 'press-start', name: 'Pixel', className: "font-['Press_Start_2P'] text-xs" },{ id: 'caveat', name: 'Handwriting', className: "font-['Caveat'] text-2xl" },{ id: 'lobster', name: 'Lobster', className: "font-['Lobster']" },{ id: 'anton', name: 'Anton', className: "font-['Anton']" },{ id: 'oswald', name: 'Oswald', className: "font-['Oswald']" },{ id: 'playfair', name: 'Playfair', className: "font-['Playfair_Display']" },{ id: 'orbitron', name: 'Orbitron', className: "font-['Orbitron']" },{ id: 'vt323', name: 'VT323', className: "font-['VT323'] text-2xl" },{ id: 'bebas', name: 'Bebas', className: "font-['Bebas_Neue']" },{ id: 'dancing', name: 'Dancing', className: "font-['Dancing_Script'] text-2xl" },{ id: 'satisfy', name: 'Satisfy', className: "font-['Satisfy'] text-xl" },{ id: 'elite', name: 'Typewriter', className: "font-['Special_Elite'] text-lg" },];
 const WallpaperSwatch: React.FC<{ themeClass: string; isSelected: boolean; onClick: () => void; }> = ({ themeClass, isSelected, onClick }) => ( <button onClick={onClick} className={`w-full h-16 rounded-lg border-2 transition-all ${isSelected ? 'border-black scale-105' : 'border-transparent hover:border-gray-300'}`} aria-label={`Select theme: ${themeClass}`}> <div className={`w-full h-full rounded-md flex items-center justify-center ${themeClass}`}> {isSelected && ( <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"> <CheckIcon /> </div> )} </div> </button> );
 const ClockThemeSwatch: React.FC<{ theme: { id: string, name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => ( <button onClick={onClick} className={`p-2 rounded-xl border-2 w-full text-left ${isSelected ? 'border-black' : 'border-gray-200 hover:border-gray-300'}`}> <div className="flex items-center space-x-2"> <div className={`w-6 h-6 rounded-full ${theme.darkClass}`}></div> <div className={`w-6 h-6 rounded-full ${theme.lightClass}`}></div> <span className="text-sm font-medium text-gray-800">{theme.name}</span> </div> </button> );
 
@@ -427,16 +421,16 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
             );
         case 'search-settings': return (
             <div className="space-y-6">
-                <SettingsCard title="Primary AI Model" description={searchSettings.model === 'gemini-2.5-pro' ? "The Gemini 2.5 Pro model provides the highest quality, most coherent, and creative responses, ideal for complex reasoning tasks." : "The Gemini 2.5 Flash model is optimized for fast, web-grounded summaries. It always uses Google Search to provide concise answers based on current information."}>
-                    <select value={searchSettings.model} onChange={(e) => onSearchSettingsChange({ ...searchSettings, model: e.target.value as 'gemini-2.5-flash' | 'gemini-2.5-pro' })} className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm">
+                <SettingsCard title="Primary AI Model" description="Choose the model that powers your searches.">
+                    <select value={searchSettings.model} onChange={(e) => onSearchSettingsChange({ ...searchSettings, model: e.target.value as 'gemini-2.5-flash' | 'gemini-3.0' })} className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-sm">
+                        <option value="gemini-3.0">Gemini 3.0 (New & Powerful)</option>
                         <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast & Efficient)</option>
-                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Advanced Reasoning)</option>
                     </select>
                 </SettingsCard>
                  <SettingsCard title="Web Search" description="Allows the AI to access up-to-date information from Google Search.">
-                    <div className={`flex items-center justify-between transition-opacity ${searchSettings.model === 'gemini-2.5-pro' ? 'opacity-50' : ''}`}>
+                    <div className="flex items-center justify-between">
                         <label htmlFor="web-search-toggle" className="font-medium text-gray-700">Enable Web Search</label>
-                        <button id="web-search-toggle" role="switch" aria-checked={searchSettings.useWebSearch || searchSettings.model === 'gemini-2.5-pro'} onClick={() => onSearchSettingsChange({ ...searchSettings, useWebSearch: !searchSettings.useWebSearch })} disabled={searchSettings.model === 'gemini-2.5-pro'} className={`${(searchSettings.useWebSearch || searchSettings.model === 'gemini-2.5-pro') ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:cursor-not-allowed`}><span className={`${(searchSettings.useWebSearch || searchSettings.model === 'gemini-2.5-pro') ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
+                        <button id="web-search-toggle" role="switch" aria-checked={searchSettings.useWebSearch} onClick={() => onSearchSettingsChange({ ...searchSettings, useWebSearch: !searchSettings.useWebSearch })} className={`${searchSettings.useWebSearch ? 'bg-black' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}><span className={`${searchSettings.useWebSearch ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} /></button>
                     </div>
                  </SettingsCard>
                  <SettingsCard title="Search Modes" description="Activate different modes from the search bar to tailor your experience.">
@@ -476,72 +470,8 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                                 <p className="text-sm text-gray-600">Finds royalty-free images and videos for your projects from Pexels.</p>
                             </div>
                         </li>
-                        <li className="flex items-start space-x-3">
-                            <LayersIcon className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
-                            <div>
-                                <h5 className="font-semibold text-gray-800">Deep Research Mode</h5>
-                                <p className="text-sm text-gray-600">Get comprehensive reports and outlines on any topic.</p>
-                            </div>
-                        </li>
                     </ul>
                  </SettingsCard>
-            </div>
-        );
-        case 'search-modes': return (
-            <div className="space-y-6">
-                <SettingsCard title="Powerful Search Modes" description="Activate specialized modes for more complex tasks.">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <div className="flex items-center space-x-4">
-                                <LayersIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
-                                <div>
-                                    <h5 className="font-semibold text-gray-800">Deep Research Mode</h5>
-                                    <p className="text-sm text-gray-600">Generates comprehensive reports and outlines on any topic.</p>
-                                </div>
-                            </div>
-                            <button className="px-4 py-1.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">
-                                Activate
-                            </button>
-                        </div>
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <div className="flex items-center space-x-4">
-                                <BookOpenIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
-                                <div>
-                                    <h5 className="font-semibold text-gray-800">Academic Search</h5>
-                                    <p className="text-sm text-gray-600">Prioritizes scholarly articles, papers, and academic sources.</p>
-                                </div>
-                            </div>
-                            <button className="px-4 py-1.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">
-                                Activate
-                            </button>
-                        </div>
-                    </div>
-                </SettingsCard>
-
-                <SettingsCard title="Upcoming Modes" description="We're always working on new ways to enhance your search experience.">
-                    <div className="space-y-3">
-                        {[
-                            { Icon: LightbulbIcon, name: 'Creative Mode', description: 'For brainstorming, writing assistance, and generating creative ideas.' },
-                            { Icon: CodeIcon, name: 'Code Helper', description: 'Specialized in searching for code snippets and technical documentation.' },
-                            { Icon: PlaneIcon, name: 'Travel Planner', description: 'AI-powered travel planning, itineraries, and booking suggestions.' },
-                            { Icon: StoreIcon, name: 'Shopping Assistant', description: 'Helps find products, compare prices, and read reviews.' },
-                            { Icon: NewspaperIcon, name: 'News Analyst', description: 'Summarizes news from various sources with multiple perspectives.' },
-                        ].map(mode => (
-                            <div key={mode.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl opacity-60">
-                                <div className="flex items-center space-x-4">
-                                    <mode.Icon className="w-8 h-8 text-gray-500 flex-shrink-0" />
-                                    <div>
-                                        <h5 className="font-semibold text-gray-800">{mode.name}</h5>
-                                        <p className="text-xs text-gray-500">{mode.description}</p>
-                                    </div>
-                                </div>
-                                <span className="px-3 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full flex-shrink-0">
-                                    Coming Soon
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </SettingsCard>
             </div>
         );
         case 'connected-apps': return (
@@ -651,7 +581,7 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                 <p className="mt-2 text-gray-600">Your intelligent gateway to the web.</p>
                 <div className="mt-6 text-left prose prose-sm max-w-none text-gray-700">
                     <p>Kyndra AI is designed to give you quick, summarized answers to your questions, backed by reliable sources from the web. Our mission is to streamline your access to information, cutting through the noise to deliver what you need, when you need it.</p>
-                    <p>For questions or support, please contact us at <a href="mailto:wolfsidevstudios@gmail.com">wolfsidevstudios@gmail.com</a>.</p>
+                    <p>For questions or support, please contact us at <a href="mailto:wolfsisupport@gmail.com">wolfsisupport@gmail.com</a>.</p>
                 </div>
             </div>
         )

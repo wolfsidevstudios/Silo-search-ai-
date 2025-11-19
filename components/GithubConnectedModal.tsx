@@ -1,7 +1,6 @@
 import React from 'react';
 import { CloseIcon } from './icons/CloseIcon';
 import { GitHubIcon } from './icons/GitHubIcon';
-import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { CodeIcon } from './icons/CodeIcon';
 import { FileTextIcon } from './icons/FileTextIcon';

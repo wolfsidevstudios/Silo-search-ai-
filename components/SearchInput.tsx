@@ -49,6 +49,7 @@ interface SearchInputProps {
   showModes?: boolean;
   files: FileRecord[];
   notes: NoteRecord[];
+  geminiApiKey?: string; // Add optional prop for API key if needed for direct calls in future
 }
 
 // Fix: Updated default `setIsStudyMode` to accept an argument, resolving type errors.
@@ -267,12 +268,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                 <div className="flex items-center gap-2">
                     {[
                         { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
-                        { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
                         { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
                         { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
                         { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
                         { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
-                        { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
                     ].map(({ id, label, Icon, action, isActive }) => (
                         <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
                             <Icon className="w-4 h-4" />
@@ -360,12 +359,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
 
         {isDropdownOpen && (
           <div ref={dropdownRef} className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
-            <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Advanced Modes</p>
-            <button onClick={() => { handleModeToggle('research'); setDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-              <LayersIcon className="w-5 h-5 text-gray-500" /><span>Deep Research</span>
-            </button>
-            
-            <div className="my-2 border-t border-gray-100"></div>
             <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
             <button onClick={() => { handleModeToggle('github'); setDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                 <GitHubIcon className="w-5 h-5 text-gray-500" /><span>Search in GitHub</span>
@@ -432,12 +425,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
           {[
               { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
-              { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
               { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
               { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
               { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
               { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
-              { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
           ].map(({ id, label, Icon, action, isActive }) => (
               <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
                   <Icon className="w-4 h-4" />

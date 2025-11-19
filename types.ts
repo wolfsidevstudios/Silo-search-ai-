@@ -94,7 +94,7 @@ export interface SearchInputSettings {
 
 export interface SearchSettings {
   useWebSearch: boolean;
-  model: 'gemini-2.5-flash' | 'gemini-2.5-pro';
+  model: 'gemini-2.5-flash' | 'gemini-3.0';
 }
 
 export interface AccessibilitySettings {

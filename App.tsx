@@ -5,7 +5,7 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
-import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
+import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
 import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, HistoryRecord, GithubProfile } from './types';
 import { AiSparkleIcon } from './components/icons/AiSparkleIcon';
@@ -26,11 +26,9 @@ import { TravelPlanPage } from './components/TravelPlanPage';
 import { fetchTravelPlan } from './services/geminiService';
 import { fetchPexelsMedia } from './services/pexelsService';
 import { PexelsPage } from './components/PexelsPage';
-import { WebAgentPage } from './components/WebAgentPage';
 import { CreatorIdeasPage } from './components/CreatorIdeasPage';
 import { DiscoverPage } from './components/DiscoverPage';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
-import { DeepResearchPage } from './components/DeepResearchPage';
 import { HistoryPage } from './components/HistoryPage';
 import * as db from './utils/db';
 import { KyndraLivePage } from './components/KyndraLivePage';
@@ -40,6 +38,7 @@ import { GithubConnectedModal } from './components/GithubConnectedModal';
 import { GithubTokenModal } from './components/GithubTokenModal';
 import { GithubPage } from './components/GithubPage';
 import { fetchUserProfile } from './services/githubService';
+import { Gemini3Modal } from './components/Gemini3Modal';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -92,11 +91,8 @@ const App: React.FC = () => {
   const [travelQuery, setTravelQuery] = useState<string>('');
   const [pexelsResult, setPexelsResult] = useState<PexelsResult | null>(null);
   const [pexelsQuery, setPexelsQuery] = useState<string>('');
-  const [agentQuery, setAgentQuery] = useState<string>('');
   const [creatorIdeasResult, setCreatorIdeasResult] = useState<CreatorIdeasResult | null>(null);
   const [creatorQuery, setCreatorQuery] = useState('');
-  const [deepResearchResult, setDeepResearchResult] = useState<DeepResearchResult | null>(null);
-  const [researchQuery, setResearchQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingQuery, setLoadingQuery] = useState('');
@@ -162,16 +158,30 @@ const App: React.FC = () => {
   const [githubProfile, setGithubProfile] = useState<GithubProfile | null>(null);
   const [showGithubConnectedModal, setShowGithubConnectedModal] = useState(false);
   const [showGithubTokenModal, setShowGithubTokenModal] = useState(false);
+  const [showGemini3Modal, setShowGemini3Modal] = useState(false);
 
   useEffect(() => {
-    const hasSeenModal = localStorage.getItem('hasSeenGithubConnectedModal');
-    if (!hasSeenModal && userProfile) {
-      setShowGithubConnectedModal(true);
+    const hasSeenGithubModal = localStorage.getItem('hasSeenGithubConnectedModal');
+    const hasSeenGemini3Modal = localStorage.getItem('hasSeenGemini3Modal');
+
+    if (!hasSeenGemini3Modal && userProfile) {
+        setShowGemini3Modal(true);
+    } else if (!hasSeenGithubModal && userProfile) {
+        setShowGithubConnectedModal(true);
     }
+
     if (githubToken && !githubProfile) {
         fetchUserProfile(githubToken).then(setGithubProfile).catch(console.error);
     }
   }, [githubToken, githubProfile, userProfile]);
+
+  const handleCloseGemini3Modal = () => {
+      setShowGemini3Modal(false);
+      localStorage.setItem('hasSeenGemini3Modal', 'true');
+      if (!localStorage.getItem('hasSeenGithubConnectedModal')) {
+        setTimeout(() => setShowGithubConnectedModal(true), 500);
+      }
+  };
 
   const handleSetGithubToken = async (token: string) => {
     try {
@@ -271,15 +281,6 @@ const App: React.FC = () => {
         } else {
             navigate('/search', { replace: true });
         }
-    } else if (path === '/research') {
-        const storedResult = sessionStorage.getItem('deepResearchResult');
-        const storedQuery = sessionStorage.getItem('researchQuery');
-        if (storedResult && storedQuery) {
-            setDeepResearchResult(JSON.parse(storedResult));
-            setResearchQuery(storedQuery);
-        } else {
-            navigate('/search', { replace: true });
-        }
     } else if (path === '/creator-ideas') {
         const storedResult = sessionStorage.getItem('creatorIdeasResult');
         const storedQuery = sessionStorage.getItem('creatorQuery');
@@ -311,13 +312,6 @@ const App: React.FC = () => {
         if (storedResult && storedQuery) {
             setPexelsResult(JSON.parse(storedResult));
             setPexelsQuery(storedQuery);
-        } else {
-            navigate('/search', { replace: true });
-        }
-    } else if (path === '/agent') {
-        const storedAgentQuery = sessionStorage.getItem('agentQuery');
-        if (storedAgentQuery) {
-            setAgentQuery(storedAgentQuery);
         } else {
             navigate('/search', { replace: true });
         }
@@ -560,13 +554,13 @@ const App: React.FC = () => {
         const parsed = JSON.parse(item);
         return {
           useWebSearch: typeof parsed.useWebSearch === 'boolean' ? parsed.useWebSearch : true,
-          model: (parsed.model === 'gemini-2.5-flash' || parsed.model === 'gemini-2.5-pro') ? parsed.model : 'gemini-2.5-flash',
+          model: (parsed.model === 'gemini-2.5-flash' || parsed.model === 'gemini-3.0') ? parsed.model : 'gemini-3.0',
         };
       }
     } catch (error) {
       console.error("Could not parse searchSettings from localStorage", error);
     }
-    return { useWebSearch: true, model: 'gemini-2.5-flash' };
+    return { useWebSearch: true, model: 'gemini-3.0' };
   });
 
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(() => {
@@ -846,25 +840,6 @@ const App: React.FC = () => {
             return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
           });
         }
-    } else if (options.researchSearch) {
-        setIsLoading(true);
-        setResearchQuery(query);
-        if (!isTemporaryMode) {
-          setRecentSearches(prev => [`research: ${query}`, ...prev.filter(s => s !== `research: ${query}`)].slice(0, MAX_RECENT_SEARCHES));
-        }
-        try {
-            const result = await fetchDeepResearch(query, apiKeys.gemini);
-            setDeepResearchResult(result);
-            sessionStorage.setItem('deepResearchResult', JSON.stringify(result));
-            sessionStorage.setItem('researchQuery', query);
-            navigate('/research');
-        } catch (err) {
-            console.error(err);
-            setError('Sorry, something went wrong with the deep research. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-        return;
     } else if (options.creatorSearch && options.creatorPlatform) {
         setIsLoading(true);
         setCreatorQuery(query);
@@ -885,17 +860,6 @@ const App: React.FC = () => {
             setError('Sorry, something went wrong with the creator agent. Please try again.');
         } finally {
             setIsLoading(false);
-        }
-        return;
-    } else if (options.agentSearch) {
-        setAgentQuery(query);
-        sessionStorage.setItem('agentQuery', query);
-        navigate('/agent');
-        if (!isTemporaryMode) {
-          setRecentSearches(prevSearches => {
-            const updatedSearches = [`agent: ${query}`, ...prevSearches.filter(s => s !== `agent: ${query}`)];
-            return updatedSearches.slice(0, MAX_RECENT_SEARCHES);
-          });
         }
         return;
     } else if (options.pexelsSearch) {
@@ -1081,7 +1045,7 @@ const App: React.FC = () => {
     }
     const ai = new GoogleGenAI({ apiKey: apiKeys.gemini });
     chatRef.current = ai.chats.create({ 
-      model: searchSettings.model === 'gemini-2.5-pro' ? 'gemini-2.5-pro' : 'gemini-2.5-flash',
+      model: searchSettings.model === 'gemini-3.0' ? 'gemini-2.5-pro' : 'gemini-2.5-flash',
       config: {
         systemInstruction: 'You are a helpful AI assistant. The user has just performed a search and received a summary. Continue the conversation by answering follow-up questions about the search topic. Be concise, clear, and organize your answers in short sentences.'
       }
@@ -1238,8 +1202,6 @@ const App: React.FC = () => {
           queryToRetry = pexelsQuery;
         } else if (lastSearchOptions.creatorSearch) {
             queryToRetry = creatorQuery;
-        } else if (lastSearchOptions.researchSearch) {
-            queryToRetry = researchQuery;
         } else {
           queryToRetry = currentQuery;
         }
@@ -1286,11 +1248,9 @@ const App: React.FC = () => {
     if (isMobile) {
         switch(path) {
             case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} files={files} notes={notes} {...commonProps} /> : <LoadingState query={currentQuery}/>;
-            case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={researchQuery} />;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={travelQuery} />;
             case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
-            case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
             case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
             case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
             case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
@@ -1303,11 +1263,9 @@ const App: React.FC = () => {
     // Desktop view
     switch(path) {
       case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} files={files} notes={notes} {...commonProps} /> : <LoadingState query={currentQuery} />;
-      case '/research': return deepResearchResult ? <DeepResearchPage result={deepResearchResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={researchQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={travelQuery} />;
       case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
-      case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
       case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
       case '/history': return <HistoryPage history={history} onSearch={(q) => handleSearch(q, {})} onOpenVideoPlayer={handleOpenVideoPlayer} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
@@ -1360,6 +1318,7 @@ const App: React.FC = () => {
             return (
                 <div className={appClasses} style={{ ...appStyle, ...(customWallpaper && !isMobile ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' } : {}) }}>
                     {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
+                    <Gemini3Modal isOpen={showGemini3Modal} onClose={handleCloseGemini3Modal} />
                     <GithubConnectedModal isOpen={showGithubConnectedModal} onClose={handleCloseGithubConnectedModal} />
                     <GithubTokenModal isOpen={showGithubTokenModal} onClose={() => setShowGithubTokenModal(false)} onConnect={handleSetGithubToken} />
                     {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} onDeleteRecentSearch={handleDeleteRecentSearch} />}
