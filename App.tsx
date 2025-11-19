@@ -41,6 +41,7 @@ import { GithubPage } from './components/GithubPage';
 import { fetchUserProfile } from './services/githubService';
 import { Gemini3Modal } from './components/Gemini3Modal';
 import { ProSuccessPage } from './components/ProSuccessPage';
+import { PlansPage } from './components/PlansPage';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -1324,6 +1325,7 @@ const App: React.FC = () => {
             case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
             case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
             case '/pro-success': return <ProSuccessPage onGoHome={handleGoHome} onActivatePro={handleActivatePro} />;
+            case '/plans': return <PlansPage onActivatePro={handleActivatePro} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} onSearch={handleSearch} history={history} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} geminiApiKey={apiKeys.gemini} files={files} notes={notes} {...commonProps} />;
@@ -1342,6 +1344,7 @@ const App: React.FC = () => {
       case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
       case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
       case '/pro-success': return <ProSuccessPage onGoHome={handleGoHome} onActivatePro={handleActivatePro} />;
+      case '/plans': return <PlansPage onActivatePro={handleActivatePro} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       default:
         const desktopSearchPageProps = {
           onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onSelectSummarizationSource: handleSelectSummarizationSource, onClearSummarizationSource: () => setSummarizationSource(null), geminiApiKey: apiKeys.gemini, files, notes, ...commonProps

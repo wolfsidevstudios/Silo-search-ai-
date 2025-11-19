@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { HomeIcon } from './icons/HomeIcon';
@@ -11,6 +9,7 @@ import { NavigationTabs } from './NavigationTabs';
 import { VoiceIcon } from './icons/VoiceIcon';
 import { ProfileIcon } from './icons/ProfileIcon';
 import { AiSparkleIcon } from './icons/AiSparkleIcon';
+import { CrownIcon } from './icons/CrownIcon';
 
 interface HeaderProps {
   isTemporaryMode: boolean;
@@ -21,7 +20,7 @@ interface HeaderProps {
   showHomeButton?: boolean;
   userProfile: UserProfile | null;
   onLogout: () => void;
-  activeTab?: 'search' | 'discover' | 'history' | 'ai-labs';
+  activeTab?: 'search' | 'discover' | 'history' | 'ai-labs' | 'plans';
   onNavigate?: (path: string) => void;
 }
 
@@ -56,16 +55,28 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
         </div>
       </div>
       
-      {activeTab && onNavigate && (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <NavigationTabs activeTab={activeTab} onNavigate={onNavigate} />
+      {activeTab && onNavigate && activeTab !== 'plans' && (
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
+            <NavigationTabs activeTab={activeTab === 'ai-labs' ? 'search' : activeTab} onNavigate={onNavigate} />
         </div>
       )}
 
       <div className="flex items-center space-x-4">
         {onNavigate && (
           <>
-            <div className="w-px h-6 bg-gray-200"></div>
+            {(!userProfile?.isPro) && (
+                <button
+                    onClick={() => onNavigate('/plans')}
+                    className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-105 text-yellow-900"
+                    aria-label="Upgrade to Pro"
+                >
+                    <CrownIcon className="w-4 h-4" />
+                    <span className="font-bold text-xs uppercase tracking-wider">Upgrade</span>
+                </button>
+            )}
+            
+            <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
+            
             <button
                 onClick={() => onNavigate('/labs')}
                 className="relative flex items-center space-x-2 px-4 py-2 bg-white rounded-full shadow border hover:shadow-md transition-all group overflow-hidden"
@@ -93,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
         )}
         {userProfile ? (
           <div className="relative" ref={dropdownRef}>
-            <button onClick={() => setDropdownOpen(p => !p)} className="rounded-full transition-transform hover:scale-105">
+            <button onClick={() => setDropdownOpen(p => !p)} className="rounded-full transition-transform hover:scale-105 border-2 border-transparent hover:border-gray-200">
               <img src={userProfile.picture} alt={userProfile.name} className="w-10 h-10 rounded-full" />
             </button>
             {isDropdownOpen && (
@@ -101,6 +112,7 @@ export const Header: React.FC<HeaderProps> = ({ isTemporaryMode, onToggleSidebar
                 <div className="px-4 py-3 border-b">
                   <p className="text-sm font-semibold text-gray-900 truncate">{userProfile.name}</p>
                   <p className="text-sm text-gray-500 truncate">{userProfile.email}</p>
+                  {userProfile.isPro && <span className="mt-1 inline-block px-2 py-0.5 bg-black text-white text-[10px] font-bold rounded-full">PRO MEMBER</span>}
                 </div>
                 <button 
                   onClick={() => { onLogout(); setDropdownOpen(false); }} 
