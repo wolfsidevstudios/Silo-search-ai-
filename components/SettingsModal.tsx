@@ -100,7 +100,6 @@ const AI_PROVIDERS = [
 
 const PRO_FEATURES_COSTS: { [key: string]: number } = {
   'upload-custom-wallpaper': 50, 'upload-custom-sticker': 50,
-  'theme-animated-1': 25, 'theme-animated-2': 25, 'theme-animated-3': 25, 'theme-animated-4': 25, 'theme-animated-5': 25, 'theme-animated-6': 25, 'theme-animated-7': 25, 'theme-animated-8': 25, 'theme-animated-9': 25, 'theme-animated-10': 25, 'theme-animated-11': 25, 'theme-animated-12': 25,
   'liquid-glass': 15, 'neon': 15, 'gold': 15, 'ruby': 15, 'sapphire': 15, 'emerald': 15,
   'press-start': 15, 'orbitron': 15, 'elite': 15,
 };
@@ -130,12 +129,13 @@ const navItems = [
 ];
 
 const wallpapers = {
-  Default: [{ name: 'Cream', class: 'bg-cream-gradient' }, { name: 'White', class: 'bg-white' }, { name: 'Light Gray', class: 'bg-gray-100' }],
-  Gradients: [{ name: 'Peachy', class: 'theme-gradient-2' },{ name: 'Lavender', class: 'theme-gradient-1' },{ name: 'Minty', class: 'theme-gradient-3' },{ name: 'Ocean', class: 'theme-gradient-4' },{ name: 'Sunset', class: 'theme-gradient-5' },{ name: 'Azure', class: 'theme-gradient-6' },{ name: 'Sundance', class: 'theme-gradient-7' },{ name: 'Spearmint', class: 'theme-gradient-8' },{ name: 'Sorbet', class: 'theme-gradient-9' },{ name: 'Meadow', class: 'theme-gradient-10' },{ name: 'Graphite', class: 'theme-gradient-11' },{ name: 'Sky', class: 'theme-gradient-12' },{ name: 'Citrus', class: 'theme-gradient-13' },{ name: 'Amethyst', class: 'theme-gradient-14' },{ name: 'Lullaby', class: 'theme-gradient-15' },],
-  Animated: [{ name: 'Aurora', class: 'theme-animated-1' },{ name: 'Nebula', class: 'theme-animated-2' },{ name: 'Vaporwave', class: 'theme-animated-3' },{ name: 'Lemonade', class: 'theme-animated-4' },{ name: 'Instagram', class: 'theme-animated-5' },{ name: 'Night Sky', class: 'theme-animated-6' },{ name: 'Blush', class: 'theme-animated-7' },{ name: 'Flare', class: 'theme-animated-8' },{ name: 'Rose', class: 'theme-animated-9' },{ name: 'Cloudy Sky', class: 'theme-animated-10' },{ name: 'Morning', class: 'theme-animated-11' },{ name: 'Jungle', class: 'theme-animated-12' },]
+  Default: [
+    { name: 'Studio', class: 'bg-studio' },
+    { name: 'White', class: 'bg-white' },
+  ]
 };
 const clockThemes = [{ id: 'classic', name: 'Classic', darkClass: 'bg-[#006A4E]', lightClass: 'bg-[#7FFFD4]' },{ id: 'mint', name: 'Mint', darkClass: 'bg-emerald-700', lightClass: 'bg-green-300' },{ id: 'peach', name: 'Peach', darkClass: 'bg-orange-600', lightClass: 'bg-amber-300' },{ id: 'mono', name: 'Mono', darkClass: 'bg-black', lightClass: 'bg-gray-400' },{ id: 'ocean', name: 'Ocean', darkClass: 'bg-blue-800', lightClass: 'bg-sky-400' },{ id: 'sunset', name: 'Sunset', darkClass: 'bg-purple-800', lightClass: 'bg-orange-400' },{ id: 'forest', name: 'Forest', darkClass: 'bg-green-900', lightClass: 'bg-lime-500' },{ id: 'neon', name: 'Neon', darkClass: 'bg-pink-500', lightClass: 'bg-cyan-300' },{ id: 'candy', name: 'Candy', darkClass: 'bg-red-500', lightClass: 'bg-yellow-300' },{ id: 'liquid-glass', name: 'Liquid Glass', darkClass: 'bg-gray-400/30 border border-white/20', lightClass: 'bg-gray-100/30 border border-white/20' },{ id: 'espresso', name: 'Espresso', darkClass: 'bg-[#4a2c2a]', lightClass: 'bg-[#f5e8d7]' },{ id: 'cherry', name: 'Cherry', darkClass: 'bg-[#b24a69]', lightClass: 'bg-[#ffd1e2]' },{ id: 'lavender', name: 'Lavender', darkClass: 'bg-[#6a5acd]', lightClass: 'bg-[#e6e6fa]' },{ id: 'gold', name: 'Gold', darkClass: 'bg-[#b1740f]', lightClass: 'bg-[#fde488]' },{ id: 'ruby', name: 'Ruby', darkClass: 'bg-[#8b0000]', lightClass: 'bg-[#ffc0cb]' },{ id: 'sapphire', name: 'Sapphire', darkClass: 'bg-[#0f52ba]', lightClass: 'bg-[#add8e6]' },{ id: 'emerald', name: 'Emerald', darkClass: 'bg-[#006400]', lightClass: 'bg-[#98ff98]' },{ id: 'graphite', name: 'Graphite', darkClass: 'bg-[#36454f]', lightClass: 'bg-[#d3d3d3]' },{ id: 'coral', name: 'Coral', darkClass: 'bg-[#ff4500]', lightClass: 'bg-[#ffdab9]' },{ id: 'sky', name: 'Sky', darkClass: 'bg-[#55a0d3]', lightClass: 'bg-[#c6f1ff]' },];
-const WallpaperSwatch: React.FC<{ themeClass: string; isSelected: boolean; onClick: () => void; }> = ({ themeClass, isSelected, onClick }) => ( <button onClick={onClick} className={`w-full h-16 rounded-lg border-2 transition-all ${isSelected ? 'border-black scale-105' : 'border-transparent hover:border-gray-300'}`} aria-label={`Select theme: ${themeClass}`}> <div className={`w-full h-full rounded-md flex items-center justify-center ${themeClass}`}> {isSelected && ( <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"> <CheckIcon /> </div> )} </div> </button> );
+const WallpaperSwatch: React.FC<{ themeClass: string; isSelected: boolean; onClick: () => void; name: string }> = ({ themeClass, isSelected, onClick, name }) => ( <button onClick={onClick} className={`w-full h-24 rounded-lg border-2 transition-all relative overflow-hidden ${isSelected ? 'border-black scale-105' : 'border-transparent hover:border-gray-300'}`} aria-label={`Select theme: ${name}`}> <div className={`w-full h-full rounded-md flex items-center justify-center ${themeClass} bg-cover bg-center`}> {isSelected && ( <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white z-10"> <CheckIcon /> </div> )} <span className={`absolute bottom-2 left-2 text-xs font-bold px-2 py-1 rounded ${themeClass === 'bg-white' ? 'bg-gray-100 text-black' : 'bg-black/50 text-white'}`}>{name}</span></div> </button> );
 const ClockThemeSwatch: React.FC<{ theme: { id: string, name: string, darkClass: string, lightClass: string }, isSelected: boolean, onClick: () => void }> = ({ theme, isSelected, onClick }) => ( <button onClick={onClick} className={`p-2 rounded-xl border-2 w-full text-left ${isSelected ? 'border-black' : 'border-gray-200 hover:border-gray-300'}`}> <div className="flex items-center space-x-2"> <div className={`w-6 h-6 rounded-full ${theme.darkClass}`}></div> <div className={`w-6 h-6 rounded-full ${theme.lightClass}`}></div> <span className="text-sm font-medium text-gray-800">{theme.name}</span> </div> </button> );
 
 const SettingsCard: React.FC<{title: string, description: string, children: React.ReactNode}> = ({title, description, children}) => (
@@ -354,13 +354,13 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                 <SettingsCard title="Custom Wallpaper" description="Upload your own image to use as a background.">
                     <div className="grid grid-cols-2 gap-4">
                         <ProFeatureWrapper featureId="upload-custom-wallpaper">
-                            <button onClick={handleUploadWallpaperClick} className="w-full h-20 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex flex-col items-center justify-center transition-colors">
+                            <button onClick={handleUploadWallpaperClick} className="w-full h-24 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 flex flex-col items-center justify-center transition-colors">
                                 <UploadCloudIcon className="w-6 h-6 mb-1" /> <span className="text-xs font-semibold">Upload Your Own</span>
                             </button>
                         </ProFeatureWrapper>
                         {customWallpaper && (
                             <div className="relative">
-                                <button className="w-full h-20 rounded-xl border-2 border-black">
+                                <button className="w-full h-24 rounded-xl border-2 border-black">
                                     <div className="w-full h-full rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${customWallpaper})` }}>
                                         <div className="w-full h-full rounded-lg flex items-center justify-center bg-black/20"> <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"> <CheckIcon /> </div> </div>
                                     </div>
@@ -370,16 +370,13 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
                         )}
                     </div>
                 </SettingsCard>
-                <SettingsCard title="Wallpaper Gallery" description="Choose a background for the application. Selecting one will remove a custom wallpaper.">
+                <SettingsCard title="Background" description="Choose a background for the application.">
                     {Object.entries(wallpapers).map(([category, themeList]) => (
                         <div key={category} className="mb-4 last:mb-0">
-                            <h3 className="text-sm font-medium text-gray-500 mb-3">{category}</h3>
-                            <div className="grid grid-cols-3 gap-3">
-                                {themeList.map(theme => {
-                                    const isAnimated = category === 'Animated';
-                                    const swatch = <WallpaperSwatch key={theme.class} themeClass={theme.class} isSelected={currentTheme === theme.class && !customWallpaper} onClick={() => { onThemeChange(theme.class) ; onCustomWallpaperChange(null) }} />;
-                                    return isAnimated ? <ProFeatureWrapper key={theme.class} featureId={theme.class}>{swatch}</ProFeatureWrapper> : swatch;
-                                })}
+                            <div className="grid grid-cols-2 gap-4">
+                                {themeList.map(theme => (
+                                    <WallpaperSwatch key={theme.class} themeClass={theme.class} name={theme.name} isSelected={currentTheme === theme.class && !customWallpaper} onClick={() => { onThemeChange(theme.class) ; onCustomWallpaperChange(null) }} />
+                                ))}
                             </div>
                         </div>
                     ))}

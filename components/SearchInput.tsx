@@ -190,45 +190,47 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   if (variant === 'home' || variant === 'create') {
     return (
       <div>
-        <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white/80 backdrop-blur-md border border-gray-200 flex flex-col" style={{ minHeight: '180px' }}>
-            {summarizationSource && (
-                <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
-                    <FileTextIcon className="w-4 h-4" />
-                    <span className="truncate max-w-xs">Context: {summarizationSource.name}</span>
-                    <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
-                </div>
-            )}
-            <textarea
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={variant === 'create' ? "Generate a design, document, or code..." : "Ask anything or use Search Pilot to select a file..."}
-                className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg placeholder:text-gray-500"
-            />
+        <div className={`input-gradient-wrapper ${query.length > 0 ? 'active' : ''}`}>
+            <form onSubmit={handleSubmit} className="w-full p-4 rounded-3xl shadow-xl bg-white/80 backdrop-blur-md border border-gray-200 flex flex-col relative z-10" style={{ minHeight: '180px' }}>
+                {summarizationSource && (
+                    <div className="flex items-center justify-center space-x-2 px-3 py-1.5 mb-2 text-sm font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-center">
+                        <FileTextIcon className="w-4 h-4" />
+                        <span className="truncate max-w-xs">Context: {summarizationSource.name}</span>
+                        <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+                    </div>
+                )}
+                <textarea
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={variant === 'create' ? "Generate a design, document, or code..." : "Ask anything or use Search Pilot to select a file..."}
+                    className="w-full flex-grow bg-transparent outline-none border-none resize-none text-lg placeholder:text-gray-500"
+                />
 
-            <div className="flex items-center justify-between mt-auto pt-4">
-                {/* Left side toolbar */}
-                <div className="flex items-center space-x-1">
-                    {variant !== 'create' && (
-                        <button type="button" title="Search with context" onClick={() => setContextSelectorOpen(p => !p)} className={`p-2 rounded-lg flex items-center space-x-2 transition-colors ${isContextSelectorOpen ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
-                            <LogoIcon className="w-5 h-5" />
-                            <span className="text-sm font-medium">Search Pilot</span>
-                        </button>
-                    )}
-                </div>
+                <div className="flex items-center justify-between mt-auto pt-4">
+                    {/* Left side toolbar */}
+                    <div className="flex items-center space-x-1">
+                        {variant !== 'create' && (
+                            <button type="button" title="Search with context" onClick={() => setContextSelectorOpen(p => !p)} className={`p-2 rounded-lg flex items-center space-x-2 transition-colors ${isContextSelectorOpen ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
+                                <LogoIcon className="w-5 h-5" />
+                                <span className="text-sm font-medium">Search Pilot</span>
+                            </button>
+                        )}
+                    </div>
 
-                {/* Right side buttons */}
-                <div className="flex items-center space-x-2">
-                    {hasRecognitionSupport && (
-                        <button type="button" onClick={handleMicClick} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors w-12 h-12 ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'hover:bg-gray-100 text-gray-600'}`} aria-label={isListening ? 'Stop listening' : 'Start voice search'}>
-                            <MicrophoneIcon className={isListening ? 'text-red-500' : 'text-gray-600'} />
+                    {/* Right side buttons */}
+                    <div className="flex items-center space-x-2">
+                        {hasRecognitionSupport && (
+                            <button type="button" onClick={handleMicClick} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors w-12 h-12 ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'hover:bg-gray-100 text-gray-600'}`} aria-label={isListening ? 'Stop listening' : 'Start voice search'}>
+                                <MicrophoneIcon className={isListening ? 'text-red-500' : 'text-gray-600'} />
+                            </button>
+                        )}
+                        <button type="submit" className="w-12 h-12 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition-transform hover:scale-105" aria-label="Submit search">
+                            <ArrowRightIcon />
                         </button>
-                    )}
-                    <button type="submit" className="w-12 h-12 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition-transform hover:scale-105" aria-label="Submit search">
-                        <ArrowRightIcon />
-                    </button>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
          {isContextSelectorOpen && (
             <div className="mt-4 w-full max-w-2xl mx-auto search-pilot-container">
                 <div className="flex items-center space-x-3 pb-2">
@@ -332,61 +334,63 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   
   return (
     <div>
-      <form onSubmit={handleSubmit} className={containerClasses}>
-        <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
-        {summarizationSource && (
-            <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                <FileTextIcon className="w-4 h-4" />
-                <span className="font-medium truncate max-w-[100px]">{summarizationSource.name}</span>
-                <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+      <div className={`input-gradient-wrapper ${query.length > 0 ? 'active' : ''}`}>
+        <form onSubmit={handleSubmit} className={`${containerClasses} z-10`}>
+          <SearchIcon className={isGlossy ? "text-white/80" : "text-gray-600"} />
+          {summarizationSource && (
+              <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                  <FileTextIcon className="w-4 h-4" />
+                  <span className="font-medium truncate max-w-[100px]">{summarizationSource.name}</span>
+                  <button type="button" onClick={() => onClearSummarizationSource()} className="p-0.5 rounded-full hover:bg-blue-200"><CloseIcon className="w-3 h-3" /></button>
+              </div>
+          )}
+          {isStudyMode && !summarizationSource && (
+              <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-green-100 text-green-800">
+                  <BookOpenIcon className="w-4 h-4" />
+                  <span className="font-medium">Study Mode</span>
+                  <button type="button" onClick={() => setIsStudyMode(false)} className="p-0.5 rounded-full hover:bg-green-200"><CloseIcon className="w-3 h-3" /></button>
+              </div>
+          )}
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
+          <button type="button" onClick={() => setContextSelectorOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
+              <LogoIcon className={isGlossy && !summarizationSource ? 'text-white/80' : ''} />
+          </button>
+          {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
+          
+          <button ref={moreButtonRef} type="button" onClick={() => setDropdownOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600'}`} aria-label="More search options" aria-haspopup="true" aria-expanded={isDropdownOpen}>
+            <MoreVerticalIcon className={isGlossy ? 'text-white/80' : 'text-gray-600'} />
+          </button>
+
+          {isDropdownOpen && (
+            <div ref={dropdownRef} className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
+              <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
+              <button onClick={() => { handleModeToggle('github'); setDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <GitHubIcon className="w-5 h-5 text-gray-500" /><span>Search in GitHub</span>
+              </button>
+              <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+                <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+              </button>
+              <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
+                <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
+              </button>
+
+              <div className="my-2 border-t border-gray-100"></div>
+              <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Elsewhere</p>
+              <button onClick={() => handleExternalSearch('https://www.youtube.com/results?search_query={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <YouTubeIcon className="w-5 h-5 text-gray-500" /><span>Search on YouTube</span>
+              </button>
+              <button onClick={() => handleExternalSearch('https://en.wikipedia.org/w/index.php?search={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <WikipediaIcon className="w-5 h-5 text-gray-500" /><span>Search on Wikipedia</span>
+              </button>
+              <button onClick={() => handleExternalSearch('https://www.reddit.com/search/?q={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <RedditIcon className="w-5 h-5 text-gray-500" /><span>Search on Reddit</span>
+              </button>
             </div>
-        )}
-        {isStudyMode && !summarizationSource && (
-            <div className="flex-shrink-0 flex items-center space-x-2 px-3 py-1.5 ml-2 mr-1 rounded-full text-sm bg-green-100 text-green-800">
-                <BookOpenIcon className="w-4 h-4" />
-                <span className="font-medium">Study Mode</span>
-                <button type="button" onClick={() => setIsStudyMode(false)} className="p-0.5 rounded-full hover:bg-green-200"><CloseIcon className="w-3 h-3" /></button>
-            </div>
-        )}
-        <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ask anything..." className={inputClasses} />
-        <button type="button" onClick={() => setContextSelectorOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${summarizationSource ? (isGlossy ? 'bg-blue-500/50 text-white' : 'bg-blue-100 text-blue-700') : (isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600')}`} aria-label="Summarize from a source">
-            <LogoIcon className={isGlossy && !summarizationSource ? 'text-white/80' : ''} />
-        </button>
-        {hasRecognitionSupport && ( <button type="button" onClick={handleMicClick} className={micButtonClasses} aria-label={isListening ? 'Stop listening' : 'Start voice search'}> <MicrophoneIcon className={isListening ? (isGlossy ? 'text-white' : 'text-red-500') : (isGlossy ? 'text-white/80' : 'text-gray-600')} /> </button> )}
-        
-        <button ref={moreButtonRef} type="button" onClick={() => setDropdownOpen(p => !p)} className={`flex-shrink-0 flex items-center justify-center rounded-full transition-colors mr-1 ${buttonClasses} ${isGlossy ? 'hover:bg-white/20 text-white' : 'hover:bg-gray-100 text-gray-600'}`} aria-label="More search options" aria-haspopup="true" aria-expanded={isDropdownOpen}>
-          <MoreVerticalIcon className={isGlossy ? 'text-white/80' : 'text-gray-600'} />
-        </button>
+          )}
 
-        {isDropdownOpen && (
-          <div ref={dropdownRef} className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 py-2 z-20">
-            <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
-            <button onClick={() => { handleModeToggle('github'); setDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                <GitHubIcon className="w-5 h-5 text-gray-500" /><span>Search in GitHub</span>
-            </button>
-            <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
-              <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
-            </button>
-            <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
-              <NotionIcon className="w-5 h-5 text-gray-500" /><span>Search in Notion</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
-            </button>
-
-            <div className="my-2 border-t border-gray-100"></div>
-            <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Search Elsewhere</p>
-            <button onClick={() => handleExternalSearch('https://www.youtube.com/results?search_query={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-              <YouTubeIcon className="w-5 h-5 text-gray-500" /><span>Search on YouTube</span>
-            </button>
-            <button onClick={() => handleExternalSearch('https://en.wikipedia.org/w/index.php?search={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-              <WikipediaIcon className="w-5 h-5 text-gray-500" /><span>Search on Wikipedia</span>
-            </button>
-            <button onClick={() => handleExternalSearch('https://www.reddit.com/search/?q={query}')} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-              <RedditIcon className="w-5 h-5 text-gray-500" /><span>Search on Reddit</span>
-            </button>
-          </div>
-        )}
-
-        <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
-      </form>
+          <button type="submit" className={submitButtonClasses}> <ArrowRightIcon /> </button>
+        </form>
+      </div>
       {isContextSelectorOpen && (
         <div className="mt-2 w-full search-pilot-container">
             <div className="flex items-center space-x-3 pb-2">

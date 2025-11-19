@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -15,38 +16,40 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Bungee&family=Caveat&family=Dancing+Script&family=Fredoka+One&family=Lobster&family=Orbitron&family=Oswald&family=Pacifico&family=Playfair+Display&family=Press+Start+2P&family=Roboto+Mono&family=Roboto+Slab&family=Satisfy&family=Special+Elite&family=VT323&display=swap');
-      @keyframes animated-gradient {
+      
+      /* Background Themes */
+      .bg-cream-gradient {
+        background: linear-gradient(135deg, #fffefc, #fdfbf7);
+      }
+      .bg-studio {
+        background-image: url('https://i.ibb.co/KpfZSbh1/Google-AI-Studio-2025-11-19-T01-12-08-540-Z.png');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+
+      /* Search Input Gradient Animation */
+      @keyframes gradient-border-spin {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
       }
-      .theme-animated-1 { background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: animated-gradient 15s ease infinite; }
-      .theme-animated-2 { background: linear-gradient(-45deg, #4b0082, #0000ff, #00ff00, #ffff00, #ff7f00, #ff0000); background-size: 600% 600%; animation: animated-gradient 20s ease infinite; }
-      .theme-animated-3 { background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff00ff); background-size: 400% 400%; animation: animated-gradient 10s ease infinite; }
-      .theme-animated-4 { background: linear-gradient(-45deg, #00c3ff, #ffff1c, #00c3ff, #ffff1c); background-size: 400% 400%; animation: animated-gradient 18s ease infinite; }
-      .theme-animated-5 { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #9a1792, #6a5acd); background-size: 600% 600%; animation: animated-gradient 12s ease infinite; }
-      .theme-animated-6 { background: linear-gradient(-45deg, #2a2a72, #009ffd); background-size: 200% 200%; animation: animated-gradient 10s ease infinite; }
-      .theme-animated-7 { background: linear-gradient(to right, #ff6e7f, #bfe9ff); background-size: 200% 200%; animation: animated-gradient 8s ease infinite; }
-      .theme-animated-8 { background: linear-gradient(45deg, #833ab4, #fd1d1d, #fcb045); background-size: 400% 400%; animation: animated-gradient 15s ease infinite; }
-      .theme-animated-9 { background: linear-gradient(-45deg, #ff9a9e, #fad0c4); background-size: 200% 200%; animation: animated-gradient 10s ease infinite; }
-      .theme-animated-10 { background: linear-gradient(45deg, #a1c4fd, #c2e9fb); background-size: 200% 200%; animation: animated-gradient 12s ease infinite; }
-      .theme-animated-11 { background: linear-gradient(-45deg, #d299c2, #fef9d7); background-size: 200% 200%; animation: animated-gradient 10s ease infinite; }
-      .theme-animated-12 { background: linear-gradient(45deg, #43e97b, #38f9d7); background-size: 200% 200%; animation: animated-gradient 8s ease infinite; }
-      .theme-gradient-1 { background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%); }
-      .theme-gradient-2 { background-image: linear-gradient(to right, #ff8177 0%, #ff867a 0%, #ff8c7f 21%, #f99185 52%, #cf556c 78%, #b12a5b 100%); }
-      .theme-gradient-3 { background-image: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%); }
-      .theme-gradient-4 { background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%); }
-      .theme-gradient-5 { background-image: linear-gradient(to top, #f77062 0%, #fe5196 100%); }
-      .theme-gradient-6 { background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); }
-      .theme-gradient-7 { background-image: linear-gradient(to right, #fa709a 0%, #fee140 100%); }
-      .theme-gradient-8 { background-image: linear-gradient(to top, #0ba360 0%, #3cba92 100%); }
-      .theme-gradient-9 { background-image: linear-gradient(to top, #ff9a44 0%, #fc6076 100%); }
-      .theme-gradient-10 { background-image: linear-gradient(to top, #c1dfc4 0%, #deecdd 100%); }
-      .theme-gradient-11 { background-image: linear-gradient(to right, #434343 0%, black 100%); }
-      .theme-gradient-12 { background-image: linear-gradient(to top, #accbee 0%, #e7f0fd 100%); }
-      .theme-gradient-13 { background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%); }
-      .theme-gradient-14 { background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-      .theme-gradient-15 { background-image: linear-gradient(to right, #e0c3fc 0%, #8ec5fc 100%); }
+
+      .input-gradient-wrapper {
+         position: relative;
+         border-radius: 1.5rem; /* Matches rounded-3xl */
+         padding: 2px;
+         background: transparent;
+         transition: background 0.3s ease;
+      }
+
+      .input-gradient-wrapper.active {
+        background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8, #1098ad, #07b39b, #6fba82);
+        background-size: 300% 300%;
+        animation: gradient-border-spin 3s ease alternate infinite;
+      }
+
+      /* Clock Fonts */
       .clock-font-fredoka { font-family: 'Fredoka One', cursive; line-height: 1; font-weight: 400; }
       .clock-font-serif { font-family: 'Roboto Slab', serif; line-height: 1; font-weight: 400; }
       .clock-font-mono { font-family: 'Roboto Mono', monospace; line-height: 1; font-weight: 400; }
@@ -160,10 +163,6 @@
         height: 24px;
         background-color: #e5e7eb;
         margin: 0 8px;
-      }
-      
-      .bg-cream-gradient {
-        background: linear-gradient(135deg, #fffefc, #fdfbf7);
       }
     </style>
   <script type="importmap">
