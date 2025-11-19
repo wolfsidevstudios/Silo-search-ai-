@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon } from './icons/SearchIcon';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -273,31 +274,31 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                         { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
                         { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
                     ].map(({ id, label, Icon, action, isActive }) => (
-                        <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                            <Icon className="w-4 h-4" />
+                        <button key={id} onClick={action} className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                            <Icon className="w-3.5 h-3.5" />
                             <span>{label}</span>
                         </button>
                     ))}
                 </div>
                 <div className="search-modes-separator"></div>
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-500">APPS</span>
-                    <button onClick={() => handleModeToggle('github')} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${activeMode === 'github' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                        <GitHubIcon className="w-4 h-4" />
+                    <span className="text-[10px] font-bold text-gray-400 tracking-wider">APPS</span>
+                    <button onClick={() => handleModeToggle('github')} className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-medium rounded-full border transition-colors ${activeMode === 'github' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                        <GitHubIcon className="w-3.5 h-3.5" />
                         <span>GitHub</span>
                     </button>
                 </div>
             </div>
             {activeMode === 'creator' && (
                 <div className="mt-4 flex items-center justify-center gap-2" role="group" aria-label="Select a platform">
-                    <span className="text-sm font-medium text-gray-600 mr-2">For:</span>
+                    <span className="text-xs font-medium text-gray-600 mr-2">For:</span>
                     {[
                         { id: 'youtube', label: 'YouTube', Icon: YouTubeIcon },
                         { id: 'tiktok', label: 'TikTok', Icon: TikTokIcon },
                         { id: 'instagram', label: 'Instagram', Icon: InstagramIcon },
                     ].map(({ id, label, Icon }) => (
-                        <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                            <Icon className="w-4 h-4" />
+                        <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                            <Icon className="w-3.5 h-3.5" />
                             <span>{label}</span>
                         </button>
                     ))}
@@ -312,8 +313,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
                     { id: 'docs', label: 'Docs Tool', Icon: FileTextIcon, action: () => handleModeToggle('docs'), isActive: activeMode === 'docs' },
                     { id: 'code', label: 'Code Tool', Icon: CodeIcon, action: () => handleModeToggle('code'), isActive: activeMode === 'code' },
                 ].map(({ id, label, Icon, action, isActive }) => (
-                    <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                        <Icon className="w-4 h-4" />
+                    <button key={id} onClick={action} className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                        <Icon className="w-3.5 h-3.5" />
                         <span>{label}</span>
                     </button>
                 ))}
@@ -430,22 +431,22 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
               { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
               { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
           ].map(({ id, label, Icon, action, isActive }) => (
-              <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                  <Icon className="w-4 h-4" />
+              <button key={id} onClick={action} className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                  <Icon className="w-3.5 h-3.5" />
                   <span>{label}</span>
               </button>
           ))}
       </div>
       {activeMode === 'creator' && (
         <div className="mt-4 flex items-center justify-center gap-2" role="group" aria-label="Select a platform">
-            <span className="text-sm font-medium text-gray-600 mr-2">For:</span>
+            <span className="text-xs font-medium text-gray-600 mr-2">For:</span>
             {[
                 { id: 'youtube', label: 'YouTube', Icon: YouTubeIcon },
                 { id: 'tiktok', label: 'TikTok', Icon: TikTokIcon },
                 { id: 'instagram', label: 'Instagram', Icon: InstagramIcon },
             ].map(({ id, label, Icon }) => (
-                <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                    <Icon className="w-4 h-4" />
+                <button key={id} onClick={() => setCreatorPlatform(id as CreatorPlatform)} className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-medium rounded-full border transition-colors ${creatorPlatform === id ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                    <Icon className="w-3.5 h-3.5" />
                     <span>{label}</span>
                 </button>
             ))}
