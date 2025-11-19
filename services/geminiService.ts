@@ -145,6 +145,52 @@ export async function fetchSearchResults(query: string, apiKey: string, searchSe
   }
 }
 
+export async function classifyGithubQuery(query: string, apiKey: string): Promise<any> {
+    if (!apiKey) {
+        throw new Error("Gemini API key is missing.");
+    }
+    const ai = new GoogleGenAI({ apiKey });
+
+    const prompt = `Classify the user's request related to a GitHub repository. The user is asking: "${query}".
+    Analyze the query and respond with a JSON object.
+    - The "action" can be one of: 'explain_file', 'review_pr', 'summarize_issue', 'summarize_repo', 'general_question'.
+    - If the action is 'explain_file', extract the file 'path'.
+    - If the action is 'review_pr', extract the pull request 'pr_number' as an integer.
+    - If the action is 'summarize_issue', extract the issue 'issue_number' as an integer.
+    - If no specific action is clear, use 'general_question'.
+
+    Examples:
+    - "explain src/index.js" -> {"action": "explain_file", "path": "src/index.js"}
+    - "can you review pr 123?" -> {"action": "review_pr", "pr_number": 123}
+    - "what's the status of issue #45" -> {"action": "summarize_issue", "issue_number": 45}
+    - "summarize the whole repo" -> {"action": "summarize_repo"}
+    - "how do I run the tests?" -> {"action": "general_question"}
+    `;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, description: "one of: 'explain_file', 'review_pr', 'summarize_issue', 'summarize_repo', 'general_question'" },
+            path: { type: Type.STRING, description: "file path if action is 'explain_file'" },
+            pr_number: { type: Type.INTEGER, description: "pull request number if action is 'review_pr'" },
+            issue_number: { type: Type.INTEGER, description: "issue number if action is 'summarize_issue'" },
+        },
+        required: ["action"]
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { responseMimeType: "application/json", responseSchema: schema },
+        });
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error("Error classifying GitHub query:", error);
+        return { action: 'general_question' }; // Fallback
+    }
+}
+
 export async function fetchDeepResearch(query: string, apiKey: string): Promise<DeepResearchResult> {
   if (!apiKey) {
     throw new Error("Gemini API key is missing.");

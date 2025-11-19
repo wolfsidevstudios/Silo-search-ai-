@@ -12,7 +12,7 @@ import { KeyIcon } from './icons/KeyIcon';
 import { AlertTriangleIcon } from './icons/AlertTriangleIcon';
 import { Clock } from './Clock';
 import { STICKERS } from './sticker-library';
-import type { UserProfile, ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings, StickerInstance, WidgetInstance, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, FileRecord } from '../types';
+import type { UserProfile, ClockSettings, CustomSticker, WidgetType, TemperatureUnit, SearchInputSettings, StickerInstance, WidgetInstance, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, FileRecord, GithubProfile } from '../types';
 import { SearchIcon } from './icons/SearchIcon';
 import { FileTextIcon } from './icons/FileTextIcon';
 import { UploadCloudIcon } from './icons/UploadCloudIcon';
@@ -82,6 +82,9 @@ interface SettingsPageProps {
   files: FileRecord[];
   onFileUpload: (file: File) => void;
   onDeleteFile: (id: number) => void;
+  githubProfile: GithubProfile | null;
+  onDisconnectGithub: () => void;
+  onOpenGithubTokenModal: () => void;
 }
 
 const AI_PROVIDERS = [
@@ -157,7 +160,7 @@ const formatBytes = (bytes: number, decimals = 2) => {
 };
 
 
-export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData, tokenUsage, onTokenUsageChange, files, onFileUpload, onDeleteFile }) => {
+export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSection, onOpenLegalPage, apiKeys, onApiKeysChange, currentTheme, onThemeChange, customWallpaper, onCustomWallpaperChange, isClockVisible, onIsClockVisibleChange, clockSettings, onClockSettingsChange, temperatureUnit, onTemperatureUnitChange, speechLanguage, onSpeechLanguageChange, stickers, onAddSticker, onClearStickers, onEnterStickerEditMode, customStickers, onAddCustomSticker, widgets, onAddWidget, onClearWidgets, onEnterWidgetEditMode, searchInputSettings, onSearchInputSettingsChange, searchSettings, onSearchSettingsChange, accessibilitySettings, onAccessibilitySettingsChange, analyticsSettings, onAnalyticsSettingsChange, proCredits, unlockedProFeatures, onUnlockFeature, userProfile, onLogout, onDeleteAllData, onExportData, tokenUsage, onTokenUsageChange, files, onFileUpload, onDeleteFile, githubProfile, onDisconnectGithub, onOpenGithubTokenModal }) => {
   const [activeSection, setActiveSection] = useState(initialSection || 'appearance');
   const [stickerSearch, setStickerSearch] = useState('');
   const stickerFileInputRef = useRef<HTMLInputElement>(null);
@@ -543,15 +546,45 @@ export const SettingsModal: React.FC<SettingsPageProps> = ({ onClose, initialSec
         );
         case 'connected-apps': return (
             <div className="space-y-6">
-                <SettingsCard title="Connected Apps" description="Search across your favorite apps. This is a Pro feature, coming soon.">
+                <SettingsCard title="Connected Apps" description="Search across your favorite apps and services.">
                     <div className="space-y-4">
+                        {githubProfile ? (
+                            <div className="p-4 bg-gray-100 rounded-xl flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    <GitHubIcon className="w-8 h-8 text-gray-800" />
+                                    <div className="flex items-center space-x-3">
+                                        <img src={githubProfile.avatar_url} alt={githubProfile.login} className="w-10 h-10 rounded-full" />
+                                        <div>
+                                            <h5 className="font-semibold text-gray-800">{githubProfile.name}</h5>
+                                            <p className="text-xs text-gray-500">{githubProfile.login}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={onDisconnectGithub} className="px-4 py-1.5 text-sm font-medium text-red-600 bg-red-100 rounded-full hover:bg-red-200">
+                                    Disconnect
+                                </button>
+                            </div>
+                        ) : (
+                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                <div className="flex items-center space-x-4">
+                                    <GitHubIcon className="w-8 h-8 text-gray-500" />
+                                    <div>
+                                        <h5 className="font-semibold text-gray-800">GitHub</h5>
+                                        <p className="text-xs text-gray-500">Search code, issues, and PRs with AI.</p>
+                                    </div>
+                                </div>
+                                <button onClick={onOpenGithubTokenModal} className="px-4 py-1.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800">
+                                    Connect
+                                </button>
+                            </div>
+                        )}
+                       
                         {[
                             { Icon: MailIcon, name: 'Gmail', description: 'Summarize emails and find attachments without leaving the search bar.' },
                             { Icon: NotionIcon, name: 'Notion', description: 'Instantly find notes, documents, and database entries.' },
                             { Icon: SlackIcon, name: 'Slack', description: 'Search through conversations and shared files.' },
-                            { Icon: GitHubIcon, name: 'GitHub', description: 'Find code snippets, issues, and pull requests.' },
                         ].map(app => (
-                            <div key={app.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div key={app.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl opacity-60">
                                 <div className="flex items-center space-x-4">
                                     <app.Icon className="w-8 h-8 text-gray-500" />
                                     <div>

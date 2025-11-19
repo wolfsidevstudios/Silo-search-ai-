@@ -87,13 +87,6 @@ export interface UserProfile {
   provider?: string;
 }
 
-export interface GithubProfile {
-  login: string;
-  avatar_url: string;
-  name: string;
-  email: string;
-}
-
 export interface SearchInputSettings {
   isLarge: boolean;
   isGlossy: boolean;
@@ -336,7 +329,6 @@ export interface SummarizationSource {
   type: 'file' | 'note';
 }
 
-// Fix: Added missing ShoppingResult and Space types.
 export interface ShoppingResult {
   overallSummary: string;
   products: {
@@ -396,4 +388,11 @@ export interface DesignSpec {
   aspectRatio: '16/9' | '1/1' | '4/5' | '4/3';
   backgroundColor: string; // Key for the background class
   elements: DesignElement[];
+}
+
+export interface GithubProfile {
+    login: string;
+    name: string;
+    avatar_url: string;
+    email: string;
 }

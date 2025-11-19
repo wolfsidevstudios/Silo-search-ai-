@@ -7,7 +7,7 @@ import { ChatModal } from './components/ChatModal';
 import { Onboarding } from './components/Onboarding';
 import { fetchSearchResults, processPexelsQuery, fetchCreatorIdeas, fetchDeepResearch } from './services/geminiService';
 import { fetchYouTubeVideos } from './services/youtubeService';
-import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, HistoryRecord } from './types';
+import type { AiCreativeTool, SearchResult, ChatMessage, ClockSettings, StickerInstance, CustomSticker, WidgetInstance, UserProfile, WidgetType, TemperatureUnit, SearchInputSettings, SearchSettings, AccessibilitySettings, LanguageSettings, NotificationSettings, DeveloperSettings, AnalyticsSettings, YouTubeVideo, TravelPlan, PexelsResult, CreatorIdeasResult, TikTokVideo, DeepResearchResult, FileRecord, NoteRecord, SummarizationSource, HistoryRecord, GithubProfile } from './types';
 import { AiSparkleIcon } from './components/icons/AiSparkleIcon';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { ChromeBanner } from './components/ChromeBanner';
@@ -36,6 +36,10 @@ import * as db from './utils/db';
 import { KyndraLivePage } from './components/KyndraLivePage';
 import { AiLabsPage } from './components/AiLabsPage';
 import { AiToolPage } from './components/labs/AiToolPage';
+import { GithubConnectedModal } from './components/GithubConnectedModal';
+import { GithubTokenModal } from './components/GithubTokenModal';
+import { GithubPage } from './components/GithubPage';
+import { fetchUserProfile } from './services/githubService';
 
 type SpeechLanguage = 'en-US' | 'es-ES';
 type TermsAgreement = 'pending' | 'agreed' | 'disagreed';
@@ -153,6 +157,45 @@ const App: React.FC = () => {
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [summarizationSource, setSummarizationSource] = useState<SummarizationSource | null>(null);
+
+  const [githubToken, setGithubToken] = useState<string | null>(() => localStorage.getItem('githubToken'));
+  const [githubProfile, setGithubProfile] = useState<GithubProfile | null>(null);
+  const [showGithubConnectedModal, setShowGithubConnectedModal] = useState(false);
+  const [showGithubTokenModal, setShowGithubTokenModal] = useState(false);
+
+  useEffect(() => {
+    const hasSeenModal = localStorage.getItem('hasSeenGithubConnectedModal');
+    if (!hasSeenModal) {
+      setShowGithubConnectedModal(true);
+    }
+    if (githubToken && !githubProfile) {
+        fetchUserProfile(githubToken).then(setGithubProfile).catch(console.error);
+    }
+  }, [githubToken, githubProfile]);
+
+  const handleSetGithubToken = async (token: string) => {
+    try {
+        const profile = await fetchUserProfile(token);
+        setGithubToken(token);
+        setGithubProfile(profile);
+        localStorage.setItem('githubToken', token);
+        setShowGithubTokenModal(false);
+    } catch (err) {
+        alert('Failed to verify GitHub token. Please check the token and try again.');
+        console.error(err);
+    }
+  };
+
+  const handleDisconnectGithub = () => {
+    setGithubToken(null);
+    setGithubProfile(null);
+    localStorage.removeItem('githubToken');
+  };
+
+  const handleCloseGithubConnectedModal = () => {
+      setShowGithubConnectedModal(false);
+      localStorage.setItem('hasSeenGithubConnectedModal', 'true');
+  };
 
   useEffect(() => {
       const initData = async () => {
@@ -773,7 +816,7 @@ const App: React.FC = () => {
     navigate('/', { replace: true });
   }, [userProfile, navigate]);
 
-  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; pexelsMediaType?: 'photo' | 'video', agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => {
+  const handleSearch = useCallback(async (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; pexelsMediaType?: 'photo' | 'video', agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; githubSearch?: boolean; }) => {
     if (!query.trim()) return;
     if (!apiKeys.gemini) {
       alert('Please set your Gemini API key in settings or complete the onboarding process.');
@@ -785,6 +828,15 @@ const App: React.FC = () => {
     setLastSearchOptions(options);
     setSidebarOpen(false);
     setError(null);
+
+    if (options.githubSearch) {
+        if (!githubToken) {
+            setShowGithubTokenModal(true);
+            return;
+        }
+        navigate('/github');
+        return;
+    }
 
     if (summarizationSource) {
         if (!isTemporaryMode) {
@@ -1009,7 +1061,7 @@ const App: React.FC = () => {
     } finally {
         setIsLoading(false);
     }
-  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, summarizationSource, setTokenUsage]);
+  }, [isTemporaryMode, apiKeys, searchSettings, isStudyMode, navigate, summarizationSource, setTokenUsage, githubToken]);
 
   const handleGoHome = () => navigate('/search');
   const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
@@ -1243,6 +1295,7 @@ const App: React.FC = () => {
             case '/agent': return <WebAgentPage initialQuery={agentQuery} geminiApiKey={apiKeys.gemini} onHome={handleGoHome} {...commonProps} onOpenLegalPage={(p) => navigate(`/${p}`)} />;
             case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
             case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
+            case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
             case '/search':
             case '/history':
             default: return <MobileApp currentPath={path} onSearch={handleSearch} history={history} onClearRecents={handleClearRecents} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} isStudyMode={isStudyMode} setIsStudyMode={setIsStudyMode} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} geminiApiKey={apiKeys.gemini} files={files} notes={notes} {...commonProps} />;
@@ -1261,6 +1314,7 @@ const App: React.FC = () => {
       case '/discover': return <DiscoverPage onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
       case '/history': return <HistoryPage history={history} onSearch={(q) => handleSearch(q, {})} onOpenVideoPlayer={handleOpenVideoPlayer} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
+      case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
       default:
         const desktopSearchPageProps = {
           onSearch: handleSearch, isClockVisible, clockSettings, stickers, onUpdateSticker: handleUpdateSticker, isStickerEditMode, onExitStickerEditMode: () => setStickerEditMode(false), customStickers, temperatureUnit, widgets, onUpdateWidget: handleUpdateWidget, isWidgetEditMode, onExitWidgetEditMode: () => setWidgetEditMode(false), searchInputSettings, speechLanguage, onOpenLegalPage: (p:any) => navigate(`/${p}`), onOpenComingSoonModal: handleOpenComingSoonModal, isStudyMode, setIsStudyMode, summarizationSource, onSelectSummarizationSource: handleSelectSummarizationSource, onClearSummarizationSource: () => setSummarizationSource(null), geminiApiKey: apiKeys.gemini, files, notes, ...commonProps
@@ -1301,13 +1355,15 @@ const App: React.FC = () => {
         case '/about': return <AboutPage onClose={() => window.history.back()} />;
         case '/settings': return (
             <div className={appClasses} style={appStyle}>
-                 <SettingsModal onClose={() => navigate('/search')} initialSection={initialSettingsSection} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onApiKeysChange={setApiKeys} currentTheme={theme} onThemeChange={setTheme} customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper} isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible} clockSettings={clockSettings} onClockSettingsChange={setClockSettings} temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit} speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage} stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode} customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker} widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode} searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings} searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings} accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings} languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings} notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings} developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings} analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings} proCredits={proCredits} unlockedProFeatures={unlockedProFeatures} onUnlockFeature={handleUnlockFeature} userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData} onExportData={handleExportData} tokenUsage={tokenUsage} onTokenUsageChange={setTokenUsage} files={files} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} />
+                 <SettingsModal onClose={() => navigate('/search')} initialSection={initialSettingsSection} onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onApiKeysChange={setApiKeys} currentTheme={theme} onThemeChange={setTheme} customWallpaper={customWallpaper} onCustomWallpaperChange={setCustomWallpaper} isClockVisible={isClockVisible} onIsClockVisibleChange={setIsClockVisible} clockSettings={clockSettings} onClockSettingsChange={setClockSettings} temperatureUnit={temperatureUnit} onTemperatureUnitChange={setTemperatureUnit} speechLanguage={speechLanguage} onSpeechLanguageChange={setSpeechLanguage} stickers={stickers} onAddSticker={handleAddSticker} onClearStickers={handleClearStickers} onEnterStickerEditMode={handleEnterStickerEditMode} customStickers={customStickers} onAddCustomSticker={handleAddCustomSticker} widgets={widgets} onAddWidget={handleAddWidget} onClearWidgets={handleClearWidgets} onEnterWidgetEditMode={handleEnterWidgetEditMode} searchInputSettings={searchInputSettings} onSearchInputSettingsChange={setSearchInputSettings} searchSettings={searchSettings} onSearchSettingsChange={setSearchSettings} accessibilitySettings={accessibilitySettings} onAccessibilitySettingsChange={setAccessibilitySettings} languageSettings={languageSettings} onLanguageSettingsChange={setLanguageSettings} notificationSettings={notificationSettings} onNotificationSettingsChange={setNotificationSettings} developerSettings={developerSettings} onDeveloperSettingsChange={setDeveloperSettings} analyticsSettings={analyticsSettings} onAnalyticsSettingsChange={setAnalyticsSettings} proCredits={proCredits} unlockedProFeatures={unlockedProFeatures} onUnlockFeature={handleUnlockFeature} userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData} onExportData={handleExportData} tokenUsage={tokenUsage} onTokenUsageChange={setTokenUsage} files={files} onFileUpload={handleFileUpload} onDeleteFile={handleDeleteFile} githubProfile={githubProfile} onDisconnectGithub={handleDisconnectGithub} onOpenGithubTokenModal={() => setShowGithubTokenModal(true)} />
             </div>
         );
         default:
             return (
                 <div className={appClasses} style={{ ...appStyle, ...(customWallpaper && !isMobile ? { backgroundImage: `url(${customWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' } : {}) }}>
                     {showChromeBanner && <ChromeBanner onClose={handleCloseChromeBanner} />}
+                    <GithubConnectedModal isOpen={showGithubConnectedModal} onClose={handleCloseGithubConnectedModal} />
+                    <GithubTokenModal isOpen={showGithubTokenModal} onClose={() => setShowGithubTokenModal(false)} onConnect={handleSetGithubToken} />
                     {!isMobile && <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} recentSearches={recentSearches} onSearch={(query) => handleSearch(query, {})} onClear={handleClearRecents} onOpenSettings={handleOpenSettingsPage} userProfile={userProfile} onLogout={handleLogout} proCredits={proCredits} onDeleteRecentSearch={handleDeleteRecentSearch} />}
                     <ChatModal isOpen={isChatModeOpen} onClose={handleCloseChatMode} history={chatHistory} onSendMessage={handleSendChatMessage} isLoading={isChatLoading} />
                     <ComingSoonModal isOpen={isComingSoonModalOpen} onClose={handleCloseComingSoonModal} />

@@ -25,6 +25,7 @@ import { CodeIcon } from './icons/CodeIcon';
 import { DesignToolIcon } from './icons/DesignToolIcon';
 import { LogoIcon } from './icons/LogoIcon';
 import { FileIcon } from './icons/FileIcon';
+import { GitHubIcon } from './icons/GitHubIcon';
 
 // The custom `CustomWindow` interface was removed as it was causing type conflicts
 // with native browser definitions for SpeechRecognition, leading to errors.
@@ -33,7 +34,7 @@ import { FileIcon } from './icons/FileIcon';
 type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
 
 interface SearchInputProps {
-  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; }) => void;
+  onSearch: (query: string, options: { studyMode?: boolean; mapSearch?: boolean; travelSearch?: boolean; pexelsSearch?: boolean; agentSearch?: boolean; creatorSearch?: boolean; creatorPlatform?: CreatorPlatform; researchSearch?: boolean; designSearch?: boolean; docSearch?: boolean; codeSearch?: boolean; githubSearch?: boolean; }) => void;
   initialValue?: string;
   isLarge?: boolean;
   isGlossy?: boolean;
@@ -59,7 +60,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'pexels' | 'agent' | 'creator' | 'research' | 'design' | 'docs' | 'code'>('default');
+  const [activeMode, setActiveMode] = useState<'default' | 'map' | 'travel' | 'pexels' | 'agent' | 'creator' | 'research' | 'design' | 'docs' | 'code' | 'github'>('default');
   const [creatorPlatform, setCreatorPlatform] = useState<CreatorPlatform>('youtube');
   const [isContextSelectorOpen, setContextSelectorOpen] = useState(false);
 
@@ -140,6 +141,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
         designSearch: activeMode === 'design',
         docSearch: activeMode === 'docs',
         codeSearch: activeMode === 'code',
+        githubSearch: activeMode === 'github',
     };
 
     if ([...Object.keys(options)].some(key => options[key as keyof typeof options]) && !query.trim() && !summarizationSource) {
@@ -262,20 +264,30 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
          {showModes && variant === 'home' && (
             <>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4">
-                {[
-                    { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
-                    { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
-                    { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
-                    { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
-                    { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
-                    { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
-                    { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
-                ].map(({ id, label, Icon, action, isActive }) => (
-                    <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
-                        <Icon className="w-4 h-4" />
-                        <span>{label}</span>
+                <div className="flex items-center gap-2">
+                    {[
+                        { id: 'study', label: 'Study Mode', Icon: BookOpenIcon, action: handleStudyToggle, isActive: isStudyMode },
+                        { id: 'research', label: 'Deep Research', Icon: LayersIcon, action: () => handleModeToggle('research'), isActive: activeMode === 'research' },
+                        { id: 'map', label: 'Map Search', Icon: MapPinIcon, action: () => handleModeToggle('map'), isActive: activeMode === 'map' },
+                        { id: 'travel', label: 'Travel Planner', Icon: PlaneIcon, action: () => handleModeToggle('travel'), isActive: activeMode === 'travel' },
+                        { id: 'creator', label: 'Creator Mode', Icon: LightbulbIcon, action: () => handleModeToggle('creator'), isActive: activeMode === 'creator' },
+                        { id: 'pexels', label: 'Media Search', Icon: ImageIcon, action: () => handleModeToggle('pexels'), isActive: activeMode === 'pexels' },
+                        { id: 'agent', label: 'Web Agent', Icon: BrowserIcon, action: () => handleModeToggle('agent'), isActive: activeMode === 'agent' },
+                    ].map(({ id, label, Icon, action, isActive }) => (
+                        <button key={id} onClick={action} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${isActive ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                            <Icon className="w-4 h-4" />
+                            <span>{label}</span>
+                        </button>
+                    ))}
+                </div>
+                <div className="search-modes-separator"></div>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-gray-500">APPS</span>
+                    <button onClick={() => handleModeToggle('github')} className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${activeMode === 'github' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                        <GitHubIcon className="w-4 h-4" />
+                        <span>GitHub</span>
                     </button>
-                ))}
+                </div>
             </div>
             {activeMode === 'creator' && (
                 <div className="mt-4 flex items-center justify-center gap-2" role="group" aria-label="Select a platform">
@@ -355,6 +367,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
             
             <div className="my-2 border-t border-gray-100"></div>
             <p className="px-4 pt-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Connected Apps</p>
+            <button onClick={() => { handleModeToggle('github'); setDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <GitHubIcon className="w-5 h-5 text-gray-500" /><span>Search in GitHub</span>
+            </button>
             <button onClick={() => onOpenComingSoonModal()} className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 opacity-60">
               <MailIcon className="w-5 h-5 text-gray-500" /><span>Search in Gmail</span><LockIcon className="w-4 h-4 ml-auto text-gray-400" />
             </button>
