@@ -165,13 +165,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const hasSeenModal = localStorage.getItem('hasSeenGithubConnectedModal');
-    if (!hasSeenModal) {
+    if (!hasSeenModal && userProfile) {
       setShowGithubConnectedModal(true);
     }
     if (githubToken && !githubProfile) {
         fetchUserProfile(githubToken).then(setGithubProfile).catch(console.error);
     }
-  }, [githubToken, githubProfile]);
+  }, [githubToken, githubProfile, userProfile]);
 
   const handleSetGithubToken = async (token: string) => {
     try {
@@ -457,7 +457,7 @@ const App: React.FC = () => {
   });
 
   const [theme, setTheme] = useState<string>(() => {
-    return window.localStorage.getItem('kyndra-ai-theme') || 'bg-white';
+    return window.localStorage.getItem('kyndra-ai-theme') || 'bg-cream-gradient';
   });
   
   const [customWallpaper, setCustomWallpaper] = useState<string | null>(() => {
@@ -988,8 +988,6 @@ const App: React.FC = () => {
       if (summarizationSource.type === 'file') {
         const file = await db.getFile(summarizationSource.id);
         if (file && (file.content.type.startsWith('text/') || file.content.type === 'application/pdf' || file.content.type.includes('document'))) {
-          // Note: For non-text files, this will be binary data. The service needs to handle it.
-          // For this implementation, we'll focus on text files for simplicity.
           fileContent = await file.content.text();
         } else if (file) {
           alert(`Cannot summarize this file type: ${file.content.type}. Only text-based files are supported.`);
