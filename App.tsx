@@ -461,10 +461,10 @@ const App: React.FC = () => {
   const [isClockVisible, setIsClockVisible] = useState<boolean>(() => {
     try {
         const item = window.localStorage.getItem('isClockVisible');
-        return item ? JSON.parse(item) : true;
+        return item ? JSON.parse(item) : false;
     } catch (error) {
         console.error("Could not parse isClockVisible from localStorage", error);
-        return true;
+        return false;
     }
   });
   
