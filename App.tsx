@@ -859,7 +859,6 @@ const App: React.FC = () => {
     if (userProfile) {
         const updatedProfile = { ...userProfile, isPro: true };
         setUserProfile(updatedProfile);
-        // Ensure navigate is called slightly after to allow render cycle if needed, though here it's synchronous state update
         setTimeout(() => navigate('/search', { replace: true }), 100);
     }
   };
@@ -872,7 +871,6 @@ const App: React.FC = () => {
       return;
     }
     
-    // Credit Check
     if (!hasCredits()) {
         alert("You have reached your daily limit of 5 free credits. Upgrade to Pro for unlimited searches.");
         handleOpenSettingsPage('rewards-store');
@@ -889,8 +887,6 @@ const App: React.FC = () => {
             setShowGithubTokenModal(true);
             return;
         }
-        // For GitHub, we only deduct credit upon interaction, or search here?
-        // Let's deduct for opening the specialized search
         useCredit();
         navigate('/github');
         return;
@@ -1036,7 +1032,6 @@ const App: React.FC = () => {
       }
     }
 
-
     try {
       const geminiPromise = fetchSearchResults(query, apiKeys.gemini, searchSettings, studyMode, fileContent);
       const youtubePromise = (summarizationSource || !apiKeys.youtube)
@@ -1070,7 +1065,6 @@ const App: React.FC = () => {
       navigate('/results');
 
       if (!isTemporaryMode) {
-        // setProCredits(c => c + 1); // Removed legacy credit accumulation
         if (estimatedTokens) {
             setTokenUsage(prev => ({
                 ...prev,
@@ -1089,7 +1083,7 @@ const App: React.FC = () => {
     } catch (err) {
       console.error(err);
       setError('Sorry, something went wrong. Please check your API key(s) and try again.');
-      setCurrentQuery(query); // Keep query for retry
+      setCurrentQuery(query); 
     } finally {
         setIsLoading(false);
     }
@@ -1292,7 +1286,7 @@ const App: React.FC = () => {
       return <ErrorState message={error} onRetry={handleRetry} onHome={handleReturnHome} />;
     }
 
-    if (isLoading) return <LoadingState query={loadingQuery} />;
+    if (isLoading) return <ThinkingState query={loadingQuery} />;
     
     const path = currentPath.split('?')[0];
     const pathParts = path.split('/').filter(Boolean);
@@ -1317,11 +1311,11 @@ const App: React.FC = () => {
     
     if (isMobile) {
         switch(path) {
-            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} files={files} notes={notes} {...commonProps} /> : <LoadingState query={currentQuery}/>;
+            case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} files={files} notes={notes} {...commonProps} /> : <ThinkingState query={currentQuery}/>;
             case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-            case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={travelQuery} />;
-            case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
-            case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
+            case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <ThinkingState query={travelQuery} />;
+            case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <ThinkingState query={pexelsQuery} />;
+            case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <ThinkingState query={creatorQuery} />;
             case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
             case '/github': return <GithubPage geminiApiKey={apiKeys.gemini} githubToken={githubToken!} {...commonProps} />;
             case '/pro-success': return <ProSuccessPage onGoHome={handleGoHome} onActivatePro={handleActivatePro} />;
@@ -1334,11 +1328,11 @@ const App: React.FC = () => {
 
     // Desktop view
     switch(path) {
-      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} files={files} notes={notes} {...commonProps} /> : <LoadingState query={currentQuery} />;
+      case '/results': return searchResult ? <ResultsPage result={searchResult} originalQuery={currentQuery} onSearch={handleSearch} onHome={handleGoHome} onEnterChatMode={handleEnterChatMode} searchInputSettings={searchInputSettings} speechLanguage={speechLanguage} onOpenComingSoonModal={handleOpenComingSoonModal} onOpenLegalPage={(p) => navigate(`/${p}`)} summarizationSource={summarizationSource} onSelectSummarizationSource={handleSelectSummarizationSource} onClearSummarizationSource={() => setSummarizationSource(null)} onOpenVideoPlayer={handleOpenVideoPlayer} geminiApiKey={apiKeys.gemini} elevenLabsApiKey={apiKeys.elevenlabs} files={files} notes={notes} {...commonProps} /> : <ThinkingState query={currentQuery} />;
       case '/map': return <MapPage initialQuery={mapQuery} onSearch={(query) => handleSearch(query, { mapSearch: true })} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
-      case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={travelQuery} />;
-      case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={pexelsQuery} />;
-      case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <LoadingState query={creatorQuery} />;
+      case '/travel-plan': return travelPlan ? <TravelPlanPage plan={travelPlan} originalQuery={travelQuery} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <ThinkingState query={travelQuery} />;
+      case '/pexels': return pexelsResult ? <PexelsPage initialResult={pexelsResult} originalQuery={pexelsQuery} onSearch={handleSearch} onHome={handleGoHome} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <ThinkingState query={pexelsQuery} />;
+      case '/creator-ideas': return creatorIdeasResult ? <CreatorIdeasPage result={creatorIdeasResult} onSearch={handleSearch} onHome={handleGoHome} onOpenLegalPage={(p) => navigate(`/${p}`)} geminiApiKey={apiKeys.gemini} {...commonProps} /> : <ThinkingState query={creatorQuery} />;
       case '/discover': return <DiscoverPage onOpenLegalPage={(p) => navigate(`/${p}`)} apiKeys={apiKeys} onOpenVideoPlayer={handleOpenVideoPlayer} {...commonProps} />;
       case '/history': return <HistoryPage history={history} onSearch={(q) => handleSearch(q, {})} onOpenVideoPlayer={handleOpenVideoPlayer} onOpenLegalPage={(p) => navigate(`/${p}`)} {...commonProps} />;
       case '/live': return <KyndraLivePage geminiApiKey={apiKeys.gemini} onExit={handleGoHome} />;
@@ -1417,34 +1411,46 @@ const App: React.FC = () => {
   return renderRouter();
 };
 
-const SkeletonLoader: React.FC = () => (
-    <div className="w-full max-w-2xl mx-auto mt-8 space-y-4">
-        <div className="flex space-x-4">
-            <div className="w-24 h-16 rounded-lg shimmer"></div>
-            <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 rounded shimmer"></div>
-                <div className="h-4 w-full rounded shimmer"></div>
-                <div className="h-4 w-1/2 rounded shimmer"></div>
-            </div>
-        </div>
-        <div className="h-4 w-full rounded shimmer"></div>
-        <div className="h-4 w-5/6 rounded shimmer"></div>
-    </div>
-);
+const ThinkingState: React.FC<{query: string}> = ({ query }) => {
+    const [step, setStep] = useState(0);
+    const steps = ["Initializing", "Connecting to Gemini 3.0", "Analyzing intent", "Browsing the web", "Reading sources", "Synthesizing answer"];
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setStep((prev) => (prev + 1) % steps.length);
+        }, 1500);
+        return () => clearInterval(interval);
+    }, []);
 
-const LoadingState: React.FC<{query: string}> = ({ query }) => (
-    <div className="relative flex flex-col items-center justify-center min-h-screen text-center p-4 overflow-hidden">
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full loading-blob" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full loading-blob" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-0 -left-4 w-72 h-72 bg-violet-300 rounded-full loading-blob" style={{ animationDelay: '4s' }}></div>
-        <div className="relative z-10">
-            <p className="text-lg text-gray-600">Searching for...</p>
-            <p className="mt-1 text-xl font-medium text-black">{query}</p>
-            <SkeletonLoader />
+    return (
+        <div className="relative flex flex-col items-center justify-center min-h-screen text-center p-4 overflow-hidden bg-white/30 backdrop-blur-xl">
+             {/* Central Orb Animation */}
+             <div className="relative flex items-center justify-center mb-8">
+                {/* Outer Glow Ring */}
+                <div className="absolute w-64 h-64 rounded-full bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 opacity-20 blur-3xl animate-pulse"></div>
+                
+                {/* Rotating Gradient Border */}
+                <div className="w-32 h-32 rounded-full p-[2px] bg-gradient-to-tr from-transparent via-blue-500 to-purple-600 animate-spin-slow">
+                    <div className="w-full h-full bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        <AiSparkleIcon className="w-10 h-10 text-gray-800 animate-pulse" />
+                    </div>
+                </div>
+             </div>
+
+             {/* Text & Status */}
+             <div className="relative z-10 space-y-4 max-w-md mx-auto">
+                <div className="h-6 overflow-hidden">
+                    <p className="text-sm font-bold text-gray-500 tracking-widest uppercase animate-fade-in-up key={step}">
+                        {steps[step]}...
+                    </p>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight text-shimmer">
+                    "{query}"
+                </h2>
+             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const ErrorState: React.FC<{message: string | null; onRetry: () => void; onHome: () => void}> = ({ message, onRetry, onHome }) => (
     <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">

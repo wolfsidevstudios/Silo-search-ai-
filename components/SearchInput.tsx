@@ -28,10 +28,6 @@ import { LogoIcon } from './icons/LogoIcon';
 import { FileIcon } from './icons/FileIcon';
 import { GitHubIcon } from './icons/GitHubIcon';
 
-// The custom `CustomWindow` interface was removed as it was causing type conflicts
-// with native browser definitions for SpeechRecognition, leading to errors.
-// By removing it, we can rely on default DOM library definitions or type assertions.
-
 type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram';
 
 interface SearchInputProps {
@@ -50,10 +46,9 @@ interface SearchInputProps {
   showModes?: boolean;
   files: FileRecord[];
   notes: NoteRecord[];
-  geminiApiKey?: string; // Add optional prop for API key if needed for direct calls in future
+  geminiApiKey?: string;
 }
 
-// Fix: Updated default `setIsStudyMode` to accept an argument, resolving type errors.
 export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue = '', isLarge = false, isGlossy = false, speechLanguage, onOpenComingSoonModal, isStudyMode = false, setIsStudyMode = (_isStudyMode: boolean) => {}, variant, summarizationSource, onSelectSummarizationSource, onClearSummarizationSource, showModes = true, files, notes }) => {
   const [query, setQuery] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
@@ -85,7 +80,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     recognition.interimResults = true;
     recognition.lang = speechLanguage;
     
-    // Use on-event properties directly to avoid type conflicts that can arise with addEventListener for this API.
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
     recognition.onerror = (event: any) => {
@@ -102,7 +96,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSearch, initialValue
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
-        // Nullify handlers to prevent memory leaks in some older browsers
         recognitionRef.current.onstart = null;
         recognitionRef.current.onend = null;
         recognitionRef.current.onerror = null;
